@@ -293,10 +293,6 @@ input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padd
 .time-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 18px; border: 1.5px solid var(--border); font-size: 0.78rem; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
 .time-chip-del { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.72rem; padding: 0 0 0 2px; line-height: 1; transition: color 0.12s; }
 .time-chip-del:hover { color: var(--red); }
-.add-time-row { display: flex; gap: 8px; align-items: center; }
-.time-input { padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text); background: var(--bg); outline: none; width: auto; flex-shrink: 0; }
-.time-input:focus { border-color: var(--green); }
-.add-time-btn { padding: 7px 13px; background: var(--green); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 600; white-space: nowrap; }
 .action-btn { padding: 7px 13px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.79rem; font-weight: 600; background: var(--bg); color: var(--text); transition: all 0.15s; white-space: nowrap; }
 .action-btn:hover { border-color: var(--green); color: var(--green); }
 .action-btn.danger { border-color: var(--red); color: var(--red); background: var(--red-pale); }
@@ -309,21 +305,16 @@ input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padd
   bottom: 0; left: 0; right: 0;
   width: 100%;
   z-index: 200;
-  padding: 10px 12px;
-  padding-bottom: calc(10px + var(--safe-bottom));
-  background: transparent;
-  pointer-events: none;
+  background: rgba(22, 36, 28, 0.96);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .bnav-pill {
   display: flex;
-  background: rgba(28, 42, 34, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 24px;
-  padding: 6px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.14);
-  pointer-events: all;
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 8px;
 }
 .bnav-item {
   flex: 1;
@@ -331,39 +322,99 @@ input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padd
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: 7px 2px 5px;
   cursor: pointer;
   gap: 3px;
   border: none;
   background: none;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.4);
   font-family: 'Inter', sans-serif;
-  border-radius: 18px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.18s ease;
   min-width: 0;
+  -webkit-tap-highlight-color: transparent;
 }
-.bnav-item.active {
-  background: rgba(255,255,255,0.12);
-  color: #ffffff;
-}
-.bnav-item:active { transform: scale(0.92); }
+.bnav-item.active { color: #ffffff; }
+.bnav-item:active { transform: scale(0.9); opacity: 0.8; }
 .bnav-icon {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   line-height: 1;
-  transition: transform 0.2s ease;
+  transition: transform 0.18s ease;
 }
-.bnav-item.active .bnav-icon { transform: scale(1.12); }
+.bnav-item.active .bnav-icon { transform: scale(1.08); }
 .bnav-label {
-  font-size: 0.58rem;
+  font-size: 0.57rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 
-/* ── TOAST ── */
+/* ── FIX 2: Collapsible entry log on mobile ── */
+.entries-toggle {
+  display: none;
+  width: 100%;
+  background: var(--green-dark);
+  color: white;
+  border: none;
+  padding: 11px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.entries-toggle-arrow { transition: transform 0.25s ease; font-size: 0.75rem; }
+.entries-toggle.open .entries-toggle-arrow { transform: rotate(180deg); }
+.entries-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+
+@media (max-width: 700px) {
+  .entries-toggle { display: flex; }
+  .today-right { padding: 12px 14px; }
+}
+
+/* ── FIX 3: Notification time row wraps properly ── */
+.add-time-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.time-input {
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.84rem;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  min-width: 0;
+  flex: 1;
+  max-width: 130px;
+}
+.time-input:focus { border-color: var(--green); }
+.add-time-btn {
+  padding: 8px 14px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .toast {
   position: fixed;
   bottom: calc(96px + var(--safe-bottom));
@@ -388,7 +439,7 @@ input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padd
 @media (max-width: 700px) {
   .desktop-tabs { display: none; }
   .bottom-nav { display: block; }
-  .content-area { padding-bottom: calc(80px + var(--safe-bottom)); }
+  .content-area { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
   #view-today { flex-direction: column; }
   .today-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
   .today-right { padding: 16px; }
@@ -527,7 +578,15 @@ input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padd
         <button class="save-btn" onclick="addEntry()">Eintrag speichern</button>
       </div>
 
-      <div class="today-right" id="todayTimeline"></div>
+      <div class="today-right" id="todayRight">
+        <button class="entries-toggle" id="entriesToggle" onclick="toggleEntries()">
+          <span id="entriesToggleLabel">Einträge anzeigen</span>
+          <span class="entries-toggle-arrow">▼</span>
+        </button>
+        <div class="entries-collapsible" id="entriesCollapsible">
+          <div id="todayTimeline"></div>
+        </div>
+      </div>
     </div>
 
     <!-- HISTORY -->
@@ -699,6 +758,9 @@ function showToast(msg) {
 // ════════════════════════════════════════════════
 window.addEventListener('load', () => {
   document.getElementById('entryTime').value = fmtTime(new Date());
+  // Init collapsible closed
+  const col = document.getElementById('entriesCollapsible');
+  if (col) col.style.maxHeight = '0px';
   updateDateDisplay();
   renderTimeline();
   renderNotes();
@@ -848,8 +910,35 @@ function deleteEntry(key, id) {
 }
 
 // ════════════════════════════════════════════════
-// RENDER TIMELINE (Today)
+// COLLAPSIBLE ENTRIES (mobile)
 // ════════════════════════════════════════════════
+let entriesOpen = false;
+
+function toggleEntries() {
+  entriesOpen = !entriesOpen;
+  const col  = document.getElementById('entriesCollapsible');
+  const btn  = document.getElementById('entriesToggle');
+  if (!col || !btn) return;
+  if (entriesOpen) {
+    col.style.maxHeight = col.scrollHeight + 'px';
+    btn.classList.add('open');
+  } else {
+    col.style.maxHeight = '0px';
+    btn.classList.remove('open');
+  }
+}
+
+function syncEntriesToggle(count) {
+  const btn   = document.getElementById('entriesToggle');
+  const label = document.getElementById('entriesToggleLabel');
+  const col   = document.getElementById('entriesCollapsible');
+  if (!btn || !label) return;
+  label.textContent = count > 0
+    ? `${count} Eintrag${count !== 1 ? 'e' : ''} heute ▸ anzeigen`
+    : 'Noch keine Einträge heute';
+  // Keep open if already open, re-measure height
+  if (entriesOpen && col) col.style.maxHeight = col.scrollHeight + 'px';
+}
 function renderTimeline() {
   const data    = DB.getData();
   const key     = dateKey(currentDate);
@@ -871,6 +960,7 @@ function renderTimeline() {
     : '<div class="empty-state"><div class="empty-icon">📋</div><p>Noch nichts für diesen Tag.<br>Füge deinen ersten Eintrag hinzu!</p></div>';
 
   document.getElementById('todayTimeline').innerHTML = html;
+  syncEntriesToggle(entries.length);
 }
 
 function cardHTML(e, key) {
@@ -1382,67 +1472,49 @@ function pwaBoot() {
     };
   }
 
-  // ── draw icon ──
+  // ── draw icon – Blatt + Puls ──
   function drawIcon(size) {
     const c = document.createElement('canvas');
     c.width = c.height = size;
     const ctx = c.getContext('2d');
     const s = size;
 
-    // Dark green background
+    // Background gradient – medium green
     const bg = ctx.createLinearGradient(0, 0, s, s);
-    bg.addColorStop(0, '#2C5F3F'); bg.addColorStop(1, '#1a3d28');
+    bg.addColorStop(0, '#56886A'); bg.addColorStop(1, '#2C5F3F');
     ctx.fillStyle = bg;
     ctx.roundRect(0,0,s,s,s*0.22); ctx.fill();
 
-    // Sheen overlay
-    const sheen = ctx.createRadialGradient(s*0.3,s*0.28,0, s*0.5,s*0.5,s*0.72);
-    sheen.addColorStop(0,'rgba(255,255,255,0.14)'); sheen.addColorStop(1,'rgba(0,0,0,0.1)');
-    ctx.fillStyle = sheen; ctx.roundRect(0,0,s,s,s*0.22); ctx.fill();
+    // Soft radial glow in centre
+    const glow = ctx.createRadialGradient(s*0.5,s*0.44,0, s*0.5,s*0.5,s*0.58);
+    glow.addColorStop(0,'rgba(255,255,255,0.13)'); glow.addColorStop(1,'transparent');
+    ctx.fillStyle = glow; ctx.roundRect(0,0,s,s,s*0.22); ctx.fill();
 
-    const bw=s*0.54, bh=s*0.62, bx=s*0.5-bw/2, by=s*0.5-bh/2+s*0.02;
+    ctx.save();
+    ctx.translate(s*0.5, s*0.48);
 
-    // Book shadow
-    ctx.fillStyle='rgba(0,0,0,0.2)';
-    ctx.roundRect(bx+s*0.02,by+s*0.02,bw,bh,s*0.045); ctx.fill();
-
-    // Book pages
-    ctx.fillStyle='#f2ece0';
-    ctx.roundRect(bx+s*0.035,by,bw-s*0.035,bh,s*0.04); ctx.fill();
-
-    // Spine
-    const spineGrad = ctx.createLinearGradient(bx,0,bx+s*0.058,0);
-    spineGrad.addColorStop(0,'#a8d5b0'); spineGrad.addColorStop(1,'#C8E6C9');
-    ctx.fillStyle = spineGrad;
-    ctx.roundRect(bx,by,s*0.058,bh,s*0.022); ctx.fill();
-
-    // Spine highlight
-    ctx.fillStyle='rgba(255,255,255,0.38)';
-    ctx.fillRect(bx+s*0.007,by+s*0.04,s*0.012,bh-s*0.08);
-
-    // Page lines
-    ctx.strokeStyle='#c8d4cc'; ctx.lineWidth=s*0.016; ctx.lineCap='round';
-    [0.28,0.38,0.48,0.58].forEach(r => {
-      const ly=by+bh*r;
-      ctx.beginPath(); ctx.moveTo(bx+s*0.105,ly); ctx.lineTo(bx+bw-s*0.055,ly); ctx.stroke();
-    });
-    // Short line
-    ctx.beginPath(); ctx.moveTo(bx+s*0.105,by+bh*0.67); ctx.lineTo(bx+bw*0.56,by+bh*0.67); ctx.stroke();
-
-    // Leaf in upper-right quadrant of book
-    ctx.save(); ctx.translate(bx+bw*0.63, by+bh*0.19);
+    // Leaf shape – white, rounded
     ctx.beginPath();
-    ctx.moveTo(0,-s*0.115);
-    ctx.bezierCurveTo(s*0.095,-s*0.115, s*0.12,s*0.018, 0,s*0.115);
-    ctx.bezierCurveTo(-s*0.12,s*0.018, -s*0.095,-s*0.115, 0,-s*0.115);
-    ctx.fillStyle='#4A7C59'; ctx.fill();
-    // midrib
-    ctx.beginPath(); ctx.moveTo(0,-s*0.115); ctx.lineTo(0,s*0.115);
-    ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=s*0.02; ctx.stroke();
-    // vein
-    ctx.beginPath(); ctx.moveTo(0,s*0.01);
-    ctx.quadraticCurveTo(s*0.065,-s*0.018, s*0.09,s*0.045);
-    ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=s*0.014; ctx.stroke();
+    ctx.moveTo(0, -s*0.31);
+    ctx.bezierCurveTo( s*0.26, -s*0.31,  s*0.31,  s*0.05, 0,  s*0.31);
+    ctx.bezierCurveTo(-s*0.31,  s*0.05, -s*0.26, -s*0.31, 0, -s*0.31);
+    ctx.fillStyle = 'rgba(255,255,255,0.93)';
+    ctx.fill();
+
+    // Pulse / heartbeat line inside leaf
+    ctx.beginPath();
+    ctx.moveTo(-s*0.21,  s*0.02);
+    ctx.lineTo(-s*0.09,  s*0.02);
+    ctx.lineTo(-s*0.04, -s*0.13);
+    ctx.lineTo( s*0.04,  s*0.15);
+    ctx.lineTo( s*0.09,  s*0.02);
+    ctx.lineTo( s*0.21,  s*0.02);
+    ctx.strokeStyle = '#2C5F3F';
+    ctx.lineWidth   = s * 0.048;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+
     ctx.restore();
 
     return c.toDataURL('image/png');
