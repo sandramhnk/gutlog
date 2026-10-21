@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>GutLog</title>
-<meta name="description" content="Ernährungs- und Symptomtagebuch für Magen-Darm-Beschwerden">
 <meta name="theme-color" content="#2C5F3F">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,1597 +14,568 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --green: #4A7C59;
-  --green-dark: #2C5F3F;
-  --green-light: #C8E6C9;
-  --green-pale: #EEF5F0;
-  --bg: #F2F5F2;
-  --text: #1E2E25;
-  --text-muted: #7A9080;
-  --amber: #E8924A;
-  --amber-pale: #FDF0E6;
-  --red: #C0392B;
-  --red-pale: #FDECEA;
-  --purple: #7B5EA7;
-  --purple-pale: #f0ebf8;
-  --white: #ffffff;
-  --border: #D4E4D8;
-  --shadow-sm: 0 1px 6px rgba(30,46,37,0.07);
-  --shadow: 0 2px 14px rgba(30,46,37,0.09);
-  --shadow-lg: 0 6px 28px rgba(30,46,37,0.13);
-  --radius: 14px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#4A7C59;--gd:#2C5F3F;--gp:#EEF5F0;--gl:#C8E6C9;
+  --bg:#F2F5F2;--text:#1E2E25;--mut:#7A9080;
+  --amb:#E8924A;--ap:#FDF0E6;--red:#C0392B;--rp:#FDECEA;
+  --pur:#7B5EA7;--pp:#f0ebf8;--wh:#fff;--bd:#D4E4D8;
+  --sh:0 2px 14px rgba(30,46,37,.09);--r:14px;
 }
-html, body { height: 100%; }
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.6;
-  display: flex;
-  flex-direction: column;
-  overscroll-behavior: none;
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;display:flex;flex-direction:column;overscroll-behavior:none}
+header{background:var(--gd);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);z-index:10}
+.hb h1{font-family:'DM Serif Display',serif;font-size:1.35rem;font-weight:400}
+.hb .hs{font-size:.7rem;opacity:.65;margin-top:1px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#64DC8C;flex-shrink:0;transition:background .3s}
+.sync-dot.off{background:rgba(255,255,255,.3)}
+.sync-dot.syncing{background:#f9c74f;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.header-right{display:flex;align-items:center;gap:10px}
+.dnav{display:flex;align-items:center;gap:8px}
+.dnav button{background:rgba(255,255,255,.14);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.dnav button:hover{background:rgba(255,255,255,.26)}
+#dateLbl{font-size:.84rem;font-weight:600;min-width:120px;text-align:center}
+.app-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.dtabs{display:flex;background:#fff;border-bottom:1px solid var(--bd);padding:0 16px;gap:2px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.dtabs::-webkit-scrollbar{display:none}
+.dtab{padding:11px 14px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--mut);border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.dtab.active{color:var(--green);border-bottom-color:var(--green)}
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.view{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+.view.active{display:flex;flex-direction:column}
+#view-today{flex-direction:column}
+.today-form{background:#fff;padding:20px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pt{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+input[type=text],input[type=time],input[type=number],textarea,select{width:100%;padding:8px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--green);background:#fff}
+textarea{resize:vertical;min-height:58px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A9080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.tbts{display:flex;gap:6px;margin-bottom:16px}
+.tb{flex:1;padding:9px 4px;border:1.5px solid var(--bd);border-radius:9px;cursor:pointer;font-size:.76rem;font-weight:600;text-align:center;background:var(--bg);color:var(--mut);transition:all .15s;line-height:1.3;-webkit-tap-highlight-color:transparent}
+.tb.am{border-color:var(--green);background:var(--gp);color:var(--green)}
+.tb.as{border-color:var(--amb);background:var(--ap);color:#c0621a}
+.tb.ad{border-color:var(--pur);background:var(--pp);color:var(--pur)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sc{display:flex;align-items:center;gap:7px;padding:9px 11px;border:2px solid var(--bd);border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:500;transition:all .15s;background:#fff;user-select:none;color:var(--text)}
+.sc input{display:none}
+.ck{width:16px;height:16px;border-radius:4px;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:#fff;margin-left:auto;font-size:.65rem;color:transparent}
+.sc.checked{border-color:var(--amb);background:var(--ap);color:#9a4e0f}
+.sc.checked .ck{background:var(--amb);border-color:var(--amb);color:#fff}
+.sr{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border:none;background:transparent;height:4px}
+.sv{font-weight:700;font-size:1rem;color:var(--amb);min-width:22px;text-align:center}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sav{width:100%;padding:12px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
+.sav:hover{background:#234d30}.sav:active{transform:scale(.98)}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pill{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600}
+.pm{background:var(--gp);color:var(--green)}.ps{background:var(--ap);color:#c0621a}.pd{background:var(--pp);color:var(--pur)}.pe{background:#fff;color:var(--mut)}
+.tl{position:relative;padding-left:24px}
+.tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gl),var(--bd));border-radius:2px}
+.tle{position:relative;margin-bottom:12px}
+.tld{position:absolute;left:-20px;top:14px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bg);box-shadow:0 1px 6px rgba(30,46,37,.07)}
+.dm{background:var(--green)}.ds{background:var(--amb)}.dd{background:var(--pur)}
+.ec{border-radius:var(--r);padding:12px 14px;box-shadow:0 1px 6px rgba(30,46,37,.07);border-left:3px solid transparent;position:relative;transition:box-shadow .15s}
+.ec:hover{box-shadow:var(--sh)}
+.ecm{background:#fff;border-left-color:var(--green)}.ecs{background:#fffcf8;border-left-color:var(--amb)}.ecd{background:#faf8ff;border-left-color:var(--pur)}
+.ct{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px}
+.cti{font-size:.68rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.cb{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.bm{background:var(--gp);color:var(--green)}.bs{background:var(--ap);color:#c0621a}.bd2{background:var(--pp);color:var(--pur)}
+.cm{font-size:.88rem;font-weight:500;margin-bottom:3px}
+.cd{font-size:.76rem;color:var(--mut);line-height:1.45}
+.stgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.stg{font-size:.68rem;padding:2px 7px;background:var(--ap);color:#c0621a;border-radius:10px}
+.sb{height:3px;background:var(--bd);border-radius:2px;margin-top:7px;overflow:hidden}
+.sf{height:100%;border-radius:2px;background:linear-gradient(90deg,#f9c74f,var(--amb),var(--red))}
+.db{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--bd);font-size:.82rem;padding:3px 5px;border-radius:5px;transition:all .12s;opacity:0;line-height:1}
+.ec:hover .db,.ec:focus-within .db{opacity:1}
+.db:hover{color:var(--red);background:var(--rp)}
+.es{text-align:center;padding:50px 20px;color:var(--mut)}
+.ei{font-size:2.6rem;margin-bottom:12px}
+.es p{font-size:.87rem;line-height:1.7}
+.inner{padding:20px 22px;max-width:820px}
+.st{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
+.hd{margin-bottom:26px}
+.hdl{font-size:.78rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);padding-bottom:6px;margin-bottom:12px}
+.hdl.tdy{color:var(--green);font-size:.82rem}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.scc{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);text-align:center}
+.sn{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--green);line-height:1}
+.sl{font-size:.72rem;color:var(--mut);margin-top:5px;line-height:1.3}
+.cb2{background:#fff;border-radius:var(--r);padding:18px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:14px}
+.cbt{font-weight:600;font-size:.85rem;margin-bottom:13px}
+.br{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:.81rem}
+.bl{min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbg{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px;transition:width .4s ease}
+.bfs{background:var(--amb)}.bft{background:linear-gradient(90deg,var(--amb),var(--red))}
+.bc{font-size:.73rem;color:var(--mut);min-width:28px;text-align:right}
+.cn{font-size:.71rem;color:var(--mut);margin-top:10px;line-height:1.5}
+.nb{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:18px}
+.nta{width:100%;min-height:120px;padding:12px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;resize:vertical;transition:border-color .15s}
+.nta:focus{border-color:var(--green);background:#fff}
+.nsb{margin-top:9px;padding:8px 18px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;transition:background .15s}
+.nsb:hover{background:#234d30}
+.nc{background:#fff;border-radius:var(--r);padding:13px 15px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:10px;border-left:3px solid var(--gl)}
+.nd{font-size:.7rem;color:var(--mut);margin-bottom:5px}
+.nt{font-size:.85rem;line-height:1.7;white-space:pre-wrap}
+/* REPORT */
+.wn{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.wb{background:#fff;border:1.5px solid var(--bd);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);transition:all .15s;box-shadow:0 1px 6px rgba(30,46,37,.07)}
+.wb:hover:not(:disabled){border-color:var(--green);color:var(--green)}
+.wb:disabled{opacity:.35;cursor:not-allowed}
+.wl{font-weight:600;font-size:.9rem}
+.rc{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:16px;border-left:4px solid var(--green)}
+.rh{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.rp2{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);background:var(--gp);padding:3px 9px;border-radius:10px}
+.rt{font-family:'DM Serif Display',serif;font-size:1.05rem}
+/* SETTINGS */
+.ss{background:#fff;border-radius:var(--r);box-shadow:0 1px 6px rgba(30,46,37,.07);padding:16px 18px;margin-bottom:16px}
+.ssl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin-bottom:13px}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);gap:14px}
+.srow:last-child{border-bottom:none;padding-bottom:0}
+.srl{font-size:.88rem;font-weight:500}
+.srs{font-size:.72rem;color:var(--mut);margin-top:2px;line-height:1.4}
+.tog{position:relative;width:44px;height:26px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tr2{position:absolute;inset:0;background:var(--bd);border-radius:26px;cursor:pointer;transition:background .2s}
+.tr2::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.22)}
+.tog input:checked+.tr2{background:var(--green)}
+.tog input:checked+.tr2::before{transform:translateX(18px)}
+.ns{font-size:.77rem;padding:8px 11px;border-radius:8px;margin-top:10px;display:none;line-height:1.5}
+.nso{background:var(--gp);color:var(--green);display:block}
+.nsw{background:var(--ap);color:#c0621a;display:block}
+.nse{background:var(--rp);color:var(--red);display:block}
+.tss{margin-top:14px;display:none}
+.tcs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.tch{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:18px;border:1.5px solid var(--bd);font-size:.78rem;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+.tcd{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.72rem;padding:0 0 0 2px;line-height:1;transition:color .12s}
+.tcd:hover{color:var(--red)}
+.atr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ti{padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none;flex:1;max-width:130px;min-width:0;-webkit-appearance:none}
+.ti:focus{border-color:var(--green)}
+.atb{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0}
+.ab{padding:7px 13px;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.79rem;font-weight:600;background:var(--bg);color:var(--text);transition:all .15s;white-space:nowrap}
+.ab:hover{border-color:var(--green);color:var(--green)}
+.ab.dng{border-color:var(--red);color:var(--red);background:var(--rp)}
+/* SUPABASE CONFIG */
+.cfg-box{background:var(--gp);border:1.5px solid var(--gl);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.cfg-title{font-weight:700;font-size:.88rem;margin-bottom:4px;color:var(--gd)}
+.cfg-sub{font-size:.78rem;color:var(--mut);margin-bottom:14px;line-height:1.5}
+.cfg-input{width:100%;padding:9px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);background:#fff;outline:none;margin-bottom:8px;-webkit-appearance:none}
+.cfg-input:focus{border-color:var(--green)}
+.cfg-save{padding:9px 20px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600}
+/* BOTTOM NAV */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;z-index:200;background:rgba(22,36,28,.97);backdrop-filter:blur(24px) saturate(200%);-webkit-backdrop-filter:blur(24px) saturate(200%);border-top:1px solid rgba(255,255,255,.07);box-shadow:0 -4px 24px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bni2{display:flex;padding:6px 4px}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;cursor:pointer;gap:3px;border:none;background:none;color:rgba(255,255,255,.38);font-family:'Inter',sans-serif;border-radius:10px;transition:all .18s ease;min-width:0;-webkit-tap-highlight-color:transparent}
+.bni.active{color:#fff}
+.bni:active{transform:scale(.9);opacity:.7}
+.bni svg{width:22px;height:22px;flex-shrink:0;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8;transition:transform .18s ease}
+.bni.active svg{transform:scale(1.1)}
+.bni span{font-size:.56rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+/* TOAST */
+.toast{position:fixed;top:calc(76px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-16px);min-width:180px;max-width:calc(100vw - 48px);text-align:center;padding:12px 22px;border-radius:22px;font-size:.87rem;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.18);background:var(--gd);color:#fff}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}.toast.info{background:#1E2E25}
+@media(max-width:700px){
+  .dtabs{display:none}.bnav{display:block}
+  .content{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+  .sgrid{grid-template-columns:1fr 1fr}.sgrid .scc:last-child{grid-column:span 2}
 }
-
-/* ── INSTALL BANNER ── */
-.install-banner {
-  display: none; background: var(--green-dark); color: var(--white);
-  padding: 11px 18px; font-size: 0.84rem;
-  align-items: center; justify-content: space-between; gap: 12px;
-  flex-shrink: 0;
+@media(min-width:701px){
+  .dtabs{display:flex}.bnav{display:none}
+  .toast{left:auto;right:24px;top:80px;min-width:0;text-align:left;transform:translateY(-10px)}
+  .toast.show{transform:translateY(0)}
+  #view-today{flex-direction:row}
+  .today-form{width:420px;flex:none;border-right:1px solid var(--bd);overflow-y:auto}
 }
-.install-banner.visible { display: flex; }
-.install-banner-text strong { display: block; font-size: 0.88rem; }
-.install-btn-yes { background: var(--white); color: var(--green-dark); border: none; border-radius: 8px; padding: 6px 13px; font-weight: 700; font-size: 0.8rem; cursor: pointer; font-family: 'Inter', sans-serif; flex-shrink: 0; }
-.install-btn-no  { background: rgba(255,255,255,0.18); color: var(--white); border: none; border-radius: 8px; padding: 6px 9px; font-size: 0.8rem; cursor: pointer; flex-shrink: 0; }
-
-/* ── HEADER ── */
-header {
-  background: var(--green-dark); color: var(--white);
-  padding: 14px 20px; padding-top: calc(14px + var(--safe-top));
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-  position: relative; z-index: 10;
-}
-.header-brand h1 { font-family: 'DM Serif Display', serif; font-size: 1.35rem; font-weight: 400; }
-.header-brand .subtitle { font-size: 0.7rem; opacity: 0.65; margin-top: 1px; }
-.date-nav { display: flex; align-items: center; gap: 8px; }
-.date-nav button { background: rgba(255,255,255,0.14); border: none; color: var(--white); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
-.date-nav button:hover { background: rgba(255,255,255,0.26); }
-#currentDateDisplay { font-size: 0.84rem; font-weight: 600; min-width: 110px; text-align: center; }
-
-/* ── BODY WRAPPER ── */
-.app-body {
-  flex: 1; display: flex; flex-direction: column; overflow: hidden;
-}
-
-/* ── DESKTOP TABS (hidden on mobile) ── */
-.desktop-tabs {
-  display: flex; background: var(--white); border-bottom: 1px solid var(--border);
-  padding: 0 18px; gap: 2px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
-}
-.desktop-tabs::-webkit-scrollbar { display: none; }
-.desktop-tab { padding: 11px 14px; cursor: pointer; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); border-bottom: 2.5px solid transparent; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
-.desktop-tab.active { color: var(--green); border-bottom-color: var(--green); }
-.desktop-tab:hover:not(.active) { color: var(--text); }
-
-/* ── CONTENT AREA ── */
-.content-area {
-  flex: 1; overflow: hidden; display: flex; flex-direction: column;
-}
-
-/* ── VIEWS ── */
-.view { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.view.active { display: flex; flex-direction: column; }
-
-/* TODAY view: two-column on desktop */
-#view-today { flex-direction: row; }
-.today-left {
-  width: 360px; flex-shrink: 0; background: var(--white);
-  border-right: 1px solid var(--border); overflow-y: auto;
-  padding: 20px; -webkit-overflow-scrolling: touch;
-}
-.today-right { flex: 1; overflow-y: auto; padding: 22px 26px; -webkit-overflow-scrolling: touch; }
-
-/* ── FORM ── */
-.panel-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; margin-bottom: 16px; }
-.form-group { margin-bottom: 13px; }
-.form-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
-input[type="text"], input[type="time"], input[type="number"], textarea, select {
-  width: 100%; padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 9px;
-  font-family: 'Inter', sans-serif; font-size: 0.87rem; color: var(--text);
-  background: var(--bg); outline: none; transition: border-color 0.15s, background 0.15s;
-  -webkit-appearance: none; appearance: none;
-}
-input:focus, textarea:focus, select:focus { border-color: var(--green); background: var(--white); }
-textarea { resize: vertical; min-height: 58px; }
-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A9080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
-
-.type-btns { display: flex; gap: 6px; margin-bottom: 16px; }
-.type-btn { flex: 1; padding: 9px 4px; border: 1.5px solid var(--border); border-radius: 9px; cursor: pointer; font-size: 0.76rem; font-weight: 600; text-align: center; background: var(--bg); color: var(--text-muted); transition: all 0.15s; line-height: 1.3; }
-.type-btn.active-meal { border-color: var(--green); background: var(--green-pale); color: var(--green); }
-.type-btn.active-symptom { border-color: var(--amber); background: var(--amber-pale); color: #c0621a; }
-.type-btn.active-medication { border-color: var(--purple); background: var(--purple-pale); color: var(--purple); }
-
-.symptom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.sym-chip {
-  display: flex; align-items: center; gap: 7px;
-  padding: 9px 11px; border: 2px solid var(--border);
-  border-radius: 10px; cursor: pointer; font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.15s ease; background: var(--white);
-  user-select: none; color: var(--text);
-  position: relative;
-}
-.sym-chip input[type="checkbox"] { display: none; }
-.sym-chip .chip-check {
-  width: 16px; height: 16px; border-radius: 4px;
-  border: 2px solid var(--border); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; background: var(--white);
-  margin-left: auto;
-  font-size: 0.65rem; color: transparent;
-}
-.sym-chip.checked {
-  border-color: var(--amber);
-  background: var(--amber-pale);
-  color: #9a4e0f;
-}
-.sym-chip.checked .chip-check {
-  background: var(--amber);
-  border-color: var(--amber);
-  color: white;
-}
-
-.sev-row { display: flex; align-items: center; gap: 10px; }
-input[type="range"] { flex: 1; accent-color: var(--amber); cursor: pointer; padding: 0; border: none; background: transparent; height: 4px; }
-.sev-val { font-weight: 700; font-size: 1rem; color: var(--amber); min-width: 22px; text-align: center; }
-
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-
-.save-btn { width: 100%; padding: 12px; background: var(--green-dark); color: var(--white); border: none; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 6px; transition: background 0.15s, transform 0.08s; }
-.save-btn:hover { background: #234d30; }
-.save-btn:active { transform: scale(0.98); }
-
-/* ── TIMELINE ── */
-.day-header { margin-bottom: 6px; }
-.day-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; }
-.summary-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; margin-top: 6px; }
-.pill { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-.pill-meal { background: var(--green-pale); color: var(--green); }
-.pill-sym  { background: var(--amber-pale); color: #c0621a; }
-.pill-med  { background: var(--purple-pale); color: var(--purple); }
-.pill-empty{ background: var(--white); color: var(--text-muted); }
-
-.timeline { position: relative; padding-left: 24px; }
-.timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(to bottom, var(--green-light), var(--border)); border-radius: 2px; }
-.tl-entry { position: relative; margin-bottom: 12px; }
-.tl-dot { position: absolute; left: -20px; top: 14px; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--bg); box-shadow: var(--shadow-sm); }
-.dot-meal { background: var(--green); }
-.dot-symptom { background: var(--amber); }
-.dot-medication { background: var(--purple); }
-
-.entry-card { border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-sm); border-left: 3px solid transparent; position: relative; transition: box-shadow 0.15s; }
-.entry-card:hover { box-shadow: var(--shadow); }
-.card-meal { background: var(--white); border-left-color: var(--green); }
-.card-symptom { background: #fffcf8; border-left-color: var(--amber); }
-.card-medication { background: #faf8ff; border-left-color: var(--purple); }
-
-.card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
-.card-time { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
-.card-badge { font-size: 0.68rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-.badge-meal { background: var(--green-pale); color: var(--green); }
-.badge-symptom { background: var(--amber-pale); color: #c0621a; }
-.badge-medication { background: var(--purple-pale); color: var(--purple); }
-.card-main { font-size: 0.88rem; font-weight: 500; margin-bottom: 3px; }
-.card-detail { font-size: 0.76rem; color: var(--text-muted); line-height: 1.45; }
-.sym-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-.sym-tag { font-size: 0.68rem; padding: 2px 7px; background: var(--amber-pale); color: #c0621a; border-radius: 10px; }
-.sev-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
-.sev-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #f9c74f, var(--amber), var(--red)); }
-.del-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: var(--border); font-size: 0.82rem; padding: 3px 5px; border-radius: 5px; transition: all 0.12s; opacity: 0; line-height: 1; }
-.entry-card:hover .del-btn, .entry-card:focus-within .del-btn { opacity: 1; }
-.del-btn:hover { color: var(--red); background: var(--red-pale); }
-
-.empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
-.empty-icon { font-size: 2.6rem; margin-bottom: 12px; }
-.empty-state p { font-size: 0.87rem; line-height: 1.7; }
-
-/* ── SHARED INNER LAYOUT ── */
-.inner { padding: 20px 22px; max-width: 820px; }
-.inner-wide { padding: 20px 22px; }
-.section-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; margin-bottom: 16px; }
-
-/* ── HISTORY ── */
-.hist-day { margin-bottom: 26px; }
-.hist-day-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 12px; }
-
-/* ── ANALYSIS ── */
-.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-.stat-card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); text-align: center; }
-.stat-num { font-family: 'DM Serif Display', serif; font-size: 1.85rem; color: var(--green); line-height: 1; }
-.stat-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; line-height: 1.3; }
-.chart-box { background: var(--white); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
-.chart-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 13px; }
-.bar-row { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; font-size: 0.81rem; }
-.bar-label { min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar-bg { flex: 1; height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-.bar-fill-sym { background: var(--amber); }
-.bar-fill-trig { background: linear-gradient(90deg, var(--amber), var(--red)); }
-.bar-count { font-size: 0.73rem; color: var(--text-muted); min-width: 28px; text-align: right; }
-.chart-note { font-size: 0.71rem; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
-
-/* ── NOTES ── */
-.notes-input-box { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 18px; }
-.notes-textarea { width: 100%; min-height: 120px; padding: 12px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Inter', sans-serif; font-size: 0.87rem; color: var(--text); background: var(--bg); outline: none; resize: vertical; transition: border-color 0.15s; }
-.notes-textarea:focus { border-color: var(--green); background: var(--white); }
-.notes-save-btn { margin-top: 9px; padding: 8px 18px; background: var(--green-dark); color: var(--white); border: none; border-radius: 9px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.84rem; font-weight: 600; transition: background 0.15s; }
-.notes-save-btn:hover { background: #234d30; }
-.note-card { background: var(--white); border-radius: var(--radius); padding: 13px 15px; box-shadow: var(--shadow-sm); margin-bottom: 10px; border-left: 3px solid var(--green-light); }
-.note-date { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; }
-.note-text { font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; }
-
-/* ── REPORT ── */
-.week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
-.week-nav-btn { background: var(--white); border: 1.5px solid var(--border); border-radius: 9px; padding: 7px 13px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.82rem; color: var(--text); transition: all 0.15s; box-shadow: var(--shadow-sm); }
-.week-nav-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
-.week-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.week-lbl { font-weight: 600; font-size: 0.9rem; }
-.ai-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; border-left: 4px solid var(--green); }
-.ai-card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
-.ai-pill { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); background: var(--green-pale); padding: 3px 9px; border-radius: 10px; }
-.ai-card-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; }
-.ai-loading { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.86rem; padding: 8px 0; }
-.spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.ai-text { font-size: 0.87rem; line-height: 1.85; white-space: pre-wrap; }
-.preview-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
-.preview-box { background: var(--bg); border-radius: 9px; padding: 12px; margin-bottom: 16px; border: 1.5px dashed var(--border); font-size: 0.76rem; color: var(--text-muted); max-height: 150px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; line-height: 1.6; }
-.wa-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; background: #25D366; color: var(--white); border: none; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 4px 18px rgba(37,211,102,0.32); transition: background 0.15s, transform 0.08s; }
-.wa-btn:hover { background: #1db954; }
-.wa-btn:active { transform: scale(0.98); }
-.wa-btn.disabled { background: var(--border); color: var(--text-muted); box-shadow: none; pointer-events: none; }
-
-/* ── SETTINGS ── */
-.settings-section { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px 18px; margin-bottom: 16px; }
-.settings-section-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 13px; }
-.srow { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 14px; }
-.srow:last-child { border-bottom: none; padding-bottom: 0; }
-.srow-lbl { font-size: 0.88rem; font-weight: 500; }
-.srow-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-.toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 26px; cursor: pointer; transition: background 0.2s; }
-.toggle-track::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.22); }
-.toggle input:checked + .toggle-track { background: var(--green); }
-.toggle input:checked + .toggle-track::before { transform: translateX(18px); }
-.notif-status { font-size: 0.77rem; padding: 8px 11px; border-radius: 8px; margin-top: 10px; display: none; line-height: 1.5; }
-.ns-ok   { background: var(--green-pale); color: var(--green); display: block; }
-.ns-warn { background: var(--amber-pale); color: #c0621a; display: block; }
-.ns-err  { background: var(--red-pale);   color: var(--red);  display: block; }
-.times-section { margin-top: 14px; display: none; }
-.time-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
-.time-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 18px; border: 1.5px solid var(--border); font-size: 0.78rem; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
-.time-chip-del { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.72rem; padding: 0 0 0 2px; line-height: 1; transition: color 0.12s; }
-.time-chip-del:hover { color: var(--red); }
-.action-btn { padding: 7px 13px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.79rem; font-weight: 600; background: var(--bg); color: var(--text); transition: all 0.15s; white-space: nowrap; }
-.action-btn:hover { border-color: var(--green); color: var(--green); }
-.action-btn.danger { border-color: var(--red); color: var(--red); background: var(--red-pale); }
-.action-btn.danger:hover { background: #f5d5d2; }
-
-/* ── BOTTOM NAV (mobile) ── */
-.bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  width: 100%;
-  z-index: 200;
-  background: rgba(22, 36, 28, 0.96);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border-top: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.bnav-pill {
-  display: flex;
-  padding: 6px 8px;
-}
-.bnav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 2px 5px;
-  cursor: pointer;
-  gap: 3px;
-  border: none;
-  background: none;
-  color: rgba(255,255,255,0.4);
-  font-family: 'Inter', sans-serif;
-  border-radius: 12px;
-  transition: all 0.18s ease;
-  min-width: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-.bnav-item.active { color: #ffffff; }
-.bnav-item:active { transform: scale(0.9); opacity: 0.8; }
-.bnav-icon {
-  font-size: 1.3rem;
-  line-height: 1;
-  transition: transform 0.18s ease;
-}
-.bnav-item.active .bnav-icon { transform: scale(1.08); }
-.bnav-label {
-  font-size: 0.57rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-/* ── FIX 2: Collapsible entry log on mobile ── */
-.entries-toggle {
-  display: none;
-  width: 100%;
-  background: var(--green-dark);
-  color: white;
-  border: none;
-  padding: 11px 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  -webkit-tap-highlight-color: transparent;
-}
-.entries-toggle-arrow { transition: transform 0.25s ease; font-size: 0.75rem; }
-.entries-toggle.open .entries-toggle-arrow { transform: rotate(180deg); }
-.entries-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
-
-@media (max-width: 700px) {
-  .entries-toggle { display: flex; }
-  .today-right { padding: 12px 14px; }
-}
-
-/* ── FIX 3: Notification time row wraps properly ── */
-.add-time-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.time-input {
-  padding: 8px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.84rem;
-  color: var(--text);
-  background: var(--bg);
-  outline: none;
-  min-width: 0;
-  flex: 1;
-  max-width: 130px;
-}
-.time-input:focus { border-color: var(--green); }
-.add-time-btn {
-  padding: 8px 14px;
-  background: var(--green);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.toast {
-  position: fixed;
-  bottom: calc(96px + var(--safe-bottom));
-  left: 50%; transform: translateX(-50%) translateY(10px);
-  background: rgba(28,42,34,0.95);
-  backdrop-filter: blur(12px);
-  color: var(--white);
-  padding: 10px 18px;
-  border-radius: 20px;
-  font-size: 0.83rem;
-  font-weight: 500;
-  opacity: 0;
-  transition: all 0.22s ease;
-  pointer-events: none;
-  z-index: 9999;
-  white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 700px) {
-  .desktop-tabs { display: none; }
-  .bottom-nav { display: block; }
-  .content-area { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
-  #view-today { flex-direction: column; }
-  .today-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-  .today-right { padding: 16px; }
-  .stat-grid { grid-template-columns: 1fr 1fr; }
-  .stat-grid .stat-card:last-child { grid-column: span 2; }
-}
-@media (min-width: 701px) {
-  .desktop-tabs { display: flex; }
-  .bottom-nav { display: none; }
-  .toast { left: auto; right: 20px; transform: translateY(10px); bottom: 24px; }
-  .toast.show { transform: translateY(0); }
-}
-.hidden { display: none !important; }
+.hidden{display:none!important}
 </style>
 </head>
 <body>
-
-<!-- Install Banner -->
-<div class="install-banner" id="installBanner">
-  <div class="install-banner-text">
-    <strong>📱 GutLog als App installieren</strong>
-    Zum Startbildschirm hinzufügen
-  </div>
-  <div style="display:flex;gap:7px;flex-shrink:0">
-    <button class="install-btn-yes" id="installBtn">Installieren</button>
-    <button class="install-btn-no" onclick="dismissInstall()">✕</button>
-  </div>
-</div>
-
-<!-- Header -->
 <header>
-  <div class="header-brand">
-    <h1>📖 GutLog</h1>
-    <div class="subtitle">Ernährungs- & Symptomprotokoll</div>
-  </div>
-  <div class="date-nav">
-    <button onclick="changeDay(-1)" aria-label="Vorheriger Tag">‹</button>
-    <span id="currentDateDisplay"></span>
-    <button onclick="changeDay(1)" aria-label="Nächster Tag">›</button>
+  <div class="hb"><h1>📖 GutLog</h1><div class="hs">Ernährungs- & Symptomprotokoll</div></div>
+  <div class="header-right">
+    <div class="dnav">
+      <button onclick="changeDay(-1)">‹</button>
+      <span id="dateLbl"></span>
+      <button onclick="changeDay(1)">›</button>
+    </div>
   </div>
 </header>
-
 <div class="app-body">
-  <!-- Desktop Tabs -->
-  <nav class="desktop-tabs" role="tablist">
-    <div class="desktop-tab active" onclick="switchTab('today')" role="tab">Heute</div>
-    <div class="desktop-tab" onclick="switchTab('history')" role="tab">Verlauf</div>
-    <div class="desktop-tab" onclick="switchTab('analysis')" role="tab">Auswertung</div>
-    <div class="desktop-tab" onclick="switchTab('notes')" role="tab">Notizen</div>
-    <div class="desktop-tab" onclick="switchTab('report')" role="tab">📤 Wochenbericht</div>
-    <div class="desktop-tab" onclick="switchTab('settings')" role="tab">⚙️ Einstellungen</div>
+  <nav class="dtabs">
+    <div class="dtab active" onclick="go('today')">Heute</div>
+    <div class="dtab" onclick="go('history')">Verlauf</div>
+    <div class="dtab" onclick="go('analysis')">Auswertung</div>
+    <div class="dtab" onclick="go('notes')">Notizen</div>
+    <div class="dtab" onclick="go('report')">📤 Bericht</div>
+    <div class="dtab" onclick="go('settings')">⚙️ Einstellungen</div>
   </nav>
-
-  <!-- Content -->
-  <div class="content-area">
-
+  <div class="content">
     <!-- TODAY -->
     <div id="view-today" class="view active">
-      <div class="today-left">
-        <div class="panel-title">Eintrag hinzufügen</div>
-        <div class="type-btns">
-          <div class="type-btn active-meal" id="btn-meal" onclick="setType('meal')">🍽<br>Mahlzeit</div>
-          <div class="type-btn" id="btn-symptom" onclick="setType('symptom')">⚡<br>Symptom</div>
-          <div class="type-btn" id="btn-medication" onclick="setType('medication')">💊<br>Medikament</div>
+      <div class="today-form">
+        <div class="pt">Eintrag hinzufügen</div>
+        <div class="tbts">
+          <div class="tb am" id="btn-meal" onclick="setType('meal')">🍽<br>Mahlzeit</div>
+          <div class="tb" id="btn-symptom" onclick="setType('symptom')">⚡<br>Symptom</div>
+          <div class="tb" id="btn-medication" onclick="setType('medication')">💊<br>Medikament</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Uhrzeit</label>
-          <input type="time" id="entryTime">
+        <div class="fg"><label class="fl">Uhrzeit</label><input type="time" id="eTime"></div>
+        <div id="mealF">
+          <div class="fg"><label class="fl">Gericht / Lebensmittel</label><input type="text" id="mName" placeholder="z. B. Haferbrei mit Banane"></div>
+          <div class="fg"><label class="fl">Zutaten & Menge</label><textarea id="mDet" placeholder="z. B. 60g Haferflocken, 200ml Hafermilch"></textarea></div>
+          <div class="fg"><label class="fl">Getränke dazu</label><input type="text" id="mDrk" placeholder="z. B. Wasser, Kamillentee"></div>
         </div>
-
-        <!-- MEAL FIELDS -->
-        <div id="mealFields">
-          <div class="form-group"><label class="form-label">Gericht / Lebensmittel</label><input type="text" id="mealName" placeholder="z. B. Haferbrei mit Banane"></div>
-          <div class="form-group"><label class="form-label">Zutaten & Menge</label><textarea id="mealDetails" placeholder="z. B. 60g Haferflocken, 200ml Hafermilch"></textarea></div>
-          <div class="form-group"><label class="form-label">Getränke dazu</label><input type="text" id="mealDrink" placeholder="z. B. Wasser, Kamillentee"></div>
-        </div>
-
-        <!-- SYMPTOM FIELDS -->
-        <div id="symptomFields" class="hidden">
-          <div class="form-group">
-            <label class="form-label">Symptome (Mehrfachauswahl)</label>
-            <div class="symptom-grid">
-              <label class="sym-chip"><input type="checkbox" value="Sodbrennen">🔥 Sodbrennen<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Blähbauch">🎈 Blähbauch<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Blähungen">💨 Blähungen<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Durchfall">🚿 Durchfall<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Übelkeit">🤢 Übelkeit<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Magenschmerzen">😣 Magenschm.<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Aufstoßen">↑ Aufstoßen<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Völlegefühl">🍱 Völlegefühl<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Magenkrämpfe">⚡ Magenkrämpfe<span class="chip-check">✓</span></label>
-              <label class="sym-chip"><input type="checkbox" value="Brustschmerzen">💔 Brustschm.<span class="chip-check">✓</span></label>
+        <div id="symF" class="hidden">
+          <div class="fg">
+            <label class="fl">Symptome</label>
+            <div class="sg">
+              <label class="sc"><input type="checkbox" value="Sodbrennen">🔥 Sodbrennen<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Blähbauch">🎈 Blähbauch<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Blähungen">💨 Blähungen<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Durchfall">🚿 Durchfall<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Übelkeit">🤢 Übelkeit<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Magenschmerzen">😣 Magenschm.<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Aufstoßen">↑ Aufstoßen<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Völlegefühl">🍱 Völlegefühl<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Magenkrämpfe">⚡ Magenkrämpfe<span class="ck">✓</span></label>
+              <label class="sc"><input type="checkbox" value="Brustschmerzen">💔 Brustschm.<span class="ck">✓</span></label>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Intensität (1–10)</label>
-            <div class="sev-row">
-              <input type="range" id="sevSlider" min="1" max="10" value="5" oninput="document.getElementById('sevVal').textContent=this.value">
-              <span class="sev-val" id="sevVal">5</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Zeitlicher Bezug</label>
-            <select id="symTiming">
-              <option value="">– keine Angabe –</option>
-              <option value="nüchtern / morgens">Nüchtern / morgens</option>
-              <option value="während der Mahlzeit">Während der Mahlzeit</option>
-              <option value="direkt nach dem Essen">Direkt nach dem Essen (&lt;30 min)</option>
-              <option value="1–2h nach dem Essen">1–2h nach dem Essen</option>
-              <option value="nachts / im Liegen">Nachts / im Liegen</option>
-              <option value="bei / nach Stress">Bei / nach Stress</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Anmerkungen</label><textarea id="symNote" placeholder="z. B. nach fettigem Essen, Stress..."></textarea></div>
+          <div class="fg"><label class="fl">Intensität (1–10)</label><div class="sr"><input type="range" id="sevS" min="1" max="10" value="5" oninput="document.getElementById('sevV').textContent=this.value"><span class="sv" id="sevV">5</span></div></div>
+          <div class="fg"><label class="fl">Zeitlicher Bezug</label><select id="sTim"><option value="">– keine Angabe –</option><option>Nüchtern / morgens</option><option>Während der Mahlzeit</option><option>Direkt nach dem Essen (&lt;30 min)</option><option>1–2h nach dem Essen</option><option>Nachts / im Liegen</option><option>Bei / nach Stress</option></select></div>
+          <div class="fg"><label class="fl">Anmerkungen</label><textarea id="sNot" placeholder="z. B. nach fettigem Essen..."></textarea></div>
         </div>
-
-        <!-- MEDICATION FIELDS -->
-        <div id="medicationFields" class="hidden">
-          <div class="two-col">
-            <div class="form-group"><label class="form-label">Medikament</label><input type="text" id="medName" value="Pantoprazol"></div>
-            <div class="form-group"><label class="form-label">Dosis (mg)</label><input type="number" id="medDose" value="40" min="0"></div>
+        <div id="medF" class="hidden">
+          <div class="tc">
+            <div class="fg"><label class="fl">Medikament</label><input type="text" id="mdNam" value="Pantoprazol"></div>
+            <div class="fg"><label class="fl">Dosis (mg)</label><input type="number" id="mdDos" value="40" min="0"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Einnahmezeitpunkt</label>
-            <select id="medTiming">
-              <option>Nüchtern (30 min vor Frühstück)</option>
-              <option>Zum Frühstück</option>
-              <option>Mittags</option>
-              <option>Abends</option>
-              <option>Nach Bedarf</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Notiz</label><textarea id="medNote" placeholder="z. B. heute weggelassen, halbiert..."></textarea></div>
+          <div class="fg"><label class="fl">Einnahmezeitpunkt</label><select id="mdTim"><option>Nüchtern (30 min vor Frühstück)</option><option>Zum Frühstück</option><option>Mittags</option><option>Abends</option><option>Nach Bedarf</option></select></div>
+          <div class="fg"><label class="fl">Notiz</label><textarea id="mdNot" placeholder="z. B. heute weggelassen..."></textarea></div>
         </div>
-
-        <button class="save-btn" onclick="addEntry()">Eintrag speichern</button>
-      </div>
-
-      <div class="today-right" id="todayRight">
-        <button class="entries-toggle" id="entriesToggle" onclick="toggleEntries()">
-          <span id="entriesToggleLabel">Einträge anzeigen</span>
-          <span class="entries-toggle-arrow">▼</span>
-        </button>
-        <div class="entries-collapsible" id="entriesCollapsible">
-          <div id="todayTimeline"></div>
-        </div>
+        <button class="sav" onclick="addEntry()">Eintrag speichern</button>
       </div>
     </div>
-
     <!-- HISTORY -->
-    <div id="view-history" class="view">
-      <div class="inner-wide" id="historyContent"></div>
-    </div>
-
+    <div id="view-history" class="view"><div class="inner" id="histC"></div></div>
     <!-- ANALYSIS -->
-    <div id="view-analysis" class="view">
-      <div class="inner-wide" id="analysisContent"></div>
-    </div>
-
+    <div id="view-analysis" class="view"><div class="inner" id="analC"></div></div>
     <!-- NOTES -->
     <div id="view-notes" class="view">
       <div class="inner">
-        <div class="section-title">Notizen & Arzttermine</div>
-        <div class="notes-input-box">
-          <textarea class="notes-textarea" id="noteInput" placeholder="z. B. Beobachtungen, Fragen für den Arzt, Auffälligkeiten..."></textarea>
-          <button class="notes-save-btn" onclick="saveNote()">Notiz speichern</button>
-        </div>
-        <div id="notesList"></div>
+        <div class="st">Notizen & Arzttermine</div>
+        <div class="nb"><textarea class="nta" id="nIn" placeholder="z. B. Beobachtungen, Fragen für den Arzt..."></textarea><button class="nsb" onclick="saveNote()">Notiz speichern</button></div>
+        <div id="nList"></div>
       </div>
     </div>
-
     <!-- REPORT -->
-    <div id="view-report" class="view">
-      <div class="inner" id="reportContent"></div>
-    </div>
-
+    <div id="view-report" class="view"><div class="inner" id="repC"></div></div>
     <!-- SETTINGS -->
     <div id="view-settings" class="view">
       <div class="inner">
-        <div class="section-title">Einstellungen</div>
+        <div class="st">Einstellungen</div>
 
-        <div class="settings-section">
-          <div class="settings-section-lbl">🔔 Erinnerungen</div>
-          <div class="srow">
-            <div>
-              <div class="srow-lbl">Tägliche Erinnerungen</div>
-              <div class="srow-sub">Benachrichtigung, wenn noch kein Eintrag für heute vorhanden</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" id="notifToggle" onchange="toggleNotifications(this.checked)">
-              <span class="toggle-track"></span>
-            </label>
+
+        <div class="ss">
+          <div class="ssl">🔔 Erinnerungen</div>
+          <div class="srow"><div><div class="srl">Tägliche Erinnerungen</div><div class="srs">Benachrichtigung wenn noch kein Eintrag heute</div></div><label class="tog"><input type="checkbox" id="nTog" onchange="toggleNotif(this.checked)"><span class="tr2"></span></label></div>
+          <div id="nStat" class="ns"></div>
+          <div class="tss" id="tSec">
+            <div style="font-size:.81rem;font-weight:600;color:var(--text);margin-bottom:9px">Erinnerungszeiten</div>
+            <div class="tcs" id="tChps"></div>
+            <div class="atr"><input type="time" id="nTi" class="ti" value="12:00"><button class="atb" onclick="addTime()">+ Hinzufügen</button></div>
           </div>
-          <div id="notifStatus" class="notif-status"></div>
-          <div class="times-section" id="timesSection">
-            <div style="font-size:0.81rem;font-weight:600;color:var(--text);margin-bottom:9px">Erinnerungszeiten</div>
-            <div class="time-chips" id="timeChips"></div>
-            <div class="add-time-row">
-              <input type="time" id="newTimeInput" class="time-input" value="12:00">
-              <button class="add-time-btn" onclick="addReminderTime()">+ Hinzufügen</button>
-            </div>
-          </div>
-          <div class="srow" style="margin-top:12px">
-            <div>
-              <div class="srow-lbl">Test-Benachrichtigung</div>
-              <div class="srow-sub">Sofort eine Probe-Benachrichtigung senden</div>
-            </div>
-            <button class="action-btn" onclick="sendTestNotif()">Testen</button>
-          </div>
+          <div class="srow" style="margin-top:12px"><div><div class="srl">Test-Benachrichtigung</div><div class="srs">Sofort eine Probe senden</div></div><button class="ab" onclick="testNotif()">Testen</button></div>
         </div>
-
-        <div class="settings-section">
-          <div class="settings-section-lbl">📱 App & Daten</div>
-          <div class="srow">
-            <div><div class="srow-lbl">Version</div></div>
-            <span style="font-size:0.8rem;color:var(--text-muted)">GutLog 1.0</span>
-          </div>
-          <div class="srow">
-            <div>
-              <div class="srow-lbl">Daten exportieren</div>
-              <div class="srow-sub">Alle Einträge als JSON-Datei herunterladen</div>
-            </div>
-            <button class="action-btn" onclick="exportData()">Export</button>
-          </div>
-          <div class="srow">
-            <div>
-              <div class="srow-lbl">Alle Daten löschen</div>
-              <div class="srow-sub">Unwiderruflich – vorher exportieren!</div>
-            </div>
-            <button class="action-btn danger" onclick="confirmDeleteAll()">Löschen</button>
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <div class="settings-section-lbl">ℹ️ Hinweis</div>
-          <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.6">
-            GutLog speichert alle Daten ausschließlich lokal auf diesem Gerät (localStorage). Es werden keine Daten in die Cloud übertragen. Die KI-Analyse im Wochenbericht nutzt die Anthropic API – dabei werden die Tagebuchdaten temporär übermittelt.
-          </p>
+        <div class="ss">
+          <div class="ssl">📱 App & Daten</div>
+          <div class="srow"><div><div class="srl">Version</div></div><span style="font-size:.8rem;color:var(--mut)">GutLog 1.0</span></div>
+          <div class="srow"><div><div class="srl">Alle Daten löschen</div><div class="srs">Unwiderruflich – nur lokale Daten</div></div><button class="ab dng" onclick="deleteAll()">Löschen</button></div>
         </div>
       </div>
     </div>
-
-  </div><!-- /.content-area -->
-
-  <!-- Bottom Nav (mobile only) -->
-  <nav class="bottom-nav" role="navigation" aria-label="Hauptnavigation">
-    <div class="bnav-pill">
-      <button class="bnav-item active" id="bnav-today" onclick="switchTab('today')">
-        <span class="bnav-icon">📋</span>
-        <span class="bnav-label">Heute</span>
-      </button>
-      <button class="bnav-item" id="bnav-history" onclick="switchTab('history')">
-        <span class="bnav-icon">📅</span>
-        <span class="bnav-label">Verlauf</span>
-      </button>
-      <button class="bnav-item" id="bnav-analysis" onclick="switchTab('analysis')">
-        <span class="bnav-icon">📊</span>
-        <span class="bnav-label">Analyse</span>
-      </button>
-      <button class="bnav-item" id="bnav-report" onclick="switchTab('report')">
-        <span class="bnav-icon">📤</span>
-        <span class="bnav-label">Bericht</span>
-      </button>
-      <button class="bnav-item" id="bnav-settings" onclick="switchTab('settings')">
-        <span class="bnav-icon">⚙️</span>
-        <span class="bnav-label">Einst.</span>
-      </button>
+  </div>
+  <!-- BOTTOM NAV -->
+  <nav class="bnav">
+    <div class="bni2">
+      <button class="bni active" id="bn-today" onclick="go('today')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Heute</span></button>
+      <button class="bni" id="bn-history" onclick="go('history')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Verlauf</span></button>
+      <button class="bni" id="bn-analysis" onclick="go('analysis')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Analyse</span></button>
+      <button class="bni" id="bn-report" onclick="go('report')"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Bericht</span></button>
+      <button class="bni" id="bn-settings" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Einst.</span></button>
     </div>
   </nav>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
 'use strict';
 
-// ════════════════════════════════════════════════
-// STORAGE
-// ════════════════════════════════════════════════
-const DB = {
-  getData()     { try { return JSON.parse(localStorage.getItem('gl_data')  || '{}'); } catch { return {}; } },
-  setData(d)    { localStorage.setItem('gl_data',  JSON.stringify(d)); },
-  getNotes()    { try { return JSON.parse(localStorage.getItem('gl_notes') || '[]'); } catch { return []; } },
-  setNotes(n)   { localStorage.setItem('gl_notes', JSON.stringify(n)); },
-  getSettings() { try { return JSON.parse(localStorage.getItem('gl_cfg')   || '{}'); } catch { return {}; } },
-  setSettings(s){ localStorage.setItem('gl_cfg',   JSON.stringify(s)); },
+// ── STORAGE ──────────────────────────────────────
+const DB={
+  d(){try{return JSON.parse(localStorage.getItem('gl_d')||'{}')}catch{return{}}},
+  sd(v){localStorage.setItem('gl_d',JSON.stringify(v))},
+  n(){try{return JSON.parse(localStorage.getItem('gl_n')||'[]')}catch{return[]}},
+  sn(v){localStorage.setItem('gl_n',JSON.stringify(v))},
+  c(){try{return JSON.parse(localStorage.getItem('gl_c')||'{}')}catch{return{}}},
+  sc(v){localStorage.setItem('gl_c',JSON.stringify(v))}
 };
 
-// ════════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════════
-let currentDate = new Date();
-let activeType  = 'meal';
-let activeTab   = 'today';
-let reportWeekOffset = 0;
-let cachedAiText = null, cachedAiWeek = null;
-const reminderTimers = [];
+// ── STATE ─────────────────────────────────────────
+let today=new Date(),aType='meal',aTab='today';
+const timers=[];
+const dk=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmt=d=>d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const nowT=()=>{const d=new Date();return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');void t.offsetWidth;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)}
 
-// ════════════════════════════════════════════════
-// UTILS
-// ════════════════════════════════════════════════
-function dateKey(d)      { return d.toISOString().slice(0,10); }
-function fmt(d)          { return d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
-function fmtShort(d)     { return d.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'}); }
-function fmtTime(d)      { return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
-function esc(str)        { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-// ════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════
-window.addEventListener('load', () => {
-  document.getElementById('entryTime').value = fmtTime(new Date());
-  // Init collapsible closed
-  const col = document.getElementById('entriesCollapsible');
-  if (col) col.style.maxHeight = '0px';
-  updateDateDisplay();
-  renderTimeline();
-  renderNotes();
-  initSettingsUI();
-  scheduleAllReminders();
-  pwaBoot();
+window.addEventListener('load',()=>{
+  document.getElementById('eTime').value=nowT();
+  updateDate(); renderNotes(); initSettings(); scheduleAll(); pwaBoot();
 });
 
-// ════════════════════════════════════════════════
-// DATE NAV
-// ════════════════════════════════════════════════
-function changeDay(delta) {
-  currentDate.setDate(currentDate.getDate() + delta);
-  updateDateDisplay();
-  renderTimeline();
-}
-function updateDateDisplay() {
-  const el = document.getElementById('currentDateDisplay');
-  const isToday = dateKey(currentDate) === dateKey(new Date());
-  const datePart = currentDate.toLocaleDateString('de-DE', { day:'numeric', month:'short' });
-  const weekday  = currentDate.toLocaleDateString('de-DE', { weekday:'short' });
-  el.textContent = isToday ? `Heute, ${datePart}` : `${weekday}, ${datePart}`;
-}
+// ── DATE ──────────────────────────────────────────
+function changeDay(d){today.setDate(today.getDate()+d);updateDate()}
+function updateDate(){const isT=dk(today)===dk(new Date());const dp=today.toLocaleDateString('de-DE',{day:'numeric',month:'short'});const wd=today.toLocaleDateString('de-DE',{weekday:'short'});document.getElementById('dateLbl').textContent=isT?`Heute, ${dp}`:`${wd}, ${dp}`}
 
-// ════════════════════════════════════════════════
-// TABS
-// ════════════════════════════════════════════════
-const ALL_TABS = ['today','history','analysis','notes','report','settings'];
-
-function switchTab(tab) {
-  activeTab = tab;
-
-  // Desktop tabs
-  document.querySelectorAll('.desktop-tab').forEach((el,i) =>
-    el.classList.toggle('active', ALL_TABS[i] === tab));
-
-  // Bottom nav
-  ALL_TABS.forEach(name => {
-    const btn = document.getElementById('bnav-' + name);
-    if (btn) btn.classList.toggle('active', name === tab);
-  });
-
-  // Views
-  ALL_TABS.forEach(name => {
-    const el = document.getElementById('view-' + name);
-    if (el) el.classList.toggle('active', name === tab);
-  });
-
-  // Render
-  if (tab === 'history')  renderHistory();
-  if (tab === 'analysis') renderAnalysis();
-  if (tab === 'notes')    renderNotes();
-  if (tab === 'report')   renderReport();
-  if (tab === 'settings') initSettingsUI();
+// ── TABS ──────────────────────────────────────────
+const TABS=['today','history','analysis','notes','report','settings'];
+function go(tab){
+  aTab=tab;
+  document.querySelectorAll('.dtab').forEach((el,i)=>el.classList.toggle('active',TABS[i]===tab));
+  TABS.forEach(n=>{const v=document.getElementById('view-'+n);if(v)v.classList.toggle('active',n===tab);const b=document.getElementById('bn-'+n);if(b)b.classList.toggle('active',n===tab)});
+  if(tab==='history') renderHistory();
+  if(tab==='analysis') renderAnalysis();
+  if(tab==='notes') renderNotes();
+  if(tab==='report') renderReport();
+  if(tab==='settings') initSettings();
 }
 
-// ════════════════════════════════════════════════
-// ENTRY TYPE
-// ════════════════════════════════════════════════
-function setType(type) {
-  activeType = type;
-  ['meal','symptom','medication'].forEach(t => {
-    document.getElementById('btn-'+ t).className = 'type-btn';
-    document.getElementById(t + 'Fields').classList.add('hidden');
-  });
-  document.getElementById('btn-'+ type).className = 'type-btn active-' + type;
-  document.getElementById(type + 'Fields').classList.remove('hidden');
+// ── ENTRY TYPE ────────────────────────────────────
+function setType(t){
+  aType=t;
+  ['meal','symptom','medication'].forEach(x=>{document.getElementById('btn-'+x).className='tb'+(x==='meal'?' am':x==='symptom'?' as':' ad');document.getElementById(x==='meal'?'mealF':x==='symptom'?'symF':'medF').classList.add('hidden')});
+  document.getElementById('btn-'+t).className='tb '+(t==='meal'?'am':t==='symptom'?'as':'ad');
+  document.getElementById(t==='meal'?'mealF':t==='symptom'?'symF':'medF').classList.remove('hidden');
 }
+document.addEventListener('change',e=>{if(e.target.matches('.sc input[type="checkbox"]'))e.target.closest('.sc').classList.toggle('checked',e.target.checked)});
 
-// Symptom chips – driven by native checkbox change event
-document.addEventListener('change', e => {
-  if (e.target.matches('.sym-chip input[type="checkbox"]')) {
-    e.target.closest('.sym-chip').classList.toggle('checked', e.target.checked);
-  }
-});
-
-function toggleChip(el) {
-  // kept for backwards compat but no longer called
-  const cb = el.querySelector('input');
-  cb.checked = !cb.checked;
-  el.classList.toggle('checked', cb.checked);
-}
-
-// ════════════════════════════════════════════════
-// ADD ENTRY
-// ════════════════════════════════════════════════
-function addEntry() {
-  const time = document.getElementById('entryTime').value;
-  if (!time) { showToast('⚠ Bitte Uhrzeit angeben.'); return; }
-
-  const data = DB.getData();
-  const key  = dateKey(currentDate);
-  if (!data[key]) data[key] = [];
-
-  let entry = { id: Date.now(), time, type: activeType };
-
-  if (activeType === 'meal') {
-    const name = document.getElementById('mealName').value.trim();
-    if (!name) { showToast('⚠ Bitte Gericht eintragen.'); return; }
-    entry.name    = name;
-    entry.details = document.getElementById('mealDetails').value.trim();
-    entry.drink   = document.getElementById('mealDrink').value.trim();
-
-  } else if (activeType === 'symptom') {
-    const checked = [...document.querySelectorAll('.sym-chip.checked')]
-      .map(c => c.querySelector('input').value);
-    if (!checked.length) { showToast('⚠ Bitte mindestens ein Symptom wählen.'); return; }
-    entry.symptoms = checked;
-    entry.severity = parseInt(document.getElementById('sevSlider').value);
-    entry.timing   = document.getElementById('symTiming').value;
-    entry.note     = document.getElementById('symNote').value.trim();
-
-  } else {
-    entry.name   = document.getElementById('medName').value.trim() || 'Medikament';
-    entry.dose   = document.getElementById('medDose').value;
-    entry.timing = document.getElementById('medTiming').value;
-    entry.note   = document.getElementById('medNote').value.trim();
-  }
-
-  data[key].push(entry);
-  data[key].sort((a,b) => a.time.localeCompare(b.time));
-  DB.setData(data);
+// ── ADD ENTRY ─────────────────────────────────────
+async function addEntry(){
+  const time=document.getElementById('eTime').value;
+  if(!time){toast('⚠ Bitte Uhrzeit angeben','err');return}
+  const data=DB.d(),key=dk(today);if(!data[key])data[key]=[];
+  let e={id:Date.now(),time,type:aType};
+  if(aType==='meal'){const n=document.getElementById('mName').value.trim();if(!n){toast('⚠ Bitte Gericht eintragen','err');return}e.name=n;e.details=document.getElementById('mDet').value.trim();e.drink=document.getElementById('mDrk').value.trim()}
+  else if(aType==='symptom'){const c=[...document.querySelectorAll('.sc.checked')].map(x=>x.querySelector('input').value);if(!c.length){toast('⚠ Bitte ein Symptom wählen','err');return}e.symptoms=c;e.severity=parseInt(document.getElementById('sevS').value);e.timing=document.getElementById('sTim').value;e.note=document.getElementById('sNot').value.trim()}
+  else{e.name=document.getElementById('mdNam').value.trim()||'Medikament';e.dose=document.getElementById('mdDos').value;e.timing=document.getElementById('mdTim').value;e.note=document.getElementById('mdNot').value.trim()}
+  data[key].push(e);data[key].sort((a,b)=>a.time.localeCompare(b.time));DB.sd(data);
   resetForm();
-  showToast('✓ Eintrag gespeichert');
-  renderTimeline();
+  toast({meal:'✓ Mahlzeit gespeichert',symptom:'✓ Symptom gespeichert',medication:'✓ Medikament gespeichert'}[aType]);
 }
 
-function resetForm() {
-  document.querySelectorAll('.sym-chip.checked').forEach(c => {
-    c.classList.remove('checked'); c.querySelector('input').checked = false;
-  });
-  ['symNote','mealName','mealDetails','mealDrink','medNote'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  document.getElementById('sevSlider').value = 5;
-  document.getElementById('sevVal').textContent = '5';
+function resetForm(){
+  document.querySelectorAll('.sc.checked').forEach(c=>{c.classList.remove('checked');c.querySelector('input').checked=false});
+  ['sNot','mName','mDet','mDrk','mdNot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('sevS').value=5;document.getElementById('sevV').textContent='5';
 }
 
-function deleteEntry(key, id) {
-  const data = DB.getData();
-  if (!data[key]) return;
-  data[key] = data[key].filter(e => e.id !== id);
-  DB.setData(data);
-  if (activeTab === 'today') renderTimeline();
-  else if (activeTab === 'history') renderHistory();
-  showToast('Eintrag gelöscht');
+async function delEntry(key,id){
+  const d=DB.d();if(!d[key])return;
+  d[key]=d[key].filter(e=>e.id!==id);DB.sd(d);
+  renderHistory();
+  toast('Eintrag gelöscht','info');
 }
 
-// ════════════════════════════════════════════════
-// COLLAPSIBLE ENTRIES (mobile)
-// ════════════════════════════════════════════════
-let entriesOpen = false;
-
-function toggleEntries() {
-  entriesOpen = !entriesOpen;
-  const col  = document.getElementById('entriesCollapsible');
-  const btn  = document.getElementById('entriesToggle');
-  if (!col || !btn) return;
-  if (entriesOpen) {
-    col.style.maxHeight = col.scrollHeight + 'px';
-    btn.classList.add('open');
-  } else {
-    col.style.maxHeight = '0px';
-    btn.classList.remove('open');
-  }
+// ── CARD HTML ─────────────────────────────────────
+function cardHTML(e,key){
+  const L={meal:'🍽 Mahlzeit',symptom:'⚡ Symptom',medication:'💊 Medikament'};
+  const DC={meal:'dm',symptom:'ds',medication:'dd'};
+  const CC={meal:'ecm',symptom:'ecs',medication:'ecd'};
+  const BC={meal:'bm',symptom:'bs',medication:'bd2'};
+  let body='';
+  if(e.type==='meal')body=`<div class="cm">${esc(e.name)}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
+  else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:5px">Intensität: ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
+  else body=`<div class="cm">${esc(e.name||'')}${e.dose?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
+  return`<div class="tle"><div class="tld ${DC[e.type]}"></div><div class="ec ${CC[e.type]}"><button class="db" onclick="delEntry('${esc(key)}',${e.id})">✕</button><div class="ct"><span class="cti">${esc(e.time)} Uhr</span><span class="cb ${BC[e.type]}">${L[e.type]}</span></div>${body}</div></div>`;
 }
 
-function syncEntriesToggle(count) {
-  const btn   = document.getElementById('entriesToggle');
-  const label = document.getElementById('entriesToggleLabel');
-  const col   = document.getElementById('entriesCollapsible');
-  if (!btn || !label) return;
-  label.textContent = count > 0
-    ? `${count} Eintrag${count !== 1 ? 'e' : ''} heute ▸ anzeigen`
-    : 'Noch keine Einträge heute';
-  // Keep open if already open, re-measure height
-  if (entriesOpen && col) col.style.maxHeight = col.scrollHeight + 'px';
-}
-function renderTimeline() {
-  const data    = DB.getData();
-  const key     = dateKey(currentDate);
-  const entries = data[key] || [];
-  const nMeals  = entries.filter(e => e.type==='meal').length;
-  const nSyms   = entries.filter(e => e.type==='symptom').length;
-  const nMeds   = entries.filter(e => e.type==='medication').length;
-
-  let html = `
-    <div class="summary-pills">
-      ${nMeals ? `<span class="pill pill-meal">🍽 ${nMeals} Mahlzeit${nMeals>1?'en':''}</span>` : ''}
-      ${nSyms  ? `<span class="pill pill-sym">⚡ ${nSyms} Symptom${nSyms>1?'e':''}</span>`      : ''}
-      ${nMeds  ? `<span class="pill pill-med">💊 ${nMeds} Medikament${nMeds>1?'e':''}</span>`   : ''}
-      ${!entries.length ? '<span class="pill pill-empty">Noch keine Einträge</span>' : ''}
-    </div>`;
-
-  html += entries.length
-    ? '<div class="timeline">' + entries.map(e => cardHTML(e, key)).join('') + '</div>'
-    : '<div class="empty-state"><div class="empty-icon">📋</div><p>Noch nichts für diesen Tag.<br>Füge deinen ersten Eintrag hinzu!</p></div>';
-
-  document.getElementById('todayTimeline').innerHTML = html;
-  syncEntriesToggle(entries.length);
+// ── HISTORY ───────────────────────────────────────
+function renderHistory(){
+  const data=DB.d(),el=document.getElementById('histC');
+  const keys=Object.keys(data).filter(k=>data[k].length).sort().reverse();
+  if(!keys.length){el.innerHTML='<div class="es"><div class="ei">📅</div><p>Noch keine Einträge.<br>Trage heute deinen ersten Eintrag ein!</p></div>';return}
+  const todayK=dk(new Date());
+  el.innerHTML=keys.map(key=>{
+    const d=new Date(key+'T12:00:00'),isT=key===todayK;
+    const sy=data[key].filter(e=>e.type==='symptom');
+    const nM=data[key].filter(e=>e.type==='meal').length,nMe=data[key].filter(e=>e.type==='medication').length;
+    const mxS=sy.length?Math.max(...sy.map(s=>s.severity)):null;
+    return`<div class="hd"><div class="hdl${isT?' tdy':''}">${esc(isT?'Heute – '+fmt(d):fmt(d))}</div><div class="pills" style="margin-bottom:12px">${nM?`<span class="pill pm">🍽 ${nM}</span>`:''} ${sy.length?`<span class="pill ps">⚡ max. ${mxS}/10</span>`:''} ${nMe?`<span class="pill pd">💊 ${nMe}</span>`:''}</div><div class="tl">${data[key].map(e=>cardHTML(e,key)).join('')}</div></div>`;
+  }).join('')+`<div style="padding:20px;text-align:center;font-size:.78rem;color:var(--mut)">${keys.length} Tag${keys.length!==1?'e':''} erfasst</div>`;
 }
 
-function cardHTML(e, key) {
-  const LABELS = { meal:'🍽 Mahlzeit', symptom:'⚡ Symptom', medication:'💊 Medikament' };
-  let body = '';
-
-  if (e.type === 'meal') {
-    body = `<div class="card-main">${esc(e.name)}</div>
-      ${e.details ? `<div class="card-detail">${esc(e.details)}</div>` : ''}
-      ${e.drink   ? `<div class="card-detail">🥤 ${esc(e.drink)}</div>` : ''}`;
-
-  } else if (e.type === 'symptom') {
-    body = `<div class="sym-tags">${(e.symptoms||[]).map(s => `<span class="sym-tag">${esc(s)}</span>`).join('')}</div>
-      <div class="sev-bar"><div class="sev-fill" style="width:${(e.severity||5)*10}%"></div></div>
-      <div class="card-detail" style="margin-top:5px">Intensität: ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>
-      ${e.note ? `<div class="card-detail">${esc(e.note)}</div>` : ''}`;
-
-  } else {
-    body = `<div class="card-main">${esc(e.name)}${e.dose ? ` – ${esc(e.dose)} mg` : ''}</div>
-      <div class="card-detail">${esc(e.timing||'')}</div>
-      ${e.note ? `<div class="card-detail">${esc(e.note)}</div>` : ''}`;
-  }
-
-  return `<div class="tl-entry">
-    <div class="tl-dot dot-${e.type}"></div>
-    <div class="entry-card card-${e.type}">
-      <button class="del-btn" onclick="deleteEntry('${esc(key)}',${e.id})" aria-label="Löschen">✕</button>
-      <div class="card-top">
-        <span class="card-time">${esc(e.time)} Uhr</span>
-        <span class="card-badge badge-${e.type}">${LABELS[e.type]}</span>
-      </div>
-      ${body}
-    </div>
-  </div>`;
+// ── ANALYSIS ──────────────────────────────────────
+function renderAnalysis(){
+  const data=DB.d(),el=document.getElementById('analC');
+  const all=Object.values(data).flat();
+  const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
+  const total=Object.keys(data).length;
+  const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
+  const panto=Object.keys(data).filter(k=>data[k].some(e=>e.type==='medication'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
+  const sF={};syms.forEach(e=>(e.symptoms||[]).forEach(s=>{sF[s]=(sF[s]||0)+1}));
+  const sByF=Object.entries(sF).sort((a,b)=>b[1]-a[1]),sMax=sByF[0]?.[1]||1;
+  const trig={};Object.values(data).forEach(day=>{const sorted=[...day].sort((a,b)=>a.time.localeCompare(b.time));sorted.forEach((e,i)=>{if(e.type!=='symptom')return;const[sh,sm]=e.time.split(':').map(Number);sorted.slice(0,i).forEach(p=>{if(p.type!=='meal')return;const[ph,pm]=p.time.split(':').map(Number);if((sh*60+sm)-(ph*60+pm)<=120)trig[p.name]=(trig[p.name]||0)+1})})});
+  const tByF=Object.entries(trig).sort((a,b)=>b[1]-a[1]).slice(0,6),tMax=tByF[0]?.[1]||1;
+  el.innerHTML=`<div class="st">Auswertung</div>
+  <div class="sgrid"><div class="scc"><div class="sn">${total}</div><div class="sl">Protokolltage</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptom&shy;ereignisse</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div><div class="scc"><div class="sn">${meals.length}</div><div class="sl">Mahlzeiten</div></div><div class="scc"><div class="sn" style="color:var(--pur)">${panto}</div><div class="sl">Tage mit Pantoprazol</div></div><div class="scc"><div class="sn" style="color:var(--green)">${total-panto}</div><div class="sl">Tage ohne</div></div></div>
+  ${sByF.length?`<div class="cb2"><div class="cbt">Häufigste Symptome</div>${sByF.map(([s,n])=>`<div class="br"><span class="bl">${esc(s)}</span><div class="bbg"><div class="bf bfs" style="width:${(n/sMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}</div>`:''}
+  ${tByF.length?`<div class="cb2"><div class="cbt">Mögliche Trigger <span style="font-weight:400;color:var(--mut)">(Symptome innerhalb 2h)</span></div>${tByF.map(([m,n])=>`<div class="br"><span class="bl">${esc(m)}</span><div class="bbg"><div class="bf bft" style="width:${(n/tMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}<div class="cn">⚠ Rein zeitliche Korrelation.</div></div>`:''}
+  ${!total?'<div class="es"><div class="ei">📊</div><p>Noch zu wenig Daten.</p></div>':''}`;
 }
 
-// ════════════════════════════════════════════════
-// HISTORY
-// ════════════════════════════════════════════════
-function renderHistory() {
-  const data = DB.getData();
-  const keys = Object.keys(data).filter(k => data[k].length).sort().reverse();
-  const el   = document.getElementById('historyContent');
+// ── NOTES ─────────────────────────────────────────
+function saveNote(){const t=document.getElementById('nIn').value.trim();if(!t)return;const n=DB.n();n.unshift({id:Date.now(),date:new Date().toISOString(),text:t});DB.sn(n);document.getElementById('nIn').value='';renderNotes();toast('Notiz gespeichert')}
+function renderNotes(){const el=document.getElementById('nList'),n=DB.n();el.innerHTML=n.map(x=>`<div class="nc"><div class="nd">${new Date(x.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="nt">${esc(x.text)}</div></div>`).join('')}
 
-  if (!keys.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>Noch keine Einträge vorhanden.</p></div>';
-    return;
-  }
 
-  el.innerHTML = '<div class="section-title">Verlauf</div>' + keys.map(key => {
-    const d    = new Date(key + 'T12:00:00');
-    const syms = data[key].filter(e => e.type==='symptom');
-    const maxS = syms.length ? Math.max(...syms.map(s => s.severity)) : null;
-    const nM   = data[key].filter(e => e.type==='meal').length;
-    const nMe  = data[key].filter(e => e.type==='medication').length;
-    return `<div class="hist-day">
-      <div class="hist-day-label">${esc(fmt(d))}</div>
-      <div class="summary-pills" style="margin-bottom:12px">
-        ${nM   ? `<span class="pill pill-meal">🍽 ${nM}</span>` : ''}
-        ${syms.length ? `<span class="pill pill-sym">⚡ max. ${maxS}/10</span>` : ''}
-        ${nMe  ? `<span class="pill pill-med">💊 ${nMe}</span>` : ''}
-      </div>
-      <div class="timeline">${data[key].map(e => cardHTML(e, key)).join('')}</div>
-    </div>`;
-  }).join('');
-}
+// ── WOCHENBERICHT & TEILEN ────────────────────────
+let rWeek=0;
+function wRange(off){const n=new Date(),m=new Date(n);m.setDate(n.getDate()-((n.getDay()+6)%7)+off*7);m.setHours(0,0,0,0);const s=new Date(m);s.setDate(m.getDate()+6);s.setHours(23,59,59,999);return{m,s}}
+function wLabel(off){if(off===0)return'Diese Woche';if(off===-1)return'Letzte Woche';const{m,s}=wRange(off);return`${m.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}`}
+function wData(off){const{m,s}=wRange(off),data=DB.d(),r={};Object.keys(data).forEach(k=>{const d=new Date(k+'T12:00:00');if(d>=m&&d<=s&&data[k].length)r[k]=data[k]});return r}
+function changeWeek(d){rWeek=Math.min(0,rWeek+d);renderReport()}
 
-// ════════════════════════════════════════════════
-// ANALYSIS
-// ════════════════════════════════════════════════
-function renderAnalysis() {
-  const data  = DB.getData();
-  const all   = Object.values(data).flat();
-  const syms  = all.filter(e => e.type==='symptom');
-  const meals = all.filter(e => e.type==='meal');
-  const total = Object.keys(data).length;
-  const avgS  = syms.length ? (syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1) : '–';
-  const panto = Object.keys(data).filter(k =>
-    data[k].some(e => e.type==='medication' && (e.name||'').toLowerCase().includes('pantoprazol'))).length;
-
-  // Symptom frequency
-  const sFreq = {};
-  syms.forEach(e => (e.symptoms||[]).forEach(s => { sFreq[s]=(sFreq[s]||0)+1; }));
-  const sByFreq = Object.entries(sFreq).sort((a,b)=>b[1]-a[1]);
-  const sMax = sByFreq[0]?.[1] || 1;
-
-  // Trigger meals (within 2h before symptom)
-  const trig = {};
-  Object.values(data).forEach(day => {
-    const sorted = [...day].sort((a,b)=>a.time.localeCompare(b.time));
-    sorted.forEach((e,i) => {
-      if (e.type !== 'symptom') return;
-      const [sh,sm] = e.time.split(':').map(Number);
-      sorted.slice(0,i).forEach(p => {
-        if (p.type !== 'meal') return;
-        const [ph,pm] = p.time.split(':').map(Number);
-        if ((sh*60+sm)-(ph*60+pm) <= 120) trig[p.name]=(trig[p.name]||0)+1;
-      });
+// Baut den Bericht: oben lesbarer Text, unten die Rohdaten für das Auswertungs-Tool
+function buildReport(){
+  const wd=wData(rWeek),keys=Object.keys(wd).sort();
+  const {m,s}=wRange(rWeek);
+  const range=`${m.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'})}`;
+  const lines=[`GutLog – Wochenbericht`,`Zeitraum: ${range}`,``];
+  keys.forEach(k=>{
+    const d=new Date(k+'T12:00:00');
+    lines.push(d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'}));
+    wd[k].forEach(e=>{
+      if(e.type==='meal')lines.push(`  ${e.time} Mahlzeit: ${e.name}${e.details?' ('+e.details+')':''}${e.drink?' + '+e.drink:''}`);
+      else if(e.type==='symptom')lines.push(`  ${e.time} Symptom: ${(e.symptoms||[]).join(', ')} – ${e.severity}/10${e.timing?' ('+e.timing+')':''}${e.note?' – '+e.note:''}`);
+      else lines.push(`  ${e.time} Medikament: ${e.name} ${e.dose||''} mg${e.timing?' – '+e.timing:''}${e.note?' ('+e.note+')':''}`);
     });
+    lines.push('');
   });
-  const tByFreq = Object.entries(trig).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const tMax = tByFreq[0]?.[1] || 1;
+  const payload={app:'GutLog',version:'1.1',range:{from:dk(m),to:dk(s)},exportedAt:new Date().toISOString(),days:wd};
+  lines.push('=== GUTLOG-DATEN (für das Auswertungs-Tool, bitte nicht ändern) ===');
+  lines.push(JSON.stringify(payload));
+  return {text:lines.join('\n'),file:`gutlog-bericht-${dk(m)}.txt`,keys};
+}
 
-  const el = document.getElementById('analysisContent');
-  el.innerHTML = `
-    <div class="section-title">Auswertung</div>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Protokoll&shy;tage</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${syms.length}</div><div class="stat-lbl">Symptom&shy;ereignisse</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${avgS}</div><div class="stat-lbl">Ø Intensität</div></div>
-      <div class="stat-card"><div class="stat-num">${meals.length}</div><div class="stat-lbl">Mahlzeiten</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${panto}</div><div class="stat-lbl">Tage mit Pantoprazol</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${total-panto}</div><div class="stat-lbl">Tage ohne</div></div>
+function renderReport(){
+  const {keys}=buildReport();
+  const wd=wData(rWeek),all=Object.values(wd).flat(),syms=all.filter(e=>e.type==='symptom');
+  const avgS=syms.length?(syms.reduce((a,e)=>a+e.severity,0)/syms.length).toFixed(1):'–';
+  document.getElementById('repC').innerHTML=`
+    <div class="st">Wochenbericht</div>
+    <div class="wn">
+      <button class="wb" onclick="changeWeek(-1)">‹ Vorherige</button>
+      <span class="wl">${esc(wLabel(rWeek))}</span>
+      <button class="wb" onclick="changeWeek(1)" ${rWeek>=0?'disabled':''}>Nächste ›</button>
     </div>
-
-    ${sByFreq.length ? `<div class="chart-box">
-      <div class="chart-title">Häufigste Symptome</div>
-      ${sByFreq.map(([sym,n]) => `<div class="bar-row">
-        <span class="bar-label">${esc(sym)}</span>
-        <div class="bar-bg"><div class="bar-fill bar-fill-sym" style="width:${(n/sMax*100).toFixed(0)}%"></div></div>
-        <span class="bar-count">${n}×</span>
-      </div>`).join('')}
-    </div>` : ''}
-
-    ${tByFreq.length ? `<div class="chart-box">
-      <div class="chart-title">Mögliche Trigger-Mahlzeiten <span style="font-weight:400;color:var(--text-muted)">(Symptome innerhalb 2h)</span></div>
-      ${tByFreq.map(([m,n]) => `<div class="bar-row">
-        <span class="bar-label">${esc(m)}</span>
-        <div class="bar-bg"><div class="bar-fill bar-fill-trig" style="width:${(n/tMax*100).toFixed(0)}%"></div></div>
-        <span class="bar-count">${n}×</span>
-      </div>`).join('')}
-      <div class="chart-note">⚠ Rein zeitliche Korrelation – keine medizinische Diagnose.</div>
-    </div>` : ''}
-
-    ${!total ? '<div class="empty-state"><div class="empty-icon">📊</div><p>Noch zu wenig Daten.<br>Trage mehrere Tage ein!</p></div>' : ''}`;
-}
-
-// ════════════════════════════════════════════════
-// NOTES
-// ════════════════════════════════════════════════
-function saveNote() {
-  const text = document.getElementById('noteInput').value.trim();
-  if (!text) return;
-  const notes = DB.getNotes();
-  notes.unshift({ id: Date.now(), date: new Date().toISOString(), text });
-  DB.setNotes(notes);
-  document.getElementById('noteInput').value = '';
-  renderNotes();
-  showToast('Notiz gespeichert');
-}
-
-function renderNotes() {
-  const el = document.getElementById('notesList');
-  const notes = DB.getNotes();
-  if (!notes.length) { el.innerHTML = ''; return; }
-  el.innerHTML = notes.map(n => `
-    <div class="note-card">
-      <div class="note-date">${new Date(n.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-      <div class="note-text">${esc(n.text)}</div>
-    </div>`).join('');
-}
-
-// ════════════════════════════════════════════════
-// REPORT
-// ════════════════════════════════════════════════
-function getWeekRange(offset) {
-  const now = new Date();
-  const mon = new Date(now);
-  mon.setDate(now.getDate() - ((now.getDay()+6)%7) + offset*7);
-  mon.setHours(0,0,0,0);
-  const sun = new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
-  return { mon, sun };
-}
-
-function weekLabelStr(offset) {
-  if (offset === 0)  return 'Diese Woche';
-  if (offset === -1) return 'Letzte Woche';
-  const {mon,sun} = getWeekRange(offset);
-  return `${mon.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${sun.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}`;
-}
-
-function getWeekData(offset) {
-  const {mon,sun} = getWeekRange(offset);
-  const data = DB.getData(), result = {};
-  Object.keys(data).forEach(k => {
-    const d = new Date(k+'T12:00:00');
-    if (d >= mon && d <= sun && data[k].length) result[k] = data[k];
-  });
-  return result;
-}
-
-function buildRawSummary(wd) {
-  return Object.keys(wd).sort().map(key => {
-    const d = new Date(key+'T12:00:00');
-    const label = d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-    const entries = wd[key];
-    const lines = [`📅 ${label}`];
-    entries.filter(e=>e.type==='meal').forEach(m =>
-      lines.push(`  🍽 ${m.time}: ${m.name}${m.details?' ('+m.details+')':''}${m.drink?' + '+m.drink:''}`));
-    entries.filter(e=>e.type==='symptom').forEach(s =>
-      lines.push(`  ⚡ ${s.time}: ${(s.symptoms||[]).join(', ')} – Stärke ${s.severity}/10${s.timing?' ('+s.timing+')':''}${s.note?' – '+s.note:''}`));
-    entries.filter(e=>e.type==='medication').forEach(m =>
-      lines.push(`  💊 ${m.time}: ${m.name} ${m.dose}mg – ${m.timing}${m.note?' ('+m.note+')':''}`));
-    return lines.join('\n');
-  }).join('\n\n');
-}
-
-async function callAI(rawSummary) {
-  const prompt = `Du bist ein medizinisch informierter Assistent, der einem Arzt hilft, das Ernährungs- und Symptomtagebuch eines Patienten auszuwerten.
-
-Patient: Chronisches Sodbrennen seit Jahren, möchte Pantoprazol reduzieren/absetzen. Begleitbeschwerden: Blähbauch, Blähungen, Durchfall.
-
-Tagebuchdaten der Woche:
-${rawSummary}
-
-Bitte erstelle eine strukturierte Wochenanalyse auf Deutsch (max. 280 Wörter):
-
-1. 📊 Überblick – Wie war die Woche insgesamt?
-2. 🔥 Auffällige Symptome – Welche, wann, wie stark?
-3. 🍽 Mögliche Auslöser – Zeitliche Zusammenhänge Mahlzeit → Symptom?
-4. 💊 Pantoprazol – Eingenommen, weggelassen, Veränderungen?
-5. 💡 Empfehlungen – 2–3 konkrete Punkte für nächste Woche
-
-Klar und präzise, für medizinische Fachperson. Kein Disclaimer.`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  if (!res.ok) throw new Error('API ' + res.status);
-  const data = await res.json();
-  return (data.content||[]).map(b => b.text||'').join('');
-}
-
-async function renderReport() {
-  const wd   = getWeekData(reportWeekOffset);
-  const keys = Object.keys(wd).sort();
-  const all  = Object.values(wd).flat();
-  const syms = all.filter(e=>e.type==='symptom');
-  const panto= keys.filter(k=>wd[k].some(e=>e.type==='medication'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
-  const avgS = syms.length ? (syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1) : '–';
-
-  document.getElementById('reportContent').innerHTML = `
-    <div class="section-title">Wochenbericht</div>
-    <div class="week-nav">
-      <button class="week-nav-btn" onclick="changeReportWeek(-1)">‹ Vorherige</button>
-      <span class="week-lbl">${esc(weekLabelStr(reportWeekOffset))}</span>
-      <button class="week-nav-btn" onclick="changeReportWeek(1)" ${reportWeekOffset>=0?'disabled':''}>Nächste ›</button>
+    <div class="sgrid">
+      <div class="scc"><div class="sn">${keys.length}</div><div class="sl">Tage erfasst</div></div>
+      <div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptome</div></div>
+      <div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div>
     </div>
-    <div class="stat-grid" style="margin-bottom:18px">
-      <div class="stat-card"><div class="stat-num">${keys.length}</div><div class="stat-lbl">Tage erfasst</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${syms.length}</div><div class="stat-lbl">Symptom&shy;einträge</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${avgS}</div><div class="stat-lbl">Ø Intensität</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${panto}/7</div><div class="stat-lbl">Tage Pantoprazol</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${7-panto}/7</div><div class="stat-lbl">Tage ohne</div></div>
-      <div class="stat-card"><div class="stat-num">${all.filter(e=>e.type==='meal').length}</div><div class="stat-lbl">Mahlzeiten</div></div>
-    </div>
-    ${!keys.length
-      ? '<div class="empty-state"><div class="empty-icon">📭</div><p>Keine Einträge für diese Woche.</p></div>'
-      : `<div class="ai-card">
-          <div class="ai-card-head"><span class="ai-pill">✨ KI-Analyse</span><span class="ai-card-title">Zusammenfassung</span></div>
-          <div id="aiResult"><div class="ai-loading"><div class="spinner"></div>Analyse wird erstellt…</div></div>
-        </div>
-        <div class="preview-lbl">Vorschau WhatsApp-Nachricht</div>
-        <div class="preview-box" id="previewBox">Wird geladen…</div>
-        <a id="waBtn" class="wa-btn disabled" href="#" onclick="return false;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Per WhatsApp senden
-        </a>`}`;
-
-  if (!keys.length) return;
-
-  const raw  = buildRawSummary(wd);
-  const wKey = String(reportWeekOffset);
-
-  if (cachedAiWeek === wKey && cachedAiText) {
-    applyAiResult(cachedAiText, raw); return;
-  }
-
-  try {
-    const ai = await callAI(raw);
-    cachedAiText = ai; cachedAiWeek = wKey;
-    applyAiResult(ai, raw);
-  } catch(err) {
-    const el = document.getElementById('aiResult');
-    if (el) el.innerHTML = '<div class="ai-text" style="color:var(--red)">⚠ KI-Analyse momentan nicht verfügbar. Bitte Internetverbindung prüfen.</div>';
-    activateWaBtn('(KI-Analyse nicht verfügbar)\n\n' + raw);
-  }
+    ${!keys.length?'<div class="es"><div class="ei">📭</div><p>Keine Einträge für diese Woche.</p></div>':`
+    <div class="rc">
+      <div class="rh"><span class="rp2">📤 Teilen</span><span class="rt">Bericht senden</span></div>
+      <p style="font-size:.85rem;color:var(--mut);line-height:1.7;margin-bottom:16px">Öffnet das Teilen-Menü deines Handys. Wähle WhatsApp, Mail oder AirDrop und dann den Kontakt.</p>
+      <button class="sav" onclick="shareReport()">Bericht teilen</button>
+    </div>`}`;
 }
 
-function applyAiResult(aiText, raw) {
-  const el = document.getElementById('aiResult');
-  if (!el) return;
-  el.innerHTML = `<div class="ai-text">${aiText
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n/g,'<br>')}</div>`;
-
-  const {mon,sun} = getWeekRange(reportWeekOffset);
-  const range = `${mon.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} – ${sun.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'})}`;
-  const waMsg = `📖 *GutLog – Wochenbericht*\n📅 ${range}\n\n${aiText}\n\n─────────────\n_Erstellt mit GutLog_`;
-
-  const prev = document.getElementById('previewBox');
-  if (prev) prev.textContent = waMsg;
-  activateWaBtn(waMsg);
-}
-
-function activateWaBtn(text) {
-  const btn = document.getElementById('waBtn');
-  if (!btn) return;
-  btn.href = 'https://wa.me/?text=' + encodeURIComponent(text);
-  btn.classList.remove('disabled');
-  btn.onclick = null;
-}
-
-function changeReportWeek(delta) {
-  reportWeekOffset = Math.min(0, reportWeekOffset + delta);
-  cachedAiText = null; cachedAiWeek = null;
-  renderReport();
-}
-
-// ════════════════════════════════════════════════
-// SETTINGS – NOTIFICATIONS
-// ════════════════════════════════════════════════
-function initSettingsUI() {
-  const s = DB.getSettings();
-  const toggle = document.getElementById('notifToggle');
-  if (!toggle) return;
-  toggle.checked = !!s.notifEnabled;
-  const ts = document.getElementById('timesSection');
-  if (ts) ts.style.display = s.notifEnabled ? 'block' : 'none';
-  renderTimeChips();
-  refreshNotifStatus();
-}
-
-function renderTimeChips() {
-  const el = document.getElementById('timeChips');
-  if (!el) return;
-  const s = DB.getSettings();
-  const times = s.reminderTimes || ['08:00','13:00','20:00'];
-  el.innerHTML = times.map(t => `
-    <div class="time-chip">
-      <span>${esc(t)} Uhr</span>
-      <button class="time-chip-del" onclick="removeTime('${esc(t)}')" aria-label="Entfernen">✕</button>
-    </div>`).join('');
-}
-
-function addReminderTime() {
-  const t = document.getElementById('newTimeInput').value;
-  if (!t) return;
-  const s = DB.getSettings();
-  const times = s.reminderTimes || ['08:00','13:00','20:00'];
-  if (!times.includes(t)) { times.push(t); times.sort(); }
-  s.reminderTimes = times;
-  DB.setSettings(s);
-  renderTimeChips();
-  scheduleAllReminders();
-  showToast('Erinnerungszeit hinzugefügt');
-}
-
-function removeTime(time) {
-  const s = DB.getSettings();
-  s.reminderTimes = (s.reminderTimes || []).filter(t => t !== time);
-  DB.setSettings(s);
-  renderTimeChips();
-  scheduleAllReminders();
-}
-
-async function toggleNotifications(enabled) {
-  const s = DB.getSettings();
-  if (enabled) {
-    if (!('Notification' in window)) {
-      setNS('err', '❌ Dein Browser unterstützt keine Benachrichtigungen.');
-      document.getElementById('notifToggle').checked = false; return;
+async function shareReport(){
+  const {text,file}=buildReport();
+  // 1. Versuch: als Datei teilen (iOS 15+, Android Chrome)
+  try{
+    const f=new File([text],file,{type:'text/plain'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      await navigator.share({files:[f],title:'GutLog Wochenbericht'});
+      toast('✓ Bericht geteilt');return;
     }
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      setNS('warn', '⚠ Berechtigung verweigert. Bitte in den Browser-/App-Einstellungen erlauben.');
-      document.getElementById('notifToggle').checked = false;
-      s.notifEnabled = false; DB.setSettings(s); return;
+    // 2. Versuch: als Text teilen
+    if(navigator.share){
+      await navigator.share({title:'GutLog Wochenbericht',text});
+      toast('✓ Bericht geteilt');return;
     }
-    s.notifEnabled = true;
-    if (!s.reminderTimes) s.reminderTimes = ['08:00','13:00','20:00'];
-    DB.setSettings(s);
-    setNS('ok', '✓ Erinnerungen aktiv. Benachrichtigungen erscheinen zu den gewählten Zeiten, wenn noch kein Eintrag für heute vorhanden ist.');
-    const ts = document.getElementById('timesSection');
-    if (ts) ts.style.display = 'block';
-    renderTimeChips();
-    scheduleAllReminders();
-  } else {
-    s.notifEnabled = false; DB.setSettings(s);
-    setNS('', '');
-    const ts = document.getElementById('timesSection');
-    if (ts) ts.style.display = 'none';
-    clearAllTimers();
+  }catch(err){
+    if(err&&err.name==='AbortError')return; // Nutzerin hat abgebrochen
   }
+  // 3. Rückfall: in die Zwischenablage kopieren
+  try{await navigator.clipboard.writeText(text);toast('Kopiert – jetzt in WhatsApp einfügen','info')}
+  catch{toast('Teilen wird hier nicht unterstützt','err')}
 }
 
-function refreshNotifStatus() {
-  const s = DB.getSettings();
-  if (!s.notifEnabled) return;
-  if (!('Notification' in window)) { setNS('err', '❌ Browser unterstützt keine Benachrichtigungen.'); return; }
-  if (Notification.permission === 'granted') setNS('ok', '✓ Erinnerungen aktiv.');
-  else setNS('warn', '⚠ Berechtigung fehlt – bitte in den Einstellungen erlauben.');
+// ── SETTINGS ──────────────────────────────────────
+function initSettings(){
+  const c=DB.c(),tog=document.getElementById('nTog');if(!tog)return;
+  tog.checked=!!c.notifEnabled;
+  const ts=document.getElementById('tSec');if(ts)ts.style.display=c.notifEnabled?'block':'none';
+  renderChips();refreshNS();
 }
-
-function setNS(type, msg) {
-  const el = document.getElementById('notifStatus');
-  if (!el) return;
-  el.className = 'notif-status' + (type ? ' ns-'+type : '');
-  el.textContent = msg;
+function renderChips(){const el=document.getElementById('tChps');if(!el)return;const times=(DB.c().reminderTimes)||['08:00','13:00','20:00'];el.innerHTML=times.map(t=>`<div class="tch"><span>${esc(t)} Uhr</span><button class="tcd" onclick="removeTime('${esc(t)}')">✕</button></div>`).join('')}
+function addTime(){const t=document.getElementById('nTi').value;if(!t)return;const c=DB.c(),times=c.reminderTimes||['08:00','13:00','20:00'];if(!times.includes(t)){times.push(t);times.sort()}c.reminderTimes=times;DB.sc(c);renderChips();scheduleAll();toast('Erinnerungszeit hinzugefügt')}
+function removeTime(t){const c=DB.c();c.reminderTimes=(c.reminderTimes||[]).filter(x=>x!==t);DB.sc(c);renderChips();scheduleAll()}
+async function toggleNotif(on){const c=DB.c();if(on){if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');document.getElementById('nTog').checked=false;return}const p=await Notification.requestPermission();if(p!=='granted'){setNS('w','⚠ Berechtigung verweigert.');document.getElementById('nTog').checked=false;c.notifEnabled=false;DB.sc(c);return}c.notifEnabled=true;if(!c.reminderTimes)c.reminderTimes=['08:00','13:00','20:00'];DB.sc(c);setNS('o','✓ Erinnerungen aktiv.');const ts=document.getElementById('tSec');if(ts)ts.style.display='block';renderChips();scheduleAll()}else{c.notifEnabled=false;DB.sc(c);setNS('','');const ts=document.getElementById('tSec');if(ts)ts.style.display='none';timers.forEach(t=>clearTimeout(t));timers.length=0}}
+function refreshNS(){const c=DB.c();if(!c.notifEnabled)return;if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');return}Notification.permission==='granted'?setNS('o','✓ Erinnerungen aktiv.'):setNS('w','⚠ Berechtigung fehlt.')}
+function setNS(t,m){const el=document.getElementById('nStat');if(!el)return;el.className='ns'+(t?t==='o'?' nso':t==='w'?' nsw':' nse':'');el.textContent=m}
+function scheduleAll(){
+  timers.forEach(t=>clearTimeout(t));timers.length=0;
+  const c=DB.c();
+  if(!c.notifEnabled||!('Notification'in window)||Notification.permission!=='granted')return;
+  (c.reminderTimes||['08:00','13:00','20:00']).forEach(scheduleOne);
+  document.removeEventListener('visibilitychange',onVisible);
+  document.addEventListener('visibilitychange',onVisible);
 }
-
-function clearAllTimers() { reminderTimers.forEach(t => clearTimeout(t)); reminderTimers.length = 0; }
-
-function scheduleAllReminders() {
-  clearAllTimers();
-  const s = DB.getSettings();
-  if (!s.notifEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
-  (s.reminderTimes || ['08:00','13:00','20:00']).forEach(scheduleOne);
-}
-
-function scheduleOne(timeStr) {
-  const [h,m] = timeStr.split(':').map(Number);
-  const fire  = new Date(); fire.setHours(h,m,0,0);
-  if (fire <= new Date()) fire.setDate(fire.getDate()+1);
-  const ms = fire - new Date();
-  const tid = setTimeout(() => {
-    fireIfNoEntry();
-    setTimeout(() => scheduleOne(timeStr), 60*1000); // re-schedule next day
-  }, ms);
-  reminderTimers.push(tid);
-}
-
-function fireIfNoEntry() {
-  if (Notification.permission !== 'granted') return;
-  const data = DB.getData();
-  const key  = dateKey(new Date());
-  if (data[key]?.length) return; // Already has entries today
-  const icon = document.getElementById('appleTouchIcon')?.href || '';
-  new Notification('GutLog – Erinnerung 📖', {
-    body: 'Noch kein Eintrag für heute! Mahlzeit, Symptom oder Medikament eintragen.',
-    icon, badge: icon, tag: 'gutlog-reminder', renotify: true,
+function onVisible(){if(!document.hidden)checkAndFire()}
+function checkAndFire(){
+  const c=DB.c();if(!c.notifEnabled||Notification.permission!=='granted')return;
+  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
+  (c.reminderTimes||[]).forEach(ts=>{
+    const[h,m]=ts.split(':').map(Number),diff=nowMins-(h*60+m);
+    if(diff>=0&&diff<5){const lk='gl_n_'+dk(now)+'_'+ts;if(!sessionStorage.getItem(lk)){sessionStorage.setItem(lk,'1');fireNotif()}}
   });
 }
-
-function sendTestNotif() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    showToast('⚠ Bitte erst Erinnerungen aktivieren'); return;
-  }
-  const icon = document.getElementById('appleTouchIcon')?.href || '';
-  new Notification('GutLog – Test ✓', {
-    body: 'Benachrichtigungen funktionieren! Du wirst täglich erinnert einzutragen.',
-    icon, tag: 'gutlog-test',
-  });
-  showToast('Test-Benachrichtigung gesendet');
+function scheduleOne(ts){
+  const[h,m]=ts.split(':').map(Number),f=new Date();f.setHours(h,m,0,0);
+  if(f<=new Date())f.setDate(f.getDate()+1);
+  timers.push(setTimeout(()=>{fireNotif();setTimeout(()=>scheduleOne(ts),60000)},f-new Date()));
 }
-
-// ════════════════════════════════════════════════
-// EXPORT & DELETE
-// ════════════════════════════════════════════════
-function exportData() {
-  const blob = new Blob([JSON.stringify({
-    app: 'GutLog', version: '1.0', exported: new Date().toISOString(),
-    data: DB.getData(), notes: DB.getNotes()
-  }, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a   = document.createElement('a');
-  a.href = url; a.download = `gutlog-export-${dateKey(new Date())}.json`;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast('Export heruntergeladen');
+function fireNotif(){
+  if(Notification.permission!=='granted')return;
+  const d=DB.d(),k=dk(new Date());if(d[k]?.length)return;
+  new Notification('GutLog – Erinnerung 📖',{body:'Noch kein Eintrag für heute!',tag:'gl-r',renotify:true});
 }
+function testNotif(){if(!('Notification'in window)||Notification.permission!=='granted'){toast('⚠ Erst Erinnerungen aktivieren','err');return}new Notification('GutLog – Test ✓',{body:'Benachrichtigungen funktionieren! 🎉',tag:'gl-t'});toast('Test-Benachrichtigung gesendet')}
+function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;['gl_d','gl_n'].forEach(k=>localStorage.removeItem(k));toast('Alle Daten gelöscht','info')}
 
-function confirmDeleteAll() {
-  if (!confirm('Alle GutLog-Daten unwiderruflich löschen?\n\nBitte vorher exportieren!')) return;
-  ['gl_data','gl_notes'].forEach(k => localStorage.removeItem(k));
-  renderTimeline();
-  showToast('Alle Daten gelöscht');
-}
-
-// ════════════════════════════════════════════════
-// DISMISS INSTALL
-// ════════════════════════════════════════════════
-function dismissInstall() {
-  localStorage.setItem('pwa_dismissed','1');
-  document.getElementById('installBanner').classList.remove('visible');
-}
-
-// ════════════════════════════════════════════════
-// PWA BOOT
-// ════════════════════════════════════════════════
-function pwaBoot() {
-  // ── polyfill roundRect ──
-  if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
-      r = Math.min(r, w/2, h/2);
-      this.beginPath();
-      this.moveTo(x+r,y); this.lineTo(x+w-r,y);
-      this.arcTo(x+w,y,x+w,y+r,r); this.lineTo(x+w,y+h-r);
-      this.arcTo(x+w,y+h,x+w-r,y+h,r); this.lineTo(x+r,y+h);
-      this.arcTo(x,y+h,x,y+h-r,r); this.lineTo(x,y+r);
-      this.arcTo(x,y,x+r,y,r); this.closePath();
-    };
-  }
-
-  // ── draw icon – Blatt + Puls ──
-  function drawIcon(size) {
-    const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const ctx = c.getContext('2d');
-    const s = size;
-
-    // Background gradient – medium green
-    const bg = ctx.createLinearGradient(0, 0, s, s);
-    bg.addColorStop(0, '#56886A'); bg.addColorStop(1, '#2C5F3F');
-    ctx.fillStyle = bg;
-    ctx.roundRect(0,0,s,s,s*0.22); ctx.fill();
-
-    // Soft radial glow in centre
-    const glow = ctx.createRadialGradient(s*0.5,s*0.44,0, s*0.5,s*0.5,s*0.58);
-    glow.addColorStop(0,'rgba(255,255,255,0.13)'); glow.addColorStop(1,'transparent');
-    ctx.fillStyle = glow; ctx.roundRect(0,0,s,s,s*0.22); ctx.fill();
-
-    ctx.save();
-    ctx.translate(s*0.5, s*0.48);
-
-    // Leaf shape – white, rounded
-    ctx.beginPath();
-    ctx.moveTo(0, -s*0.31);
-    ctx.bezierCurveTo( s*0.26, -s*0.31,  s*0.31,  s*0.05, 0,  s*0.31);
-    ctx.bezierCurveTo(-s*0.31,  s*0.05, -s*0.26, -s*0.31, 0, -s*0.31);
-    ctx.fillStyle = 'rgba(255,255,255,0.93)';
-    ctx.fill();
-
-    // Pulse / heartbeat line inside leaf
-    ctx.beginPath();
-    ctx.moveTo(-s*0.21,  s*0.02);
-    ctx.lineTo(-s*0.09,  s*0.02);
-    ctx.lineTo(-s*0.04, -s*0.13);
-    ctx.lineTo( s*0.04,  s*0.15);
-    ctx.lineTo( s*0.09,  s*0.02);
-    ctx.lineTo( s*0.21,  s*0.02);
-    ctx.strokeStyle = '#2C5F3F';
-    ctx.lineWidth   = s * 0.048;
-    ctx.lineJoin    = 'round';
-    ctx.lineCap     = 'round';
-    ctx.stroke();
-
-    ctx.restore();
-
-    return c.toDataURL('image/png');
-  }
-
-  const icon192 = drawIcon(192);
-  const icon512 = drawIcon(512);
-  document.getElementById('appleTouchIcon').href = icon192;
-
-  // ── manifest ──
-  const manifest = {
-    name:'GutLog', short_name:'GutLog',
-    description:'Ernährungs- und Symptomtagebuch für Magen-Darm-Beschwerden',
-    start_url:'.', display:'standalone', lang:'de',
-    background_color:'#2C5F3F', theme_color:'#2C5F3F',
-    orientation:'portrait-primary',
-    icons:[
-      {src:icon192, sizes:'192x192', type:'image/png', purpose:'any maskable'},
-      {src:icon512, sizes:'512x512', type:'image/png', purpose:'any maskable'}
-    ]
-  };
-  const mBlob = new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-  document.getElementById('manifestLink').href = URL.createObjectURL(mBlob);
-
-  // ── service worker ──
-  const swSrc = `
-const CACHE='gutlog-v2';
-const PRECACHE=[
-  'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&display=swap'
-];
-self.addEventListener('install', e => {
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE).catch(()=>{})));
-});
-self.addEventListener('activate', e => e.waitUntil(
-  caches.keys().then(keys => Promise.all(
-    keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))
-  )).then(()=>clients.claim())
-));
-self.addEventListener('fetch', e => {
-  if (e.request.method!=='GET') return;
-  if (e.request.url.includes('api.anthropic.com')) return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if (res.ok && e.request.url.startsWith('https://fonts.')) {
-          const clone=res.clone();
-          caches.open(CACHE).then(c=>c.put(e.request,clone));
-        }
-        return res;
-      }).catch(()=>null);
-      return cached || network;
-    })
-  );
-});`;
-
-  if ('serviceWorker' in navigator) {
-    const swBlob = new Blob([swSrc],{type:'application/javascript'});
-    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
-  }
-
-  // ── install prompt – Android ──
-  let deferred = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferred = e;
-    if (!localStorage.getItem('pwa_dismissed'))
-      document.getElementById('installBanner').classList.add('visible');
-  });
-  document.getElementById('installBtn').addEventListener('click', async () => {
-    if (!deferred) return;
-    deferred.prompt();
-    const {outcome} = await deferred.userChoice;
-    deferred = null;
-    document.getElementById('installBanner').classList.remove('visible');
-    if (outcome === 'accepted') showToast('✓ GutLog installiert!');
-  });
-  window.addEventListener('appinstalled', () => {
-    document.getElementById('installBanner').classList.remove('visible');
-    showToast('✓ GutLog installiert!');
-  });
-
-  // ── install hint – iOS ──
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
-  const isSA  = window.matchMedia('(display-mode:standalone)').matches || !!navigator.standalone;
-  if (isIOS && !isSA && !localStorage.getItem('pwa_dismissed')) {
-    const banner = document.getElementById('installBanner');
-    banner.querySelector('.install-banner-text').innerHTML =
-      '<strong>📱 Als App installieren</strong>Tippe auf <strong>Teilen ↑</strong> → „Zum Home-Bildschirm"';
-    banner.querySelector('#installBtn').style.display = 'none';
-    banner.classList.add('visible');
-  }
+// ── PWA ───────────────────────────────────────────
+function pwaBoot(){
+  if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath()}}
+  function drawIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const ctx=c.getContext('2d'),s=size;const bg=ctx.createLinearGradient(0,0,s,s);bg.addColorStop(0,'#56886A');bg.addColorStop(1,'#2C5F3F');ctx.fillStyle=bg;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();const glow=ctx.createRadialGradient(s*.5,s*.44,0,s*.5,s*.5,s*.58);glow.addColorStop(0,'rgba(255,255,255,.13)');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();ctx.save();ctx.translate(s*.5,s*.48);ctx.beginPath();ctx.moveTo(0,-s*.31);ctx.bezierCurveTo(s*.26,-s*.31,s*.31,s*.05,0,s*.31);ctx.bezierCurveTo(-s*.31,s*.05,-s*.26,-s*.31,0,-s*.31);ctx.fillStyle='rgba(255,255,255,.93)';ctx.fill();ctx.beginPath();ctx.moveTo(-s*.21,s*.02);ctx.lineTo(-s*.09,s*.02);ctx.lineTo(-s*.04,-s*.13);ctx.lineTo(s*.04,s*.15);ctx.lineTo(s*.09,s*.02);ctx.lineTo(s*.21,s*.02);ctx.strokeStyle='#2C5F3F';ctx.lineWidth=s*.048;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();ctx.restore();return c.toDataURL('image/png')}
+  const i192=drawIcon(192),i512=drawIcon(512);
+  document.getElementById('appleTouchIcon').href=i192;
+  const manifest={name:'GutLog',short_name:'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#2C5F3F',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  const sw=`const C='gl-v5';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||e.request.url.includes('supabase'))return;e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).catch(()=>h)))});`;
+  if('serviceWorker'in navigator)navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+  window.addEventListener('appinstalled',()=>toast('✓ GutLog installiert!'));
 }
 </script>
 </body>
