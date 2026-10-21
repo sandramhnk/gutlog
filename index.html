@@ -67,6 +67,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sr{display:flex;align-items:center;gap:10px}
 input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border:none;background:transparent;height:4px}
 .sv{font-weight:700;font-size:1rem;color:var(--amb);min-width:22px;text-align:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;padding:9px 6px;border:1.5px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--mut);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.seg button.on{border-color:var(--pur);background:var(--pp);color:var(--pur)}
 .tc{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .sav{width:100%;padding:12px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
 .sav:hover{background:#234d30}.sav:active{transform:scale(.98)}
@@ -250,16 +253,18 @@ input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border
             </div>
           </div>
           <div class="fg"><label class="fl">Intensität (1–10)</label><div class="sr"><input type="range" id="sevS" min="1" max="10" value="5" oninput="document.getElementById('sevV').textContent=this.value"><span class="sv" id="sevV">5</span></div></div>
-          <div class="fg"><label class="fl">Zeitlicher Bezug</label><select id="sTim"><option value="">– keine Angabe –</option><option>Nüchtern / morgens</option><option>Während der Mahlzeit</option><option>Direkt nach dem Essen (&lt;30 min)</option><option>1–2h nach dem Essen</option><option>Nachts / im Liegen</option><option>Bei / nach Stress</option></select></div>
+          <div class="fg"><label class="fl">Situation</label><select id="sTim"><option value="">– keine Angabe –</option><option>Im Liegen / nachts</option><option>Beim Bücken / bei Bewegung</option><option>Bei / nach Stress</option><option>Mit leerem Magen</option></select></div>
           <div class="fg"><label class="fl">Anmerkungen</label><textarea id="sNot" placeholder="z. B. nach fettigem Essen..."></textarea></div>
         </div>
         <div id="medF" class="hidden">
           <div class="tc">
-            <div class="fg"><label class="fl">Medikament</label><input type="text" id="mdNam" value="Pantoprazol"></div>
+            <div class="fg"><label class="fl">Medikament</label><select id="mdSel" onchange="document.getElementById('mdOther').classList.toggle('hidden',this.value!=='other')"><option value="Pantoprazol">Pantoprazol</option><option value="other">Anderes …</option></select></div>
             <div class="fg"><label class="fl">Dosis (mg)</label><input type="number" id="mdDos" value="40" min="0"></div>
           </div>
+          <div class="fg hidden" id="mdOther"><label class="fl">Name des Medikaments</label><input type="text" id="mdNam" placeholder="z. B. Gaviscon"></div>
+          <div class="fg"><label class="fl">Status</label><div class="seg" id="mdStat"><button type="button" class="on" data-v="eingenommen">Eingenommen</button><button type="button" data-v="reduziert">Reduziert</button><button type="button" data-v="ausgelassen">Ausgelassen</button></div></div>
           <div class="fg"><label class="fl">Einnahmezeitpunkt</label><select id="mdTim"><option>Nüchtern (30 min vor Frühstück)</option><option>Zum Frühstück</option><option>Mittags</option><option>Abends</option><option>Nach Bedarf</option></select></div>
-          <div class="fg"><label class="fl">Notiz</label><textarea id="mdNot" placeholder="z. B. heute weggelassen..."></textarea></div>
+          <div class="fg"><label class="fl">Notiz</label><textarea id="mdNot" placeholder="z. B. Grund fürs Auslassen..."></textarea></div>
         </div>
         <button class="sav" onclick="addEntry()">Eintrag speichern</button>
       </div>
@@ -362,10 +367,11 @@ function go(tab){
 // ── ENTRY TYPE ────────────────────────────────────
 function setType(t){
   aType=t;
-  ['meal','symptom','medication'].forEach(x=>{document.getElementById('btn-'+x).className='tb'+(x==='meal'?' am':x==='symptom'?' as':' ad');document.getElementById(x==='meal'?'mealF':x==='symptom'?'symF':'medF').classList.add('hidden')});
+  ['meal','symptom','medication'].forEach(x=>{document.getElementById('btn-'+x).className='tb';document.getElementById(x==='meal'?'mealF':x==='symptom'?'symF':'medF').classList.add('hidden')});
   document.getElementById('btn-'+t).className='tb '+(t==='meal'?'am':t==='symptom'?'as':'ad');
   document.getElementById(t==='meal'?'mealF':t==='symptom'?'symF':'medF').classList.remove('hidden');
 }
+document.addEventListener('click',e=>{const b=e.target.closest('#mdStat button');if(!b)return;document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x===b))});
 document.addEventListener('change',e=>{if(e.target.matches('.sc input[type="checkbox"]'))e.target.closest('.sc').classList.toggle('checked',e.target.checked)});
 
 // ── ADD ENTRY ─────────────────────────────────────
@@ -376,7 +382,7 @@ async function addEntry(){
   let e={id:Date.now(),time,type:aType};
   if(aType==='meal'){const n=document.getElementById('mName').value.trim();if(!n){toast('⚠ Bitte Gericht eintragen','err');return}e.name=n;e.details=document.getElementById('mDet').value.trim();e.drink=document.getElementById('mDrk').value.trim()}
   else if(aType==='symptom'){const c=[...document.querySelectorAll('.sc.checked')].map(x=>x.querySelector('input').value);if(!c.length){toast('⚠ Bitte ein Symptom wählen','err');return}e.symptoms=c;e.severity=parseInt(document.getElementById('sevS').value);e.timing=document.getElementById('sTim').value;e.note=document.getElementById('sNot').value.trim()}
-  else{e.name=document.getElementById('mdNam').value.trim()||'Medikament';e.dose=document.getElementById('mdDos').value;e.timing=document.getElementById('mdTim').value;e.note=document.getElementById('mdNot').value.trim()}
+  else{const sel=document.getElementById('mdSel').value;e.name=sel==='other'?(document.getElementById('mdNam').value.trim()||'Medikament'):sel;e.status=document.querySelector('#mdStat .on').dataset.v;e.dose=document.getElementById('mdDos').value;e.timing=document.getElementById('mdTim').value;e.note=document.getElementById('mdNot').value.trim()}
   data[key].push(e);data[key].sort((a,b)=>a.time.localeCompare(b.time));DB.sd(data);
   resetForm();
   toast({meal:'✓ Mahlzeit gespeichert',symptom:'✓ Symptom gespeichert',medication:'✓ Medikament gespeichert'}[aType]);
@@ -384,8 +390,8 @@ async function addEntry(){
 
 function resetForm(){
   document.querySelectorAll('.sc.checked').forEach(c=>{c.classList.remove('checked');c.querySelector('input').checked=false});
-  ['sNot','mName','mDet','mDrk','mdNot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  document.getElementById('sevS').value=5;document.getElementById('sevV').textContent='5';
+  ['sNot','mName','mDet','mDrk','mdNot','mdNam'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x.dataset.v==='eingenommen'));document.getElementById('mdSel').value='Pantoprazol';document.getElementById('mdOther').classList.add('hidden');document.getElementById('sevS').value=5;document.getElementById('sevV').textContent='5';
 }
 
 async function delEntry(key,id){
@@ -404,7 +410,7 @@ function cardHTML(e,key){
   let body='';
   if(e.type==='meal')body=`<div class="cm">${esc(e.name)}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
   else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:5px">Intensität: ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-  else body=`<div class="cm">${esc(e.name||'')}${e.dose?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
+  else body=`<div class="cm">${esc(e.name||'')}${e.dose&&e.status!=='ausgelassen'?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${e.status?esc(e.status[0].toUpperCase()+e.status.slice(1))+' · ':''}${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
   return`<div class="tle"><div class="tld ${DC[e.type]}"></div><div class="ec ${CC[e.type]}"><button class="db" onclick="delEntry('${esc(key)}',${e.id})">✕</button><div class="ct"><span class="cti">${esc(e.time)} Uhr</span><span class="cb ${BC[e.type]}">${L[e.type]}</span></div>${body}</div></div>`;
 }
 
@@ -430,7 +436,7 @@ function renderAnalysis(){
   const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
   const total=Object.keys(data).length;
   const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
-  const panto=Object.keys(data).filter(k=>data[k].some(e=>e.type==='medication'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
+  const panto=Object.keys(data).filter(k=>data[k].some(e=>e.type==='medication'&&e.status!=='ausgelassen'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
   const sF={};syms.forEach(e=>(e.symptoms||[]).forEach(s=>{sF[s]=(sF[s]||0)+1}));
   const sByF=Object.entries(sF).sort((a,b)=>b[1]-a[1]),sMax=sByF[0]?.[1]||1;
   const trig={};Object.values(data).forEach(day=>{const sorted=[...day].sort((a,b)=>a.time.localeCompare(b.time));sorted.forEach((e,i)=>{if(e.type!=='symptom')return;const[sh,sm]=e.time.split(':').map(Number);sorted.slice(0,i).forEach(p=>{if(p.type!=='meal')return;const[ph,pm]=p.time.split(':').map(Number);if((sh*60+sm)-(ph*60+pm)<=120)trig[p.name]=(trig[p.name]||0)+1})})});
@@ -466,7 +472,7 @@ function buildReport(){
     wd[k].forEach(e=>{
       if(e.type==='meal')lines.push(`  ${e.time} Mahlzeit: ${e.name}${e.details?' ('+e.details+')':''}${e.drink?' + '+e.drink:''}`);
       else if(e.type==='symptom')lines.push(`  ${e.time} Symptom: ${(e.symptoms||[]).join(', ')} – ${e.severity}/10${e.timing?' ('+e.timing+')':''}${e.note?' – '+e.note:''}`);
-      else lines.push(`  ${e.time} Medikament: ${e.name} ${e.dose||''} mg${e.timing?' – '+e.timing:''}${e.note?' ('+e.note+')':''}`);
+      else lines.push(`  ${e.time} Medikament: ${e.name} ${e.status==='ausgelassen'?'AUSGELASSEN':(e.dose||'')+' mg'+(e.status==='reduziert'?' (reduziert)':'')}${e.timing?' – '+e.timing:''}${e.note?' ('+e.note+')':''}`);
     });
     lines.push('');
   });

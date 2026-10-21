@@ -164,7 +164,7 @@ async function render(wd,label){
   const keys=Object.keys(wd).sort();
   const all=Object.values(wd).flat();
   const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
-  const panto=keys.filter(k=>wd[k].some(e=>e.type==='medication'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
+  const panto=keys.filter(k=>wd[k].some(e=>e.type==='medication'&&e.status!=='ausgelassen'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
   const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
   const maxS=syms.length?Math.max(...syms.map(e=>e.severity)):0;
 
@@ -187,7 +187,7 @@ async function render(wd,label){
       let body='';
       if(e.type==='meal')body=`<div class="cm">${esc(e.name||'')}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
       else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:4px">Intensität ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-      else body=`<div class="cm">${esc(e.name||'')}${e.dose?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
+      else body=`<div class="cm">${esc(e.name||'')}${e.dose&&e.status!=='ausgelassen'?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${e.status?esc(e.status)+' · ':''}${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
       return`<div class="tle"><div class="tld ${DC[e.type]||'dm'}"></div><div class="ec ${CC[e.type]||'ecm'}"><div class="ct"><span class="cti">${esc(e.time||'')} Uhr</span><span class="cbadge ${BC[e.type]||'bm'}">${L[e.type]||e.type}</span></div>${body}</div></div>`;
     }).join('');
     return`<div class="dblock"><div class="dlbl">${esc(label)}</div><div class="pills">${nM?`<span class="pill pm">🍽 ${nM}</span>`:''}${nS?`<span class="pill ps">⚡ ${nS}</span>`:''}${nMe?`<span class="pill pd">💊 ${nMe}</span>`:''}</div><div class="tl">${cards}</div></div>`;
