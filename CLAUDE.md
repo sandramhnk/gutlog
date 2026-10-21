@@ -1,6 +1,8 @@
 # GutLog
 
-Ernährungs- und Symptomtagebuch als Web-App (PWA). Eine Patientin mit langjährigem Sodbrennen möchte Pantoprazol absetzen und protokolliert dafür Mahlzeiten, Symptome (Sodbrennen, Blähbauch, Blähungen, Durchfall u. a.) und Medikamente. Sandra (medizinische Fachperson) wertet die Wochenberichte aus.
+Ernährungs- und Symptomtagebuch als Web-App (PWA). Eine Patientin mit langjährigem Sodbrennen und weiteren Verdauungsbeschwerden (Blähbauch, Blähungen, Durchfall) protokolliert Mahlzeiten, Symptome und Medikamente. Ziel ist herauszufinden, woher die Beschwerden kommen und wie Ernährung, Alltag, Medikamente und Symptome zusammenhängen. Ein Teilziel ist, Pantoprazol abzusetzen. Sandra (medizinische Fachperson) wertet die Wochenberichte aus.
+
+Die UX ist im claude.ai-Projekt „GutLog“ dokumentiert: Desk Research und App-Benchmark, User Flows (Kernaufgaben, Abläufe, Screen-Struktur, Entscheidungen). Neue Funktionen daran ausrichten.
 
 ## Wer hier arbeitet
 Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änderung kurz in einfachen Worten (was, warum, wo im Code). Antworte auf Deutsch.
