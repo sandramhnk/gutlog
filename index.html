@@ -125,6 +125,55 @@ p{margin:0}
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* Gewählter runder Button (z. B. Ja bei Pantoprazol): gefüllt in Salbeigrün */
+.btn-round[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+
+/* Einträge in einer Karte: eine Zeile pro Mahlzeit oder Medikament */
+.entries{list-style:none;margin:var(--space-2) 0 0;padding:0}
+.entry{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);
+  width:100%;min-height:44px;padding:10px 0;border:0;border-top:1px solid var(--border);
+  background:none;text-align:left;font:inherit;
+}
+button.entry{cursor:pointer}
+.entry-main{min-width:0}
+.entry-sub{display:block;font-size:14px;line-height:18px;font-weight:600;color:var(--ink-muted)}
+.entry-time{flex-shrink:0;font-size:14px;font-weight:600;color:var(--ink-muted)}
+/* Unterstrichener Link im Text, z. B. „ändern“ */
+.inline-link{min-height:28px;padding:0 2px;border:none;background:none;font:700 14px var(--font-sans);color:var(--brand);text-decoration:underline;cursor:pointer}
+
+/* Sheet: Fenster, das sich von unten über den Screen schiebt */
+dialog.sheet{
+  position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:480px;max-height:92dvh;overflow:auto;
+  border:none;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:10px var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background:var(--surface);color:var(--ink);
+}
+dialog.sheet::backdrop{background:var(--ink);opacity:.45}
+.sheet-handle{width:40px;height:5px;border-radius:3px;background:var(--border-control);opacity:.35;margin:0 auto 14px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:18px}
+.sheet-title{margin:0;font:600 26px/32px var(--font-display)}
+
+/* Formularfelder */
+.field{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px}
+.label{font-size:16px;font-weight:800}
+.label .opt{font-weight:600;color:var(--ink-muted)}
+.input{
+  width:100%;height:52px;padding:0 var(--space-4);
+  border:1.5px solid var(--border-control);border-radius:var(--radius-md);
+  background:var(--surface-raised);color:var(--ink);font:400 16px var(--font-sans);
+}
+.input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.chip{
+  height:44px;padding:0 var(--space-4);border-radius:var(--radius-full);
+  border:1.5px solid var(--surface-raised);background:var(--surface-raised);
+  font:700 15px var(--font-sans);color:var(--ink);cursor:pointer;
+}
+.chip[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.btn-wide:disabled{background:var(--surface-sunken);color:var(--ink-muted);cursor:default}
+.btn-danger-text{display:block;margin:var(--space-3) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--danger);cursor:pointer}
+
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
 </style>
@@ -154,17 +203,22 @@ p{margin:0}
           <button class="btn-round btn-round--lg btn-round--brand" data-bald="2" aria-label="Mahlzeit eintragen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
         <p class="hint" id="mahlzeitenHinweis">Noch nichts eingetragen</p>
+        <ul class="entries" id="mahlzeitenListe"></ul>
       </section>
 
-      <section class="card card-row" aria-labelledby="pantoTitel">
-        <div>
-          <h2 id="pantoTitel">Pantoprazol</h2>
-          <button class="link-plus" data-bald="1">+ Medikament</button>
+      <section class="card" aria-labelledby="pantoTitel">
+        <div class="card-row">
+          <div>
+            <h2 id="pantoTitel">Pantoprazol</h2>
+            <p class="hint" id="pantoStatus" style="margin-top:2px"></p>
+          </div>
+          <div class="row" style="gap:var(--space-2)">
+            <button class="btn-round btn-round--lg btn-round--outline" id="pantoJa" aria-pressed="false" aria-label="Ja, eingenommen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+            <button class="btn-round btn-round--lg btn-round--outline" id="pantoNein" aria-pressed="false" aria-label="Nein, nicht eingenommen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
         </div>
-        <div class="row" style="gap:var(--space-2)">
-          <button class="btn-round btn-round--lg btn-round--outline" data-bald="1" aria-label="Ja, eingenommen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
-          <button class="btn-round btn-round--lg btn-round--outline" data-bald="1" aria-label="Nein, nicht eingenommen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-        </div>
+        <ul class="entries" id="medListe"></ul>
+        <button class="link-plus" id="medPlus" style="margin-top:var(--space-2)">+ Medikament</button>
       </section>
 
       <button class="card card--accent card-row card-button" data-bald="3">
@@ -208,6 +262,44 @@ p{margin:0}
     <a href="#einstellungen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Einstellungen</a>
   </div>
 </nav>
+
+<!-- ══ SHEET: MEDIKAMENT ═════════════════════════════════════════════
+     Ein Sheet für zwei Fälle: Pantoprazol-Dosis ändern und andere Medikamente
+     eintragen oder bearbeiten. Je nach Fall werden Felder ein- oder ausgeblendet. -->
+<dialog class="sheet" id="medSheet" aria-labelledby="medSheetTitel">
+  <form id="medForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="medSheetTitel">Medikament</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="field" id="medNameFeld">
+      <label class="label" for="medName">Welches Medikament?</label>
+      <input class="input" id="medName" list="medVorschlaege" autocomplete="off" placeholder="z. B. Gaviscon">
+      <datalist id="medVorschlaege"></datalist>
+    </div>
+
+    <div class="field" id="pantoDosisFeld">
+      <div class="label" id="pantoDosisLabel">Dosis</div>
+      <div class="chips" role="group" aria-labelledby="pantoDosisLabel" id="pantoDosen"></div>
+      <p class="hint" id="pantoDosisHinweis"></p>
+    </div>
+
+    <div class="field" id="medMengeFeld">
+      <label class="label" for="medMenge">Menge <span class="opt">(freiwillig)</span></label>
+      <input class="input" id="medMenge" autocomplete="off" placeholder="z. B. 1 Tablette, 10 ml">
+    </div>
+
+    <div class="field">
+      <label class="label" for="medZeit">Uhrzeit <span class="opt" id="medZeitOpt"></span></label>
+      <input class="input" id="medZeit" type="time">
+    </div>
+
+    <button class="btn-wide" id="medSpeichern" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="medLoeschen" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -274,6 +366,8 @@ const fmtDate=k=>keyToDate(k).toLocaleDateString('de-DE',{weekday:'short',day:'n
 // ══════════════════════════════════════════════════════════════════
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const nowHM=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400)}
 
 // ══════════════════════════════════════════════════════════════════
@@ -300,16 +394,188 @@ window.addEventListener('hashchange',showScreen);
 // zurückblättern und nachtragen, aber nicht in die Zukunft.
 // ══════════════════════════════════════════════════════════════════
 let viewKey=todayKey();
+const isToday=()=>viewKey===todayKey();
+// Neue Einträge bekommen heute die aktuelle Uhrzeit, an früheren Tagen erst mal keine.
+const defaultTime=()=>isToday()?nowHM():null;
+// Ein Eintrag gilt als nachgetragen, wenn er an einem späteren Tag erfasst wurde als dem, zu dem er gehört.
+const isLate=(entry,key)=>!!entry.addedAt&&dayKeyFor(entry.addedAt)>key;
+const byTime=(a,b)=>(a.time||'99').localeCompare(b.time||'99');
+
+// Die sechs Angaben des Tagesabschlusses (Etappe 3)
+const CLOSE_FIELDS=['sodbrennen','blaehbauch','blaehungen','stuhl','stress','bewegung'];
+
 function renderHeute(){
   const t=todayKey();
   $('heuteTitel').textContent=viewKey===t?'Heute':viewKey===addDays(t,-1)?'Gestern':keyToDate(viewKey).toLocaleDateString('de-DE',{weekday:'long'});
   $('heuteDatum').textContent=fmtDate(viewKey);
   $('tagVor').disabled=viewKey>=t;
   const day=getDay(viewKey);
-  $('mahlzeitenHinweis').textContent=day.meals.length?`${day.meals.length} eingetragen`:'Noch nichts eingetragen';
+
+  // Mahlzeiten (Eintragen kommt in Etappe 2)
+  const meals=[...day.meals].sort(byTime);
+  $('mahlzeitenHinweis').hidden=meals.length>0;
+  $('mahlzeitenListe').innerHTML=meals.map(m=>`<li class="entry"><span class="entry-main">${esc(m.title||'')}${isLate(m,viewKey)?'<span class="entry-sub">nachgetragen</span>':''}</span><span class="entry-time">${esc(m.time||'')}</span></li>`).join('');
+
+  // Pantoprazol: Ja ist gewählt bei „eingenommen“ und „reduziert“, Nein bei „ausgelassen“.
+  const p=findPanto(day);
+  $('pantoJa').setAttribute('aria-pressed',String(!!p&&p.status!=='ausgelassen'));
+  $('pantoNein').setAttribute('aria-pressed',String(!!p&&p.status==='ausgelassen'));
+  const status=$('pantoStatus');
+  if(!p){
+    status.textContent=isToday()?'Heute schon genommen?':'An diesem Tag genommen?';
+  }else if(p.status==='ausgelassen'){
+    status.textContent='Nicht genommen';
+  }else{
+    const parts=[`${p.dose} mg`,p.status==='reduziert'?'reduziert':'',p.time||'',isLate(p,viewKey)?'nachgetragen':''].filter(Boolean);
+    status.innerHTML=`${esc(parts.join(' · '))} · <button class="inline-link" id="pantoAendern">ändern</button>`;
+    $('pantoAendern').addEventListener('click',()=>openMedSheet('panto'));
+  }
+
+  // Andere Medikamente
+  const others=day.meds.filter(m=>m.name!==PANTO).sort(byTime);
+  $('medListe').innerHTML=others.map(m=>{
+    const sub=[m.amount,isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-med="${esc(m.id)}"><span class="entry-main">${esc(m.name)}${sub?`<span class="entry-sub">${esc(sub)}</span>`:''}</span><span class="entry-time">${esc(m.time||'')}</span></button></li>`;
+  }).join('');
+
+  // Tagesabschluss: wie viele der sechs Angaben sind schon da?
+  const c=day.close;
+  const filled=c?CLOSE_FIELDS.filter(k=>c[k]!=null).length:0;
+  $('abschlussHinweis').textContent=filled===6?'Alles ausgefüllt':`${filled} von 6 ausgefüllt`;
 }
 $('tagZurueck').addEventListener('click',()=>{viewKey=addDays(viewKey,-1);renderHeute()});
 $('tagVor').addEventListener('click',()=>{if(viewKey<todayKey()){viewKey=addDays(viewKey,1);renderHeute()}});
+
+// ══════════════════════════════════════════════════════════════════
+// PANTOPRAZOL
+// Ein Tipp auf Ja oder Nein speichert sofort. Ein zweiter Tipp auf denselben
+// Button nimmt die Angabe wieder zurück (falls man sich vertippt hat).
+// Die übliche Dosis kommt aus den Einstellungen (ab Etappe 6 änderbar, bis dahin 20 mg).
+// ══════════════════════════════════════════════════════════════════
+const PANTO='Pantoprazol';
+const pantoDose=()=>STORE.load('c',{}).pantoDose||20;
+const findPanto=day=>day.meds.find(m=>m.name===PANTO);
+
+function answerPanto(yes){
+  const day=getDay(viewKey);
+  const cur=findPanto(day);
+  const wasYes=!!cur&&cur.status!=='ausgelassen';
+  const wasNo=!!cur&&cur.status==='ausgelassen';
+  if((yes&&wasYes)||(!yes&&wasNo)){
+    day.meds=day.meds.filter(m=>m!==cur);
+    toast('Zurückgenommen');
+  }else if(cur){
+    cur.status=yes?'eingenommen':'ausgelassen';
+    cur.dose=yes?pantoDose():null;
+    cur.time=yes?(cur.time||defaultTime()):null;
+    toast('Geändert');
+  }else{
+    day.meds.push({id:uid(),name:PANTO,status:yes?'eingenommen':'ausgelassen',dose:yes?pantoDose():null,time:yes?defaultTime():null,addedAt:new Date().toISOString()});
+    toast('Gespeichert');
+  }
+  saveDay(viewKey,day);
+  renderHeute();
+}
+$('pantoJa').addEventListener('click',()=>answerPanto(true));
+$('pantoNein').addEventListener('click',()=>answerPanto(false));
+
+// ══════════════════════════════════════════════════════════════════
+// SHEET: MEDIKAMENT
+// mode 'panto' = Dosis und Uhrzeit von Pantoprazol ändern
+// mode 'med'   = anderes Medikament neu eintragen (id leer) oder bearbeiten (mit id)
+// ══════════════════════════════════════════════════════════════════
+const sheet=$('medSheet');
+let sheetMode='med',sheetId=null,sheetDose=null;
+
+function openMedSheet(mode,id=null){
+  sheetMode=mode;sheetId=id;
+  const day=getDay(viewKey);
+  const isPanto=mode==='panto';
+  $('medNameFeld').hidden=isPanto;
+  $('medMengeFeld').hidden=isPanto;
+  $('pantoDosisFeld').hidden=!isPanto;
+  $('medLoeschen').hidden=isPanto||!id;
+  $('medZeitOpt').textContent=isToday()?'':'(freiwillig)';
+
+  if(isPanto){
+    const p=findPanto(day);
+    $('medSheetTitel').textContent=PANTO;
+    sheetDose=p.dose||pantoDose();
+    $('medZeit').value=p.time||'';
+    renderDoseChips();
+  }else{
+    const m=id?day.meds.find(x=>x.id===id):null;
+    $('medSheetTitel').textContent=m?'Medikament':'Anderes Medikament';
+    $('medName').value=m?m.name:'';
+    $('medMenge').value=m?(m.amount||''):'';
+    $('medZeit').value=m?(m.time||''):defaultTime();
+    // Vorschläge: alle Medikamente, die schon einmal eingetragen wurden
+    const names=new Set();
+    Object.values(DATA.days).forEach(d=>d.meds.forEach(x=>{if(x.name!==PANTO)names.add(x.name)}));
+    $('medVorschlaege').innerHTML=[...names].sort().map(n=>`<option value="${esc(n)}">`).join('');
+  }
+  updateMedSave();
+  sheet.showModal();
+}
+
+// Dosis-Chips für Pantoprazol. Weniger als die übliche Dosis zählt automatisch als „reduziert“.
+function renderDoseChips(){
+  const normal=pantoDose();
+  const doses=[...new Set([10,20,40,normal])].sort((a,b)=>a-b);
+  $('pantoDosen').innerHTML=doses.map(d=>`<button type="button" class="chip" data-dose="${d}" aria-pressed="${d===sheetDose}">${d} mg</button>`).join('');
+  $('pantoDosisHinweis').textContent=sheetDose<normal?`Weniger als deine übliche Dosis (${normal} mg): wird als reduziert gespeichert.`:`Deine übliche Dosis ist ${normal} mg.`;
+}
+$('pantoDosen').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dose]');if(!b)return;
+  sheetDose=Number(b.dataset.dose);renderDoseChips();
+});
+
+// Speichern geht erst, wenn ein Name da ist (bei anderen Medikamenten).
+function updateMedSave(){$('medSpeichern').disabled=sheetMode==='med'&&!$('medName').value.trim()}
+$('medName').addEventListener('input',updateMedSave);
+
+$('medForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const day=getDay(viewKey);
+  const time=$('medZeit').value||null;
+  if(sheetMode==='panto'){
+    const p=findPanto(day);
+    p.dose=sheetDose;
+    p.status=sheetDose<pantoDose()?'reduziert':'eingenommen';
+    p.time=time;
+  }else{
+    const name=$('medName').value.trim();
+    if(!name)return;
+    const amount=$('medMenge').value.trim()||null;
+    const m=sheetId?day.meds.find(x=>x.id===sheetId):null;
+    if(m){Object.assign(m,{name,amount,time})}
+    else day.meds.push({id:uid(),name,amount,time,status:'eingenommen',addedAt:new Date().toISOString()});
+  }
+  saveDay(viewKey,day);
+  sheet.close();
+  renderHeute();
+  toast('Gespeichert');
+});
+
+$('medLoeschen').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.meds=day.meds.filter(m=>m.id!==sheetId);
+  saveDay(viewKey,day);
+  sheet.close();
+  renderHeute();
+  toast('Gelöscht');
+});
+
+// Schließen: X-Button oder Tippen auf den abgedunkelten Bereich außerhalb
+sheet.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>sheet.close()));
+sheet.addEventListener('click',e=>{
+  if(e.target!==sheet)return;
+  const r=sheet.getBoundingClientRect();
+  if(e.clientY<r.top||e.clientX<r.left||e.clientX>r.right)sheet.close();
+});
+
+$('medPlus').addEventListener('click',()=>openMedSheet('med'));
+$('medListe').addEventListener('click',e=>{const b=e.target.closest('[data-med]');if(b)openMedSheet('med',b.dataset.med)});
 
 // Platzhalter: Buttons, die erst in einer späteren Etappe funktionieren.
 document.querySelectorAll('[data-bald]').forEach(b=>b.addEventListener('click',()=>toast(`Kommt in Etappe ${b.dataset.bald}`)));
