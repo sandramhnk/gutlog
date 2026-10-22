@@ -573,11 +573,17 @@ function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;[
 
 // ── PWA ───────────────────────────────────────────
 function pwaBoot(){
-  if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath()}}
-  function drawIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const ctx=c.getContext('2d'),s=size;const bg=ctx.createLinearGradient(0,0,s,s);bg.addColorStop(0,'#56886A');bg.addColorStop(1,'#2C5F3F');ctx.fillStyle=bg;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();const glow=ctx.createRadialGradient(s*.5,s*.44,0,s*.5,s*.5,s*.58);glow.addColorStop(0,'rgba(255,255,255,.13)');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();ctx.save();ctx.translate(s*.5,s*.48);ctx.beginPath();ctx.moveTo(0,-s*.31);ctx.bezierCurveTo(s*.26,-s*.31,s*.31,s*.05,0,s*.31);ctx.bezierCurveTo(-s*.31,s*.05,-s*.26,-s*.31,0,-s*.31);ctx.fillStyle='rgba(255,255,255,.93)';ctx.fill();ctx.beginPath();ctx.moveTo(-s*.21,s*.02);ctx.lineTo(-s*.09,s*.02);ctx.lineTo(-s*.04,-s*.13);ctx.lineTo(s*.04,s*.15);ctx.lineTo(s*.09,s*.02);ctx.lineTo(s*.21,s*.02);ctx.strokeStyle='#2C5F3F';ctx.lineWidth=s*.048;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();ctx.restore();return c.toDataURL('image/png')}
+  // App-Icon „Schwung mit Sonne“ (siehe Design System): grüne Fläche, helle gewundene Linie (Darm), kleine Apricot-Sonne.
+  // Randlos gezeichnet, weil Android und iOS die Ecken selbst abrunden. Gezeichnet wird in einem 120er-Raster und dann skaliert.
+  function drawIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');x.scale(size/120,size/120);
+    x.fillStyle='#3F6B55';x.fillRect(0,0,120,120);
+    x.beginPath();x.moveTo(36,40);x.lineTo(80,40);x.arc(80,50,10,-Math.PI/2,Math.PI/2,false);x.lineTo(40,60);x.arc(40,70,10,-Math.PI/2,Math.PI/2,true);x.lineTo(70,80);
+    x.strokeStyle='#F7F3EE';x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.stroke();
+    x.beginPath();x.arc(84,80,8,0,Math.PI*2);x.fillStyle='#F0AE8C';x.fill();
+    return c.toDataURL('image/png')}
   const i192=drawIcon(192),i512=drawIcon(512);
   document.getElementById('appleTouchIcon').href=i192;
-  const manifest={name:'GutLog',short_name:'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#2C5F3F',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  const manifest={name:'GutLog',short_name:'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#3F6B55',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
   document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
   const sw=`const C='gl-v5';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||e.request.url.includes('supabase'))return;e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).catch(()=>h)))});`;
   if('serviceWorker'in navigator)navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
