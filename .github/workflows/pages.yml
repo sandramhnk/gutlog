@@ -40,9 +40,10 @@ jobs:
 
       - name: Seite zusammenbauen
         run: |
+          # Alle Dateien der App kopieren (HTML, sw.js …), aber nicht Git-Ordner und Dokumentation.
           mkdir -p _site/test
-          cp live/*.html _site/
-          if [ -d testversion ]; then cp testversion/*.html _site/test/; fi
+          rsync -a --exclude='.git*' --exclude='.github' --exclude='*.md' live/ _site/
+          if [ -d testversion ]; then rsync -a --exclude='.git*' --exclude='.github' --exclude='*.md' testversion/ _site/test/; fi
           ls -R _site
 
       - uses: actions/configure-pages@v5
