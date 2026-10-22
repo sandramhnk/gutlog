@@ -590,6 +590,10 @@ function pwaBoot(){
     x.beginPath();x.moveTo(36,40);x.lineTo(80,40);x.arc(80,50,10,-Math.PI/2,Math.PI/2,false);x.lineTo(40,60);x.arc(40,70,10,-Math.PI/2,Math.PI/2,true);x.lineTo(70,80);
     x.strokeStyle='#F7F3EE';x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.stroke();
     x.beginPath();x.arc(84,80,8,0,Math.PI*2);x.fillStyle='#F0AE8C';x.fill();
+    // Nur in der Testversion: rotbraunes Schild „TEST“ oben, damit man beide Icons auf dem Handy unterscheidet.
+    // Es liegt im inneren Kreis, damit es auch bei rund zugeschnittenen Icons sichtbar bleibt.
+    if(STAGE==='test'){x.fillStyle='#A3522F';x.beginPath();x.moveTo(46,17);x.arcTo(82,17,82,33,8);x.arcTo(82,33,38,33,8);x.arcTo(38,33,38,17,8);x.arcTo(38,17,82,17,8);x.closePath();x.fill();
+      x.fillStyle='#FFFFFF';x.font='800 11px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('TEST',60,25.5)}
     return c.toDataURL('image/png')}
   const i192=drawIcon(192),i512=drawIcon(512);
   document.getElementById('appleTouchIcon').href=i192;
