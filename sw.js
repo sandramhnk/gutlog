@@ -1,0 +1,40 @@
+// Service Worker: hält GutLog offline verfügbar.
+// Strategie „zuerst Netz“: Ist Internet da, kommt immer die neueste Version und wird
+// gleichzeitig gespeichert. Ohne Internet liefert er die zuletzt gespeicherte Version.
+// Live und Test haben getrennte Speicher, damit sie sich nicht vermischen.
+const STAGE = self.location.pathname.includes('/test/') ? 'test' : 'live';
+const CACHE = `gutlog-${STAGE}-v1`;
+
+self.addEventListener('install', () => self.skipWaiting());
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    // Alte Speicherstände derselben Stufe aufräumen (z. B. gutlog-test-v0)
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter(n => n.startsWith(`gutlog-${STAGE}-`) && n !== CACHE)
+      .map(n => caches.delete(n)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  const isOwn = url.origin === self.location.origin;
+  const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+  if (!isOwn && !isFont) return;
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    try {
+      const res = await fetch(req);
+      if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
+      return res;
+    } catch {
+      const hit = await cache.match(req);
+      return hit || Response.error();
+    }
+  })());
+});

@@ -1,608 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>GutLog</title>
-<meta name="theme-color" content="#2C5F3F">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F3EE">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="GutLog">
-<link id="appleTouchIcon" rel="apple-touch-icon">
-<link id="manifestLink" rel="manifest">
+<title>GutLog</title>
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleTouchIcon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ══════════════════════════════════════════════════════════════════
+   1. DESIGN-TOKENS
+   Alle Farben, Schriften, Abstände und Rundungen aus dem Design System
+   „GutLog“. Wer eine Farbe ändern will, ändert sie NUR hier – alle Stellen,
+   die var(--name) benutzen, ändern sich mit.
+   ══════════════════════════════════════════════════════════════════ */
 :root{
-  --green:#4A7C59;--gd:#2C5F3F;--gp:#EEF5F0;--gl:#C8E6C9;
-  --bg:#F2F5F2;--text:#1E2E25;--mut:#7A9080;
-  --amb:#E8924A;--ap:#FDF0E6;--red:#C0392B;--rp:#FDECEA;
-  --pur:#7B5EA7;--pp:#f0ebf8;--wh:#fff;--bd:#D4E4D8;
-  --sh:0 2px 14px rgba(30,46,37,.09);--r:14px;
+  /* Flächen */
+  --surface:#F7F3EE;          /* Seitenhintergrund, warmes Off-White */
+  --surface-raised:#FFFFFF;   /* Karten, Sheets, Felder */
+  --surface-sunken:#ECE6DD;   /* runde Neben-Buttons ohne Rahmen */
+  /* Text und Linien */
+  --ink:#23302A;              /* Haupttext */
+  --ink-muted:#5C6B62;        /* Nebentext: Datum, Uhrzeiten, Hinweise */
+  --border:#F0EAE2;           /* Haarlinie zwischen Listenzeilen */
+  --border-control:#7C8C82;   /* Rahmen nicht gewählter Buttons */
+  /* Salbeigrün: tun, gewählt, hier bin ich */
+  --brand:#3F6B55;
+  --on-brand:#FFFFFF;
+  --brand-soft:#E3EDE6;
+  /* Pfirsich: nur für Beschwerden */
+  --accent:#C96A42;           /* Grafikfarbe, nie für Text */
+  --accent-ink:#A3522F;       /* Text zu Beschwerden */
+  --accent-soft:#FBEAE0;      /* Fläche der Beschwerden-Karte */
+  --danger:#B3362A;           /* nur Löschen und Fehler */
+  /* Schriften */
+  --font-display:"Fraunces",Georgia,serif;
+  --font-sans:"Nunito",system-ui,sans-serif;
+  /* Abstände */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px;
+  /* Rundungen */
+  --radius-md:16px; --radius-lg:24px; --radius-full:9999px;
+  /* Höhe der unteren Navigation */
+  --nav-h:76px;
 }
-html,body{height:100%}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;display:flex;flex-direction:column;overscroll-behavior:none}
-header{background:var(--gd);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);z-index:10}
-.hb h1{font-family:'DM Serif Display',serif;font-size:1.35rem;font-weight:400}
-.hb .hs{font-size:.7rem;opacity:.65;margin-top:1px}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#64DC8C;flex-shrink:0;transition:background .3s}
-.sync-dot.off{background:rgba(255,255,255,.3)}
-.sync-dot.syncing{background:#f9c74f;animation:pulse .8s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.header-right{display:flex;align-items:center;gap:10px}
-.dnav{display:flex;align-items:center;gap:8px}
-.dnav button{background:rgba(255,255,255,.14);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;-webkit-tap-highlight-color:transparent}
-.dnav button:hover{background:rgba(255,255,255,.26)}
-#dateLbl{font-size:.84rem;font-weight:600;min-width:120px;text-align:center}
-.app-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.dtabs{display:flex;background:#fff;border-bottom:1px solid var(--bd);padding:0 16px;gap:2px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
-.dtabs::-webkit-scrollbar{display:none}
-.dtab{padding:11px 14px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--mut);border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.dtab.active{color:var(--green);border-bottom-color:var(--green)}
-.content{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.view{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-.view.active{display:flex;flex-direction:column}
-#view-today{flex-direction:column}
-.today-form{background:#fff;padding:20px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pt{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
-.fg{margin-bottom:13px}
-.fl{display:block;font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
-input[type=text],input[type=time],input[type=number],textarea,select{width:100%;padding:8px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none}
-input:focus,textarea:focus,select:focus{border-color:var(--green);background:#fff}
-textarea{resize:vertical;min-height:58px}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A9080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
-.tbts{display:flex;gap:6px;margin-bottom:16px}
-.tb{flex:1;padding:9px 4px;border:1.5px solid var(--bd);border-radius:9px;cursor:pointer;font-size:.76rem;font-weight:600;text-align:center;background:var(--bg);color:var(--mut);transition:all .15s;line-height:1.3;-webkit-tap-highlight-color:transparent}
-.tb.am{border-color:var(--green);background:var(--gp);color:var(--green)}
-.tb.as{border-color:var(--amb);background:var(--ap);color:#c0621a}
-.tb.ad{border-color:var(--pur);background:var(--pp);color:var(--pur)}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.sc{display:flex;align-items:center;gap:7px;padding:9px 11px;border:2px solid var(--bd);border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:500;transition:all .15s;background:#fff;user-select:none;color:var(--text)}
-.sc input{display:none}
-.ck{width:16px;height:16px;border-radius:4px;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:#fff;margin-left:auto;font-size:.65rem;color:transparent}
-.sc.checked{border-color:var(--amb);background:var(--ap);color:#9a4e0f}
-.sc.checked .ck{background:var(--amb);border-color:var(--amb);color:#fff}
-.sr{display:flex;align-items:center;gap:10px}
-input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border:none;background:transparent;height:4px}
-.sv{font-weight:700;font-size:1rem;color:var(--amb);min-width:22px;text-align:center}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{flex:1;min-width:90px;padding:9px 6px;border:1.5px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--mut);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.seg button.on{border-color:var(--pur);background:var(--pp);color:var(--pur)}
-.tc{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.sav{width:100%;padding:12px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
-.sav:hover{background:#234d30}.sav:active{transform:scale(.98)}
-.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.pill{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600}
-.pm{background:var(--gp);color:var(--green)}.ps{background:var(--ap);color:#c0621a}.pd{background:var(--pp);color:var(--pur)}.pe{background:#fff;color:var(--mut)}
-.tl{position:relative;padding-left:24px}
-.tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gl),var(--bd));border-radius:2px}
-.tle{position:relative;margin-bottom:12px}
-.tld{position:absolute;left:-20px;top:14px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bg);box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.dm{background:var(--green)}.ds{background:var(--amb)}.dd{background:var(--pur)}
-.ec{border-radius:var(--r);padding:12px 14px;box-shadow:0 1px 6px rgba(30,46,37,.07);border-left:3px solid transparent;position:relative;transition:box-shadow .15s}
-.ec:hover{box-shadow:var(--sh)}
-.ecm{background:#fff;border-left-color:var(--green)}.ecs{background:#fffcf8;border-left-color:var(--amb)}.ecd{background:#faf8ff;border-left-color:var(--pur)}
-.ct{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px}
-.cti{font-size:.68rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-.cb{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
-.bm{background:var(--gp);color:var(--green)}.bs{background:var(--ap);color:#c0621a}.bd2{background:var(--pp);color:var(--pur)}
-.cm{font-size:.88rem;font-weight:500;margin-bottom:3px}
-.cd{font-size:.76rem;color:var(--mut);line-height:1.45}
-.stgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-.stg{font-size:.68rem;padding:2px 7px;background:var(--ap);color:#c0621a;border-radius:10px}
-.sb{height:3px;background:var(--bd);border-radius:2px;margin-top:7px;overflow:hidden}
-.sf{height:100%;border-radius:2px;background:linear-gradient(90deg,#f9c74f,var(--amb),var(--red))}
-.db{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--bd);font-size:.82rem;padding:3px 5px;border-radius:5px;transition:all .12s;opacity:0;line-height:1}
-.ec:hover .db,.ec:focus-within .db{opacity:1}
-.db:hover{color:var(--red);background:var(--rp)}
-.es{text-align:center;padding:50px 20px;color:var(--mut)}
-.ei{font-size:2.6rem;margin-bottom:12px}
-.es p{font-size:.87rem;line-height:1.7}
-.inner{padding:20px 22px;max-width:820px}
-.st{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
-.hd{margin-bottom:26px}
-.hdl{font-size:.78rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);padding-bottom:6px;margin-bottom:12px}
-.hdl.tdy{color:var(--green);font-size:.82rem}
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.scc{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);text-align:center}
-.sn{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--green);line-height:1}
-.sl{font-size:.72rem;color:var(--mut);margin-top:5px;line-height:1.3}
-.cb2{background:#fff;border-radius:var(--r);padding:18px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:14px}
-.cbt{font-weight:600;font-size:.85rem;margin-bottom:13px}
-.br{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:.81rem}
-.bl{min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bbg{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
-.bf{height:100%;border-radius:4px;transition:width .4s ease}
-.bfs{background:var(--amb)}.bft{background:linear-gradient(90deg,var(--amb),var(--red))}
-.bc{font-size:.73rem;color:var(--mut);min-width:28px;text-align:right}
-.cn{font-size:.71rem;color:var(--mut);margin-top:10px;line-height:1.5}
-.nb{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:18px}
-.nta{width:100%;min-height:120px;padding:12px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;resize:vertical;transition:border-color .15s}
-.nta:focus{border-color:var(--green);background:#fff}
-.nsb{margin-top:9px;padding:8px 18px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;transition:background .15s}
-.nsb:hover{background:#234d30}
-.nc{background:#fff;border-radius:var(--r);padding:13px 15px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:10px;border-left:3px solid var(--gl)}
-.nd{font-size:.7rem;color:var(--mut);margin-bottom:5px}
-.nt{font-size:.85rem;line-height:1.7;white-space:pre-wrap}
-/* REPORT */
-.wn{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.wb{background:#fff;border:1.5px solid var(--bd);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);transition:all .15s;box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.wb:hover:not(:disabled){border-color:var(--green);color:var(--green)}
-.wb:disabled{opacity:.35;cursor:not-allowed}
-.wl{font-weight:600;font-size:.9rem}
-.rc{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:16px;border-left:4px solid var(--green)}
-.rh{display:flex;align-items:center;gap:9px;margin-bottom:14px}
-.rp2{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);background:var(--gp);padding:3px 9px;border-radius:10px}
-.rt{font-family:'DM Serif Display',serif;font-size:1.05rem}
-/* SETTINGS */
-.ss{background:#fff;border-radius:var(--r);box-shadow:0 1px 6px rgba(30,46,37,.07);padding:16px 18px;margin-bottom:16px}
-.ssl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin-bottom:13px}
-.srow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);gap:14px}
-.srow:last-child{border-bottom:none;padding-bottom:0}
-.srl{font-size:.88rem;font-weight:500}
-.srs{font-size:.72rem;color:var(--mut);margin-top:2px;line-height:1.4}
-.tog{position:relative;width:44px;height:26px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tr2{position:absolute;inset:0;background:var(--bd);border-radius:26px;cursor:pointer;transition:background .2s}
-.tr2::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.22)}
-.tog input:checked+.tr2{background:var(--green)}
-.tog input:checked+.tr2::before{transform:translateX(18px)}
-.ns{font-size:.77rem;padding:8px 11px;border-radius:8px;margin-top:10px;display:none;line-height:1.5}
-.nso{background:var(--gp);color:var(--green);display:block}
-.nsw{background:var(--ap);color:#c0621a;display:block}
-.nse{background:var(--rp);color:var(--red);display:block}
-.tss{margin-top:14px;display:none}
-.tcs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.tch{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:18px;border:1.5px solid var(--bd);font-size:.78rem;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
-.tcd{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.72rem;padding:0 0 0 2px;line-height:1;transition:color .12s}
-.tcd:hover{color:var(--red)}
-.atr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ti{padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none;flex:1;max-width:130px;min-width:0;-webkit-appearance:none}
-.ti:focus{border-color:var(--green)}
-.atb{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0}
-.ab{padding:7px 13px;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.79rem;font-weight:600;background:var(--bg);color:var(--text);transition:all .15s;white-space:nowrap}
-.ab:hover{border-color:var(--green);color:var(--green)}
-.ab.dng{border-color:var(--red);color:var(--red);background:var(--rp)}
-/* SUPABASE CONFIG */
-.cfg-box{background:var(--gp);border:1.5px solid var(--gl);border-radius:var(--r);padding:18px;margin-bottom:16px}
-.cfg-title{font-weight:700;font-size:.88rem;margin-bottom:4px;color:var(--gd)}
-.cfg-sub{font-size:.78rem;color:var(--mut);margin-bottom:14px;line-height:1.5}
-.cfg-input{width:100%;padding:9px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);background:#fff;outline:none;margin-bottom:8px;-webkit-appearance:none}
-.cfg-input:focus{border-color:var(--green)}
-.cfg-save{padding:9px 20px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600}
-/* BOTTOM NAV */
-.bnav{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;z-index:200;background:rgba(22,36,28,.97);backdrop-filter:blur(24px) saturate(200%);-webkit-backdrop-filter:blur(24px) saturate(200%);border-top:1px solid rgba(255,255,255,.07);box-shadow:0 -4px 24px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
-.bni2{display:flex;padding:6px 4px}
-.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;cursor:pointer;gap:3px;border:none;background:none;color:rgba(255,255,255,.38);font-family:'Inter',sans-serif;border-radius:10px;transition:all .18s ease;min-width:0;-webkit-tap-highlight-color:transparent}
-.bni.active{color:#fff}
-.bni:active{transform:scale(.9);opacity:.7}
-.bni svg{width:22px;height:22px;flex-shrink:0;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8;transition:transform .18s ease}
-.bni.active svg{transform:scale(1.1)}
-.bni span{font-size:.56rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
-/* TOAST */
-.toast{position:fixed;top:calc(76px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-16px);min-width:180px;max-width:calc(100vw - 48px);text-align:center;padding:12px 22px;border-radius:22px;font-size:.87rem;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.18);background:var(--gd);color:#fff}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.err{background:var(--red)}.toast.info{background:#1E2E25}
-@media(max-width:700px){
-  .dtabs{display:none}.bnav{display:block}
-  .content{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
-  .sgrid{grid-template-columns:1fr 1fr}.sgrid .scc:last-child{grid-column:span 2}
+
+/* ══════════════════════════════════════════════════════════════════
+   2. GRUNDLAGEN
+   ══════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--surface); color:var(--ink);
+  font:400 16px/22px var(--font-sans);
+  -webkit-tap-highlight-color:transparent;
 }
-@media(min-width:701px){
-  .dtabs{display:flex}.bnav{display:none}
-  .toast{left:auto;right:24px;top:80px;min-width:0;text-align:left;transform:translateY(-10px)}
-  .toast.show{transform:translateY(0)}
-  #view-today{flex-direction:row}
-  .today-form{width:420px;flex:none;border-right:1px solid var(--bd);overflow-y:auto}
+[hidden]{display:none!important}
+button{font-family:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1{margin:0;font:600 34px/40px var(--font-display)}
+h2{margin:0;font:500 21px/26px var(--font-display)}
+p{margin:0}
+
+/* Die App ist nur fürs Handy gestaltet. Auf größeren Bildschirmen bleibt sie eine schmale Spalte. */
+.app{max-width:480px;margin:0 auto;min-height:100dvh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-4))}
+
+/* ══════════════════════════════════════════════════════════════════
+   3. BAUSTEINE (siehe „Bausteine“ im Design System)
+   ══════════════════════════════════════════════════════════════════ */
+.screen{padding:28px var(--space-5) var(--space-4)}
+.screen-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-3);padding:0 var(--space-1) var(--space-2)}
+.eyebrow{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.stack{display:flex;flex-direction:column;gap:14px;margin-top:var(--space-4)}
+.row{display:flex;align-items:center;gap:6px}
+
+/* Karte: weiß auf Off-White, keine Rahmen, keine Schatten */
+.card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:18px 18px 18px var(--space-5)}
+.card-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.card--accent{background:var(--accent-soft)}
+/* Eine ganze Karte als Button (Beschwerden-Karte) */
+.card-button{width:100%;border:none;text-align:left;cursor:pointer;font:inherit}
+.card-title{display:block;font:500 21px/26px var(--font-display)}
+
+.hint{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.hint--accent{font-weight:700;color:var(--accent-ink)}
+.card .hint{margin-top:var(--space-2)}
+
+/* Runde Icon-Buttons: 44 px für Nebenaktionen, 52 px für Hauptaktionen */
+.btn-round{
+  width:44px;height:44px;flex-shrink:0;padding:0;border:none;border-radius:var(--radius-full);
+  background:var(--surface-sunken);color:var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
 }
-.hidden{display:none!important}
+.btn-round:disabled{background:transparent;color:var(--border-control);cursor:default}
+.btn-round--lg{width:52px;height:52px}
+.btn-round--brand{background:var(--brand);color:var(--on-brand)}
+.btn-round--outline{background:var(--surface-raised);border:1.5px solid var(--border-control)}
+.btn-round--white{background:var(--surface-raised);color:var(--accent-ink)}
+
+/* Breiter Button: nur Wort, kein Icon */
+.btn-wide{width:100%;height:56px;border:none;border-radius:var(--radius-full);background:var(--brand);color:var(--on-brand);font:800 17px var(--font-sans);cursor:pointer}
+
+/* Kleiner Textlink für Optionales, beginnt mit „+“ */
+.link-plus{height:28px;padding:0;border:none;background:none;font:700 13px var(--font-sans);color:var(--ink-muted);cursor:pointer;text-align:left}
+
+/* Untere Navigation mit vier Punkten */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+.nav-inner{max-width:480px;margin:0 auto;height:var(--nav-h);display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-1);text-decoration:none;color:var(--ink-muted);font-size:12px;line-height:16px;font-weight:700}
+.nav a[aria-current="page"]{color:var(--brand);font-weight:800}
+
+/* Kurze Rückmeldung unten, z. B. „Gespeichert“ */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-4));
+  transform:translate(-50%,8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+  max-width:calc(100% - 40px);padding:10px 18px;border-radius:var(--radius-full);
+  background:var(--ink);color:var(--surface);font-size:14px;font-weight:700;z-index:20;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Testband (nur in der Testversion sichtbar) */
+.stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
 </style>
 </head>
 <body>
-<header>
-  <div class="hb"><h1>📖 GutLog</h1><div class="hs">Ernährungs- & Symptomprotokoll</div></div>
-  <div class="header-right">
-    <div class="dnav">
-      <button onclick="changeDay(-1)">‹</button>
-      <span id="dateLbl"></span>
-      <button onclick="changeDay(1)">›</button>
-    </div>
-  </div>
-</header>
-<div class="app-body">
-  <nav class="dtabs">
-    <div class="dtab active" onclick="go('today')">Heute</div>
-    <div class="dtab" onclick="go('history')">Verlauf</div>
-    <div class="dtab" onclick="go('analysis')">Auswertung</div>
-    <div class="dtab" onclick="go('notes')">Notizen</div>
-    <div class="dtab" onclick="go('report')">📤 Bericht</div>
-    <div class="dtab" onclick="go('settings')">⚙️ Einstellungen</div>
-  </nav>
-  <div class="content">
-    <!-- TODAY -->
-    <div id="view-today" class="view active">
-      <div class="today-form">
-        <div class="pt">Eintrag hinzufügen</div>
-        <div class="tbts">
-          <div class="tb am" id="btn-meal" onclick="setType('meal')">🍽<br>Mahlzeit</div>
-          <div class="tb" id="btn-symptom" onclick="setType('symptom')">⚡<br>Symptom</div>
-          <div class="tb" id="btn-medication" onclick="setType('medication')">💊<br>Medikament</div>
-        </div>
-        <div class="fg"><label class="fl">Uhrzeit</label><input type="time" id="eTime"></div>
-        <div id="mealF">
-          <div class="fg"><label class="fl">Gericht / Lebensmittel</label><input type="text" id="mName" placeholder="z. B. Haferbrei mit Banane"></div>
-          <div class="fg"><label class="fl">Zutaten & Menge</label><textarea id="mDet" placeholder="z. B. 60g Haferflocken, 200ml Hafermilch"></textarea></div>
-          <div class="fg"><label class="fl">Getränke dazu</label><input type="text" id="mDrk" placeholder="z. B. Wasser, Kamillentee"></div>
-        </div>
-        <div id="symF" class="hidden">
-          <div class="fg">
-            <label class="fl">Symptome</label>
-            <div class="sg">
-              <label class="sc"><input type="checkbox" value="Sodbrennen">🔥 Sodbrennen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Blähbauch">🎈 Blähbauch<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Blähungen">💨 Blähungen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Durchfall">🚿 Durchfall<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Übelkeit">🤢 Übelkeit<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Magenschmerzen">😣 Magenschm.<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Aufstoßen">↑ Aufstoßen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Völlegefühl">🍱 Völlegefühl<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Magenkrämpfe">⚡ Magenkrämpfe<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Brustschmerzen">💔 Brustschm.<span class="ck">✓</span></label>
-            </div>
-          </div>
-          <div class="fg"><label class="fl">Intensität (1–10)</label><div class="sr"><input type="range" id="sevS" min="1" max="10" value="5" oninput="document.getElementById('sevV').textContent=this.value"><span class="sv" id="sevV">5</span></div></div>
-          <div class="fg"><label class="fl">Situation</label><select id="sTim"><option value="">– keine Angabe –</option><option>Im Liegen / nachts</option><option>Beim Bücken / bei Bewegung</option><option>Bei / nach Stress</option><option>Mit leerem Magen</option></select></div>
-          <div class="fg"><label class="fl">Anmerkungen</label><textarea id="sNot" placeholder="z. B. nach fettigem Essen..."></textarea></div>
-        </div>
-        <div id="medF" class="hidden">
-          <div class="tc">
-            <div class="fg"><label class="fl">Medikament</label><select id="mdSel" onchange="document.getElementById('mdOther').classList.toggle('hidden',this.value!=='other')"><option value="Pantoprazol">Pantoprazol</option><option value="other">Anderes …</option></select></div>
-            <div class="fg"><label class="fl">Dosis (mg)</label><input type="number" id="mdDos" value="40" min="0"></div>
-          </div>
-          <div class="fg hidden" id="mdOther"><label class="fl">Name des Medikaments</label><input type="text" id="mdNam" placeholder="z. B. Gaviscon"></div>
-          <div class="fg"><label class="fl">Status</label><div class="seg" id="mdStat"><button type="button" class="on" data-v="eingenommen">Eingenommen</button><button type="button" data-v="reduziert">Reduziert</button><button type="button" data-v="ausgelassen">Ausgelassen</button></div></div>
-          <div class="fg"><label class="fl">Einnahmezeitpunkt</label><select id="mdTim"><option>Nüchtern (30 min vor Frühstück)</option><option>Zum Frühstück</option><option>Mittags</option><option>Abends</option><option>Nach Bedarf</option></select></div>
-          <div class="fg"><label class="fl">Notiz</label><textarea id="mdNot" placeholder="z. B. Grund fürs Auslassen..."></textarea></div>
-        </div>
-        <button class="sav" onclick="addEntry()">Eintrag speichern</button>
-      </div>
-    </div>
-    <!-- HISTORY -->
-    <div id="view-history" class="view"><div class="inner" id="histC"></div></div>
-    <!-- ANALYSIS -->
-    <div id="view-analysis" class="view"><div class="inner" id="analC"></div></div>
-    <!-- NOTES -->
-    <div id="view-notes" class="view">
-      <div class="inner">
-        <div class="st">Notizen & Arzttermine</div>
-        <div class="nb"><textarea class="nta" id="nIn" placeholder="z. B. Beobachtungen, Fragen für den Arzt..."></textarea><button class="nsb" onclick="saveNote()">Notiz speichern</button></div>
-        <div id="nList"></div>
-      </div>
-    </div>
-    <!-- REPORT -->
-    <div id="view-report" class="view"><div class="inner" id="repC"></div></div>
-    <!-- SETTINGS -->
-    <div id="view-settings" class="view">
-      <div class="inner">
-        <div class="st">Einstellungen</div>
+<div class="stage-band" id="stageBand" hidden>Testversion · Daten getrennt von der echten App</div>
 
+<main class="app">
 
-        <div class="ss">
-          <div class="ssl">🔔 Erinnerungen</div>
-          <div class="srow"><div><div class="srl">Tägliche Erinnerungen</div><div class="srs">Benachrichtigung wenn noch kein Eintrag heute</div></div><label class="tog"><input type="checkbox" id="nTog" onchange="toggleNotif(this.checked)"><span class="tr2"></span></label></div>
-          <div id="nStat" class="ns"></div>
-          <div class="tss" id="tSec">
-            <div style="font-size:.81rem;font-weight:600;color:var(--text);margin-bottom:9px">Erinnerungszeiten</div>
-            <div class="tcs" id="tChps"></div>
-            <div class="atr"><input type="time" id="nTi" class="ti" value="12:00"><button class="atb" onclick="addTime()">+ Hinzufügen</button></div>
-          </div>
-          <div class="srow" style="margin-top:12px"><div><div class="srl">Test-Benachrichtigung</div><div class="srs">Sofort eine Probe senden</div></div><button class="ab" onclick="testNotif()">Testen</button></div>
-        </div>
-        <div class="ss">
-          <div class="ssl">📱 App & Daten</div>
-          <div class="srow"><div><div class="srl">Version</div></div><span style="font-size:.8rem;color:var(--mut)">GutLog 1.0</span></div>
-          <div class="srow"><div><div class="srl">Alle Daten löschen</div><div class="srs">Unwiderruflich – nur lokale Daten</div></div><button class="ab dng" onclick="deleteAll()">Löschen</button></div>
-        </div>
+  <!-- ══ HEUTE ══════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-heute" aria-labelledby="heuteTitel">
+    <div class="screen-head">
+      <div>
+        <div class="eyebrow" id="heuteDatum"></div>
+        <h1 id="heuteTitel">Heute</h1>
+      </div>
+      <div class="row">
+        <button class="btn-round" id="tagZurueck" aria-label="Vorheriger Tag"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="btn-round" id="tagVor" aria-label="Nächster Tag"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>
     </div>
-  </div>
-  <!-- BOTTOM NAV -->
-  <nav class="bnav">
-    <div class="bni2">
-      <button class="bni active" id="bn-today" onclick="go('today')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Heute</span></button>
-      <button class="bni" id="bn-history" onclick="go('history')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Verlauf</span></button>
-      <button class="bni" id="bn-analysis" onclick="go('analysis')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Analyse</span></button>
-      <button class="bni" id="bn-report" onclick="go('report')"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Bericht</span></button>
-      <button class="bni" id="bn-settings" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Einst.</span></button>
+
+    <div class="stack">
+      <section class="card" aria-labelledby="mahlzeitenTitel">
+        <div class="card-row">
+          <h2 id="mahlzeitenTitel">Mahlzeiten</h2>
+          <button class="btn-round btn-round--lg btn-round--brand" data-bald="2" aria-label="Mahlzeit eintragen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <p class="hint" id="mahlzeitenHinweis">Noch nichts eingetragen</p>
+      </section>
+
+      <section class="card card-row" aria-labelledby="pantoTitel">
+        <div>
+          <h2 id="pantoTitel">Pantoprazol</h2>
+          <button class="link-plus" data-bald="1">+ Medikament</button>
+        </div>
+        <div class="row" style="gap:var(--space-2)">
+          <button class="btn-round btn-round--lg btn-round--outline" data-bald="1" aria-label="Ja, eingenommen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+          <button class="btn-round btn-round--lg btn-round--outline" data-bald="1" aria-label="Nein, nicht eingenommen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+      </section>
+
+      <button class="card card--accent card-row card-button" data-bald="3">
+        <span>
+          <span class="card-title">Wie war dein Tag?</span>
+          <span class="hint hint--accent" id="abschlussHinweis" style="display:block;margin-top:2px">0 von 6 ausgefüllt</span>
+        </span>
+        <span class="btn-round btn-round--lg btn-round--white" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
     </div>
-  </nav>
-</div>
-<div class="toast" id="toast"></div>
+  </section>
+
+  <!-- ══ VERLAUF ════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-verlauf" aria-labelledby="verlaufTitel" hidden>
+    <div class="screen-head"><div><div class="eyebrow">Diese Woche</div><h1 id="verlaufTitel">Verlauf</h1></div></div>
+    <div class="stack"><div class="card"><h2>Kommt in Etappe 4</h2><p class="hint">Wochen-Diagramm, „Oft davor“ und „Gut vertragen“.</p></div></div>
+  </section>
+
+  <!-- ══ BERICHT ════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-bericht" aria-labelledby="berichtTitel" hidden>
+    <div class="screen-head"><div><div class="eyebrow">Für Sandra</div><h1 id="berichtTitel">Bericht</h1></div></div>
+    <div class="stack"><div class="card"><h2>Kommt in Etappe 5</h2><p class="hint">Woche wählen, Kennzahlen prüfen, Bericht teilen.</p></div></div>
+  </section>
+
+  <!-- ══ EINSTELLUNGEN ══════════════════════════════════════════════ -->
+  <section class="screen" id="screen-einstellungen" aria-labelledby="einstTitel" hidden>
+    <div class="screen-head"><div><h1 id="einstTitel">Einstellungen</h1></div></div>
+    <div class="stack">
+      <div class="card"><h2>Kommt in Etappe 6</h2><p class="hint">Erinnerung, Pantoprazol-Dosis, Favoriten, Daten löschen.</p></div>
+      <p class="hint" style="text-align:center" id="versionInfo"></p>
+    </div>
+  </section>
+</main>
+
+<!-- ══ NAVIGATION ════════════════════════════════════════════════════ -->
+<nav class="nav" aria-label="Hauptnavigation">
+  <div class="nav-inner">
+    <a href="#heute"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Heute</a>
+    <a href="#verlauf"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Verlauf</a>
+    <a href="#bericht"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Bericht</a>
+    <a href="#einstellungen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Einstellungen</a>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 'use strict';
+const APP_VERSION='2.0';
 
-// ── STAGE (Live oder Test) ───────────────────────
-// Die Testversion liegt unter /gutlog/test/. Live und Test teilen sich im Browser denselben Speicher
-// (gleiche Domain). Deshalb speichert die Testversion unter eigenen Namen (glt_ statt gl_),
-// damit sich Test- und echte Daten nie vermischen.
+// ══════════════════════════════════════════════════════════════════
+// STAGE (Live oder Test)
+// Die Testversion liegt unter /gutlog/test/. Live und Test teilen sich im Browser
+// denselben Speicher (gleiche Domain). Deshalb speichert die Testversion unter
+// eigenen Namen (glt_ statt gl_), damit sich Test- und echte Daten nie vermischen.
+// ══════════════════════════════════════════════════════════════════
 const STAGE=location.pathname.includes('/test/')?'test':'live';
 const K=STAGE==='test'?'glt_':'gl_';
 
-// ── STORAGE ──────────────────────────────────────
-const DB={
-  d(){try{return JSON.parse(localStorage.getItem(K+'d')||'{}')}catch{return{}}},
-  sd(v){localStorage.setItem(K+'d',JSON.stringify(v))},
-  n(){try{return JSON.parse(localStorage.getItem(K+'n')||'[]')}catch{return[]}},
-  sn(v){localStorage.setItem(K+'n',JSON.stringify(v))},
-  c(){try{return JSON.parse(localStorage.getItem(K+'c')||'{}')}catch{return{}}},
-  sc(v){localStorage.setItem(K+'c',JSON.stringify(v))}
+// ══════════════════════════════════════════════════════════════════
+// SPEICHER
+// Alles liegt im localStorage des Browsers, nur auf diesem Handy.
+//   K+'d'  Tage mit Mahlzeiten, Medikamenten, Ereignissen, Tagesabschluss
+//   K+'f'  Gerichte-Gedächtnis (Titel und Zutaten für Vorschläge)
+//   K+'c'  Einstellungen
+// ══════════════════════════════════════════════════════════════════
+const STORE={
+  load(name,fallback){try{const v=JSON.parse(localStorage.getItem(K+name));return v??fallback}catch{return fallback}},
+  save(name,value){localStorage.setItem(K+name,JSON.stringify(value))}
 };
 
-// In der Testversion: deutliches Band oben, damit niemand sie mit der echten App verwechselt.
-if(STAGE==='test'){document.title='GutLog Test';const b=document.createElement('div');b.textContent='Testversion · Daten getrennt von der echten App';b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#A3522F;color:#fff;font:700 12px/22px system-ui,sans-serif;text-align:center;pointer-events:none';document.body.appendChild(b);document.body.style.paddingTop='22px'}
-
-// ── STATE ─────────────────────────────────────────
-let today=new Date(),aType='meal',aTab='today';
-const timers=[];
-const dk=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const fmt=d=>d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const nowT=()=>{const d=new Date();return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
-function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');void t.offsetWidth;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)}
-
-window.addEventListener('load',()=>{
-  document.getElementById('eTime').value=nowT();
-  updateDate(); renderNotes(); initSettings(); scheduleAll(); pwaBoot();
-});
-
-// ── DATE ──────────────────────────────────────────
-function changeDay(d){today.setDate(today.getDate()+d);updateDate()}
-function updateDate(){const isT=dk(today)===dk(new Date());const dp=today.toLocaleDateString('de-DE',{day:'numeric',month:'short'});const wd=today.toLocaleDateString('de-DE',{weekday:'short'});document.getElementById('dateLbl').textContent=isT?`Heute, ${dp}`:`${wd}, ${dp}`}
-
-// ── TABS ──────────────────────────────────────────
-const TABS=['today','history','analysis','notes','report','settings'];
-function go(tab){
-  aTab=tab;
-  document.querySelectorAll('.dtab').forEach((el,i)=>el.classList.toggle('active',TABS[i]===tab));
-  TABS.forEach(n=>{const v=document.getElementById('view-'+n);if(v)v.classList.toggle('active',n===tab);const b=document.getElementById('bn-'+n);if(b)b.classList.toggle('active',n===tab)});
-  if(tab==='history') renderHistory();
-  if(tab==='analysis') renderAnalysis();
-  if(tab==='notes') renderNotes();
-  if(tab==='report') renderReport();
-  if(tab==='settings') initSettings();
-}
-
-// ── ENTRY TYPE ────────────────────────────────────
-function setType(t){
-  aType=t;
-  ['meal','symptom','medication'].forEach(x=>{document.getElementById('btn-'+x).className='tb';document.getElementById(x==='meal'?'mealF':x==='symptom'?'symF':'medF').classList.add('hidden')});
-  document.getElementById('btn-'+t).className='tb '+(t==='meal'?'am':t==='symptom'?'as':'ad');
-  document.getElementById(t==='meal'?'mealF':t==='symptom'?'symF':'medF').classList.remove('hidden');
-}
-document.addEventListener('click',e=>{const b=e.target.closest('#mdStat button');if(!b)return;document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x===b))});
-document.addEventListener('change',e=>{if(e.target.matches('.sc input[type="checkbox"]'))e.target.closest('.sc').classList.toggle('checked',e.target.checked)});
-
-// ── ADD ENTRY ─────────────────────────────────────
-async function addEntry(){
-  const time=document.getElementById('eTime').value;
-  if(!time){toast('⚠ Bitte Uhrzeit angeben','err');return}
-  const data=DB.d(),key=dk(today);if(!data[key])data[key]=[];
-  let e={id:Date.now(),time,type:aType};
-  if(aType==='meal'){const n=document.getElementById('mName').value.trim();if(!n){toast('⚠ Bitte Gericht eintragen','err');return}e.name=n;e.details=document.getElementById('mDet').value.trim();e.drink=document.getElementById('mDrk').value.trim()}
-  else if(aType==='symptom'){const c=[...document.querySelectorAll('.sc.checked')].map(x=>x.querySelector('input').value);if(!c.length){toast('⚠ Bitte ein Symptom wählen','err');return}e.symptoms=c;e.severity=parseInt(document.getElementById('sevS').value);e.timing=document.getElementById('sTim').value;e.note=document.getElementById('sNot').value.trim()}
-  else{const sel=document.getElementById('mdSel').value;e.name=sel==='other'?(document.getElementById('mdNam').value.trim()||'Medikament'):sel;e.status=document.querySelector('#mdStat .on').dataset.v;e.dose=document.getElementById('mdDos').value;e.timing=document.getElementById('mdTim').value;e.note=document.getElementById('mdNot').value.trim()}
-  data[key].push(e);data[key].sort((a,b)=>a.time.localeCompare(b.time));DB.sd(data);
-  resetForm();
-  toast({meal:'✓ Mahlzeit gespeichert',symptom:'✓ Symptom gespeichert',medication:'✓ Medikament gespeichert'}[aType]);
-}
-
-function resetForm(){
-  document.querySelectorAll('.sc.checked').forEach(c=>{c.classList.remove('checked');c.querySelector('input').checked=false});
-  ['sNot','mName','mDet','mDrk','mdNot','mdNam'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x.dataset.v==='eingenommen'));document.getElementById('mdSel').value='Pantoprazol';document.getElementById('mdOther').classList.add('hidden');document.getElementById('sevS').value=5;document.getElementById('sevV').textContent='5';
-}
-
-async function delEntry(key,id){
-  const d=DB.d();if(!d[key])return;
-  d[key]=d[key].filter(e=>e.id!==id);DB.sd(d);
-  renderHistory();
-  toast('Eintrag gelöscht','info');
-}
-
-// ── CARD HTML ─────────────────────────────────────
-function cardHTML(e,key){
-  const L={meal:'🍽 Mahlzeit',symptom:'⚡ Symptom',medication:'💊 Medikament'};
-  const DC={meal:'dm',symptom:'ds',medication:'dd'};
-  const CC={meal:'ecm',symptom:'ecs',medication:'ecd'};
-  const BC={meal:'bm',symptom:'bs',medication:'bd2'};
-  let body='';
-  if(e.type==='meal')body=`<div class="cm">${esc(e.name)}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
-  else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:5px">Intensität: ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-  else body=`<div class="cm">${esc(e.name||'')}${e.dose&&e.status!=='ausgelassen'?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${e.status?esc(e.status[0].toUpperCase()+e.status.slice(1))+' · ':''}${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-  return`<div class="tle"><div class="tld ${DC[e.type]}"></div><div class="ec ${CC[e.type]}"><button class="db" onclick="delEntry('${esc(key)}',${e.id})">✕</button><div class="ct"><span class="cti">${esc(e.time)} Uhr</span><span class="cb ${BC[e.type]}">${L[e.type]}</span></div>${body}</div></div>`;
-}
-
-// ── HISTORY ───────────────────────────────────────
-function renderHistory(){
-  const data=DB.d(),el=document.getElementById('histC');
-  const keys=Object.keys(data).filter(k=>data[k].length).sort().reverse();
-  if(!keys.length){el.innerHTML='<div class="es"><div class="ei">📅</div><p>Noch keine Einträge.<br>Trage heute deinen ersten Eintrag ein!</p></div>';return}
-  const todayK=dk(new Date());
-  el.innerHTML=keys.map(key=>{
-    const d=new Date(key+'T12:00:00'),isT=key===todayK;
-    const sy=data[key].filter(e=>e.type==='symptom');
-    const nM=data[key].filter(e=>e.type==='meal').length,nMe=data[key].filter(e=>e.type==='medication').length;
-    const mxS=sy.length?Math.max(...sy.map(s=>s.severity)):null;
-    return`<div class="hd"><div class="hdl${isT?' tdy':''}">${esc(isT?'Heute – '+fmt(d):fmt(d))}</div><div class="pills" style="margin-bottom:12px">${nM?`<span class="pill pm">🍽 ${nM}</span>`:''} ${sy.length?`<span class="pill ps">⚡ max. ${mxS}/10</span>`:''} ${nMe?`<span class="pill pd">💊 ${nMe}</span>`:''}</div><div class="tl">${data[key].map(e=>cardHTML(e,key)).join('')}</div></div>`;
-  }).join('')+`<div style="padding:20px;text-align:center;font-size:.78rem;color:var(--mut)">${keys.length} Tag${keys.length!==1?'e':''} erfasst</div>`;
-}
-
-// ── ANALYSIS ──────────────────────────────────────
-function renderAnalysis(){
-  const data=DB.d(),el=document.getElementById('analC');
-  const all=Object.values(data).flat();
-  const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
-  const total=Object.keys(data).length;
-  const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
-  const panto=Object.keys(data).filter(k=>data[k].some(e=>e.type==='medication'&&e.status!=='ausgelassen'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
-  const sF={};syms.forEach(e=>(e.symptoms||[]).forEach(s=>{sF[s]=(sF[s]||0)+1}));
-  const sByF=Object.entries(sF).sort((a,b)=>b[1]-a[1]),sMax=sByF[0]?.[1]||1;
-  const trig={};Object.values(data).forEach(day=>{const sorted=[...day].sort((a,b)=>a.time.localeCompare(b.time));sorted.forEach((e,i)=>{if(e.type!=='symptom')return;const[sh,sm]=e.time.split(':').map(Number);sorted.slice(0,i).forEach(p=>{if(p.type!=='meal')return;const[ph,pm]=p.time.split(':').map(Number);if((sh*60+sm)-(ph*60+pm)<=120)trig[p.name]=(trig[p.name]||0)+1})})});
-  const tByF=Object.entries(trig).sort((a,b)=>b[1]-a[1]).slice(0,6),tMax=tByF[0]?.[1]||1;
-  el.innerHTML=`<div class="st">Auswertung</div>
-  <div class="sgrid"><div class="scc"><div class="sn">${total}</div><div class="sl">Protokolltage</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptom&shy;ereignisse</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div><div class="scc"><div class="sn">${meals.length}</div><div class="sl">Mahlzeiten</div></div><div class="scc"><div class="sn" style="color:var(--pur)">${panto}</div><div class="sl">Tage mit Pantoprazol</div></div><div class="scc"><div class="sn" style="color:var(--green)">${total-panto}</div><div class="sl">Tage ohne</div></div></div>
-  ${sByF.length?`<div class="cb2"><div class="cbt">Häufigste Symptome</div>${sByF.map(([s,n])=>`<div class="br"><span class="bl">${esc(s)}</span><div class="bbg"><div class="bf bfs" style="width:${(n/sMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}</div>`:''}
-  ${tByF.length?`<div class="cb2"><div class="cbt">Mögliche Trigger <span style="font-weight:400;color:var(--mut)">(Symptome innerhalb 2h)</span></div>${tByF.map(([m,n])=>`<div class="br"><span class="bl">${esc(m)}</span><div class="bbg"><div class="bf bft" style="width:${(n/tMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}<div class="cn">⚠ Rein zeitliche Korrelation.</div></div>`:''}
-  ${!total?'<div class="es"><div class="ei">📊</div><p>Noch zu wenig Daten.</p></div>':''}`;
-}
-
-// ── NOTES ─────────────────────────────────────────
-function saveNote(){const t=document.getElementById('nIn').value.trim();if(!t)return;const n=DB.n();n.unshift({id:Date.now(),date:new Date().toISOString(),text:t});DB.sn(n);document.getElementById('nIn').value='';renderNotes();toast('Notiz gespeichert')}
-function renderNotes(){const el=document.getElementById('nList'),n=DB.n();el.innerHTML=n.map(x=>`<div class="nc"><div class="nd">${new Date(x.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="nt">${esc(x.text)}</div></div>`).join('')}
-
-
-// ── WOCHENBERICHT & TEILEN ────────────────────────
-let rWeek=0;
-function wRange(off){const n=new Date(),m=new Date(n);m.setDate(n.getDate()-((n.getDay()+6)%7)+off*7);m.setHours(0,0,0,0);const s=new Date(m);s.setDate(m.getDate()+6);s.setHours(23,59,59,999);return{m,s}}
-function wLabel(off){if(off===0)return'Diese Woche';if(off===-1)return'Letzte Woche';const{m,s}=wRange(off);return`${m.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}`}
-function wData(off){const{m,s}=wRange(off),data=DB.d(),r={};Object.keys(data).forEach(k=>{const d=new Date(k+'T12:00:00');if(d>=m&&d<=s&&data[k].length)r[k]=data[k]});return r}
-function changeWeek(d){rWeek=Math.min(0,rWeek+d);renderReport()}
-
-// Baut den Bericht: oben lesbarer Text, unten die Rohdaten für das Auswertungs-Tool
-function buildReport(){
-  const wd=wData(rWeek),keys=Object.keys(wd).sort();
-  const {m,s}=wRange(rWeek);
-  const range=`${m.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'})}`;
-  const lines=[`GutLog – Wochenbericht`,`Zeitraum: ${range}`,``];
-  keys.forEach(k=>{
-    const d=new Date(k+'T12:00:00');
-    lines.push(d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'}));
-    wd[k].forEach(e=>{
-      if(e.type==='meal')lines.push(`  ${e.time} Mahlzeit: ${e.name}${e.details?' ('+e.details+')':''}${e.drink?' + '+e.drink:''}`);
-      else if(e.type==='symptom')lines.push(`  ${e.time} Symptom: ${(e.symptoms||[]).join(', ')} – ${e.severity}/10${e.timing?' ('+e.timing+')':''}${e.note?' – '+e.note:''}`);
-      else lines.push(`  ${e.time} Medikament: ${e.name} ${e.status==='ausgelassen'?'AUSGELASSEN':(e.dose||'')+' mg'+(e.status==='reduziert'?' (reduziert)':'')}${e.timing?' – '+e.timing:''}${e.note?' ('+e.note+')':''}`);
-    });
-    lines.push('');
-  });
-  const payload={app:'GutLog',version:'1.1',range:{from:dk(m),to:dk(s)},exportedAt:new Date().toISOString(),days:wd};
-  lines.push('=== GUTLOG-DATEN (für das Auswertungs-Tool, bitte nicht ändern) ===');
-  lines.push(JSON.stringify(payload));
-  return {text:lines.join('\n'),file:`gutlog-bericht-${dk(m)}.txt`,keys};
-}
-
-function renderReport(){
-  const {keys}=buildReport();
-  const wd=wData(rWeek),all=Object.values(wd).flat(),syms=all.filter(e=>e.type==='symptom');
-  const avgS=syms.length?(syms.reduce((a,e)=>a+e.severity,0)/syms.length).toFixed(1):'–';
-  document.getElementById('repC').innerHTML=`
-    <div class="st">Wochenbericht</div>
-    <div class="wn">
-      <button class="wb" onclick="changeWeek(-1)">‹ Vorherige</button>
-      <span class="wl">${esc(wLabel(rWeek))}</span>
-      <button class="wb" onclick="changeWeek(1)" ${rWeek>=0?'disabled':''}>Nächste ›</button>
-    </div>
-    <div class="sgrid">
-      <div class="scc"><div class="sn">${keys.length}</div><div class="sl">Tage erfasst</div></div>
-      <div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptome</div></div>
-      <div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div>
-    </div>
-    ${!keys.length?'<div class="es"><div class="ei">📭</div><p>Keine Einträge für diese Woche.</p></div>':`
-    <div class="rc">
-      <div class="rh"><span class="rp2">📤 Teilen</span><span class="rt">Bericht senden</span></div>
-      <p style="font-size:.85rem;color:var(--mut);line-height:1.7;margin-bottom:16px">Öffnet das Teilen-Menü deines Handys. Wähle WhatsApp, Mail oder AirDrop und dann den Kontakt.</p>
-      <button class="sav" onclick="shareReport()">Bericht teilen</button>
-    </div>`}`;
-}
-
-async function shareReport(){
-  const {text,file}=buildReport();
-  // 1. Versuch: als Datei teilen (iOS 15+, Android Chrome)
-  try{
-    const f=new File([text],file,{type:'text/plain'});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){
-      await navigator.share({files:[f],title:'GutLog Wochenbericht'});
-      toast('✓ Bericht geteilt');return;
-    }
-    // 2. Versuch: als Text teilen
-    if(navigator.share){
-      await navigator.share({title:'GutLog Wochenbericht',text});
-      toast('✓ Bericht geteilt');return;
-    }
-  }catch(err){
-    if(err&&err.name==='AbortError')return; // Nutzerin hat abgebrochen
+// Datenmodell Version 2. Ein Tag sieht so aus:
+//   { meals:[…], meds:[…], events:[…], close:null }
+// Felder der einzelnen Einträge: siehe Umsetzungsplan „Neues Datenmodell“.
+// Liegen noch Daten im alten Format (Version 1) vor, werden sie zur Sicherheit
+// unter K+'d_v1' abgelegt und die App startet mit leeren Daten.
+function loadData(){
+  let d=STORE.load('d',null);
+  if(!d||d.v!==2){
+    if(d) STORE.save('d_v1',d);
+    d={v:2,days:{}};
+    STORE.save('d',d);
   }
-  // 3. Rückfall: in die Zwischenablage kopieren
-  try{await navigator.clipboard.writeText(text);toast('Kopiert – jetzt in WhatsApp einfügen','info')}
-  catch{toast('Teilen wird hier nicht unterstützt','err')}
+  return d;
 }
+let DATA=loadData();
+const emptyDay=()=>({meals:[],meds:[],events:[],close:null});
+const getDay=key=>DATA.days[key]||emptyDay();
+function saveDay(key,dayObj){DATA.days[key]=dayObj;STORE.save('d',DATA)}
 
-// ── SETTINGS ──────────────────────────────────────
-function initSettings(){
-  const c=DB.c(),tog=document.getElementById('nTog');if(!tog)return;
-  tog.checked=!!c.notifEnabled;
-  const ts=document.getElementById('tSec');if(ts)ts.style.display=c.notifEnabled?'block':'none';
-  renderChips();refreshNS();
-}
-function renderChips(){const el=document.getElementById('tChps');if(!el)return;const times=(DB.c().reminderTimes)||['08:00','13:00','20:00'];el.innerHTML=times.map(t=>`<div class="tch"><span>${esc(t)} Uhr</span><button class="tcd" onclick="removeTime('${esc(t)}')">✕</button></div>`).join('')}
-function addTime(){const t=document.getElementById('nTi').value;if(!t)return;const c=DB.c(),times=c.reminderTimes||['08:00','13:00','20:00'];if(!times.includes(t)){times.push(t);times.sort()}c.reminderTimes=times;DB.sc(c);renderChips();scheduleAll();toast('Erinnerungszeit hinzugefügt')}
-function removeTime(t){const c=DB.c();c.reminderTimes=(c.reminderTimes||[]).filter(x=>x!==t);DB.sc(c);renderChips();scheduleAll()}
-async function toggleNotif(on){const c=DB.c();if(on){if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');document.getElementById('nTog').checked=false;return}const p=await Notification.requestPermission();if(p!=='granted'){setNS('w','⚠ Berechtigung verweigert.');document.getElementById('nTog').checked=false;c.notifEnabled=false;DB.sc(c);return}c.notifEnabled=true;if(!c.reminderTimes)c.reminderTimes=['08:00','13:00','20:00'];DB.sc(c);setNS('o','✓ Erinnerungen aktiv.');const ts=document.getElementById('tSec');if(ts)ts.style.display='block';renderChips();scheduleAll()}else{c.notifEnabled=false;DB.sc(c);setNS('','');const ts=document.getElementById('tSec');if(ts)ts.style.display='none';timers.forEach(t=>clearTimeout(t));timers.length=0}}
-function refreshNS(){const c=DB.c();if(!c.notifEnabled)return;if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');return}Notification.permission==='granted'?setNS('o','✓ Erinnerungen aktiv.'):setNS('w','⚠ Berechtigung fehlt.')}
-function setNS(t,m){const el=document.getElementById('nStat');if(!el)return;el.className='ns'+(t?t==='o'?' nso':t==='w'?' nsw':' nse':'');el.textContent=m}
-function scheduleAll(){
-  timers.forEach(t=>clearTimeout(t));timers.length=0;
-  const c=DB.c();
-  if(!c.notifEnabled||!('Notification'in window)||Notification.permission!=='granted')return;
-  (c.reminderTimes||['08:00','13:00','20:00']).forEach(scheduleOne);
-  document.removeEventListener('visibilitychange',onVisible);
-  document.addEventListener('visibilitychange',onVisible);
-}
-function onVisible(){if(!document.hidden)checkAndFire()}
-function checkAndFire(){
-  const c=DB.c();if(!c.notifEnabled||Notification.permission!=='granted')return;
-  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-  (c.reminderTimes||[]).forEach(ts=>{
-    const[h,m]=ts.split(':').map(Number),diff=nowMins-(h*60+m);
-    if(diff>=0&&diff<5){const lk='gl_n_'+dk(now)+'_'+ts;if(!sessionStorage.getItem(lk)){sessionStorage.setItem(lk,'1');fireNotif()}}
+// ══════════════════════════════════════════════════════════════════
+// DATUM
+// Datumsschlüssel sind JJJJ-MM-TT in Ortszeit. Nie toISOString() verwenden,
+// das rechnet in UTC und kann nachts den falschen Tag liefern.
+// ══════════════════════════════════════════════════════════════════
+const pad=n=>String(n).padStart(2,'0');
+const dk=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyToDate=k=>{const[y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=keyToDate(k);d.setDate(d.getDate()+n);return dk(d)};
+// Regel aus den User Flows: Was bis 4:00 Uhr nachts passiert, zählt zum Vortag.
+const dayKeyFor=date=>{const d=new Date(date);if(d.getHours()<4)d.setDate(d.getDate()-1);return dk(d)};
+const todayKey=()=>dayKeyFor(new Date());
+const fmtDate=k=>keyToDate(k).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long'}).replace('.,',',');
+
+// ══════════════════════════════════════════════════════════════════
+// KLEINE HELFER
+// ══════════════════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400)}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// Jeder Bereich hat eine eigene Adresse (#heute, #verlauf …). So funktioniert
+// auch die Zurück-Taste des Handys.
+// ══════════════════════════════════════════════════════════════════
+const SCREENS=['heute','verlauf','bericht','einstellungen'];
+function showScreen(){
+  const wanted=location.hash.slice(1);
+  const current=SCREENS.includes(wanted)?wanted:'heute';
+  SCREENS.forEach(name=>{
+    $('screen-'+name).hidden=name!==current;
+    const link=document.querySelector(`.nav a[href="#${name}"]`);
+    if(name===current)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
   });
+  window.scrollTo(0,0);
 }
-function scheduleOne(ts){
-  const[h,m]=ts.split(':').map(Number),f=new Date();f.setHours(h,m,0,0);
-  if(f<=new Date())f.setDate(f.getDate()+1);
-  timers.push(setTimeout(()=>{fireNotif();setTimeout(()=>scheduleOne(ts),60000)},f-new Date()));
-}
-function fireNotif(){
-  if(Notification.permission!=='granted')return;
-  const d=DB.d(),k=dk(new Date());if(d[k]?.length)return;
-  new Notification('GutLog – Erinnerung 📖',{body:'Noch kein Eintrag für heute!',tag:'gl-r',renotify:true});
-}
-function testNotif(){if(!('Notification'in window)||Notification.permission!=='granted'){toast('⚠ Erst Erinnerungen aktivieren','err');return}new Notification('GutLog – Test ✓',{body:'Benachrichtigungen funktionieren! 🎉',tag:'gl-t'});toast('Test-Benachrichtigung gesendet')}
-function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;[K+'d',K+'n'].forEach(k=>localStorage.removeItem(k));toast('Alle Daten gelöscht','info')}
+window.addEventListener('hashchange',showScreen);
 
-// ── PWA ───────────────────────────────────────────
-function pwaBoot(){
-  // App-Icon „Schwung mit Sonne“ (siehe Design System): grüne Fläche, helle gewundene Linie (Darm), kleine Apricot-Sonne.
-  // Randlos gezeichnet, weil Android und iOS die Ecken selbst abrunden. Gezeichnet wird in einem 120er-Raster und dann skaliert.
-  function drawIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');x.scale(size/120,size/120);
-    x.fillStyle='#3F6B55';x.fillRect(0,0,120,120);
-    x.beginPath();x.moveTo(36,40);x.lineTo(80,40);x.arc(80,50,10,-Math.PI/2,Math.PI/2,false);x.lineTo(40,60);x.arc(40,70,10,-Math.PI/2,Math.PI/2,true);x.lineTo(70,80);
-    x.strokeStyle='#F7F3EE';x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.stroke();
-    x.beginPath();x.arc(84,80,8,0,Math.PI*2);x.fillStyle='#F0AE8C';x.fill();
-    // Nur in der Testversion: rotbraunes Schild „TEST“ oben, damit man beide Icons auf dem Handy unterscheidet.
-    // Es liegt im inneren Kreis, damit es auch bei rund zugeschnittenen Icons sichtbar bleibt.
-    if(STAGE==='test'){x.fillStyle='#A3522F';x.beginPath();x.moveTo(46,17);x.arcTo(82,17,82,33,8);x.arcTo(82,33,38,33,8);x.arcTo(38,33,38,17,8);x.arcTo(38,17,82,17,8);x.closePath();x.fill();
-      x.fillStyle='#FFFFFF';x.font='800 11px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('TEST',60,25.5)}
-    return c.toDataURL('image/png')}
-  const i192=drawIcon(192),i512=drawIcon(512);
-  document.getElementById('appleTouchIcon').href=i192;
-  const manifest={name:STAGE==='test'?'GutLog Test':'GutLog',short_name:STAGE==='test'?'GutLog Test':'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#3F6B55',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
-  document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
-  const sw=`const C='gl-v5';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||e.request.url.includes('supabase'))return;e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).catch(()=>h)))});`;
-  if('serviceWorker'in navigator)navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
-  window.addEventListener('appinstalled',()=>toast('✓ GutLog installiert!'));
+// ══════════════════════════════════════════════════════════════════
+// HEUTE
+// viewKey = der Tag, der gerade angezeigt wird. Mit den Pfeilen kann man
+// zurückblättern und nachtragen, aber nicht in die Zukunft.
+// ══════════════════════════════════════════════════════════════════
+let viewKey=todayKey();
+function renderHeute(){
+  const t=todayKey();
+  $('heuteTitel').textContent=viewKey===t?'Heute':viewKey===addDays(t,-1)?'Gestern':keyToDate(viewKey).toLocaleDateString('de-DE',{weekday:'long'});
+  $('heuteDatum').textContent=fmtDate(viewKey);
+  $('tagVor').disabled=viewKey>=t;
+  const day=getDay(viewKey);
+  $('mahlzeitenHinweis').textContent=day.meals.length?`${day.meals.length} eingetragen`:'Noch nichts eingetragen';
 }
+$('tagZurueck').addEventListener('click',()=>{viewKey=addDays(viewKey,-1);renderHeute()});
+$('tagVor').addEventListener('click',()=>{if(viewKey<todayKey()){viewKey=addDays(viewKey,1);renderHeute()}});
+
+// Platzhalter: Buttons, die erst in einer späteren Etappe funktionieren.
+document.querySelectorAll('[data-bald]').forEach(b=>b.addEventListener('click',()=>toast(`Kommt in Etappe ${b.dataset.bald}`)));
+
+// ══════════════════════════════════════════════════════════════════
+// APP-ICON, MANIFEST, OFFLINE
+// Das Icon wird per Code gezeichnet (Design System: „Schwung mit Sonne“).
+// ══════════════════════════════════════════════════════════════════
+function drawIcon(size){
+  const c=document.createElement('canvas');c.width=c.height=size;
+  const x=c.getContext('2d');x.scale(size/120,size/120);
+  // Grüne Fläche, randlos: Android und iOS runden die Ecken selbst ab.
+  x.fillStyle='#3F6B55';x.fillRect(0,0,120,120);
+  // Helle, gewundene Linie (Darm)
+  x.beginPath();x.moveTo(36,40);x.lineTo(80,40);x.arc(80,50,10,-Math.PI/2,Math.PI/2,false);
+  x.lineTo(40,60);x.arc(40,70,10,-Math.PI/2,Math.PI/2,true);x.lineTo(70,80);
+  x.strokeStyle='#F7F3EE';x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.stroke();
+  // Kleine Apricot-Sonne
+  x.beginPath();x.arc(84,80,8,0,Math.PI*2);x.fillStyle='#F0AE8C';x.fill();
+  // Nur in der Testversion: Schild „TEST“, liegt im inneren Kreis (bleibt bei runden Icons sichtbar).
+  if(STAGE==='test'){
+    x.fillStyle='#A3522F';x.beginPath();x.moveTo(46,17);x.arcTo(82,17,82,33,8);x.arcTo(82,33,38,33,8);x.arcTo(38,33,38,17,8);x.arcTo(38,17,82,17,8);x.closePath();x.fill();
+    x.fillStyle='#FFFFFF';x.font='800 11px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('TEST',60,25.5);
+  }
+  return c.toDataURL('image/png');
+}
+function pwaBoot(){
+  const i192=drawIcon(192),i512=drawIcon(512);
+  $('appleTouchIcon').href=i192;
+  // Absolute Adressen, damit Live (/gutlog/) und Test (/gutlog/test/) zwei getrennte Apps sind.
+  const base=new URL('./',location.href).href;
+  const name=STAGE==='test'?'GutLog Test':'GutLog';
+  const manifest={id:base,name,short_name:name,description:'Ernährungs- und Symptomtagebuch',start_url:base,scope:base,display:'standalone',lang:'de',
+    background_color:'#F7F3EE',theme_color:'#F7F3EE',orientation:'portrait',
+    icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  $('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  // Offline-Betrieb über die Datei sw.js (früher eine Blob-Adresse, die Browser nicht zulassen).
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════════════════
+if(STAGE==='test'){document.title='GutLog Test';$('stageBand').hidden=false}
+$('versionInfo').textContent=`GutLog · Version ${APP_VERSION}${STAGE==='test'?' · Testversion':''}`;
+showScreen();
+renderHeute();
+pwaBoot();
 </script>
 </body>
 </html>
