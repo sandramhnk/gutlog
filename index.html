@@ -323,15 +323,25 @@ input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border
 <script>
 'use strict';
 
+// ── STAGE (Live oder Test) ───────────────────────
+// Die Testversion liegt unter /gutlog/test/. Live und Test teilen sich im Browser denselben Speicher
+// (gleiche Domain). Deshalb speichert die Testversion unter eigenen Namen (glt_ statt gl_),
+// damit sich Test- und echte Daten nie vermischen.
+const STAGE=location.pathname.includes('/test/')?'test':'live';
+const K=STAGE==='test'?'glt_':'gl_';
+
 // ── STORAGE ──────────────────────────────────────
 const DB={
-  d(){try{return JSON.parse(localStorage.getItem('gl_d')||'{}')}catch{return{}}},
-  sd(v){localStorage.setItem('gl_d',JSON.stringify(v))},
-  n(){try{return JSON.parse(localStorage.getItem('gl_n')||'[]')}catch{return[]}},
-  sn(v){localStorage.setItem('gl_n',JSON.stringify(v))},
-  c(){try{return JSON.parse(localStorage.getItem('gl_c')||'{}')}catch{return{}}},
-  sc(v){localStorage.setItem('gl_c',JSON.stringify(v))}
+  d(){try{return JSON.parse(localStorage.getItem(K+'d')||'{}')}catch{return{}}},
+  sd(v){localStorage.setItem(K+'d',JSON.stringify(v))},
+  n(){try{return JSON.parse(localStorage.getItem(K+'n')||'[]')}catch{return[]}},
+  sn(v){localStorage.setItem(K+'n',JSON.stringify(v))},
+  c(){try{return JSON.parse(localStorage.getItem(K+'c')||'{}')}catch{return{}}},
+  sc(v){localStorage.setItem(K+'c',JSON.stringify(v))}
 };
+
+// In der Testversion: deutliches Band oben, damit niemand sie mit der echten App verwechselt.
+if(STAGE==='test'){document.title='GutLog Test';const b=document.createElement('div');b.textContent='Testversion · Daten getrennt von der echten App';b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#A3522F;color:#fff;font:700 12px/22px system-ui,sans-serif;text-align:center;pointer-events:none';document.body.appendChild(b);document.body.style.paddingTop='22px'}
 
 // ── STATE ─────────────────────────────────────────
 let today=new Date(),aType='meal',aTab='today';
@@ -569,7 +579,7 @@ function fireNotif(){
   new Notification('GutLog – Erinnerung 📖',{body:'Noch kein Eintrag für heute!',tag:'gl-r',renotify:true});
 }
 function testNotif(){if(!('Notification'in window)||Notification.permission!=='granted'){toast('⚠ Erst Erinnerungen aktivieren','err');return}new Notification('GutLog – Test ✓',{body:'Benachrichtigungen funktionieren! 🎉',tag:'gl-t'});toast('Test-Benachrichtigung gesendet')}
-function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;['gl_d','gl_n'].forEach(k=>localStorage.removeItem(k));toast('Alle Daten gelöscht','info')}
+function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;[K+'d',K+'n'].forEach(k=>localStorage.removeItem(k));toast('Alle Daten gelöscht','info')}
 
 // ── PWA ───────────────────────────────────────────
 function pwaBoot(){
@@ -583,7 +593,7 @@ function pwaBoot(){
     return c.toDataURL('image/png')}
   const i192=drawIcon(192),i512=drawIcon(512);
   document.getElementById('appleTouchIcon').href=i192;
-  const manifest={name:'GutLog',short_name:'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#3F6B55',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  const manifest={name:STAGE==='test'?'GutLog Test':'GutLog',short_name:STAGE==='test'?'GutLog Test':'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#3F6B55',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
   document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
   const sw=`const C='gl-v5';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||e.request.url.includes('supabase'))return;e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).catch(()=>h)))});`;
   if('serviceWorker'in navigator)navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
