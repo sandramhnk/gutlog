@@ -1,0 +1,53 @@
+# Veröffentlicht die App auf GitHub Pages, in zwei Stufen:
+#   Zweig main  -> https://sandramhnk.github.io/gutlog/        (Live, für Fabienne)
+#   Zweig test  -> https://sandramhnk.github.io/gutlog/test/   (Test, zum Ausprobieren)
+# Läuft bei jedem Push auf main oder test und baut immer beide Stufen neu zusammen.
+name: Seiten veröffentlichen (Live und Test)
+
+on:
+  push:
+    branches: [main, test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Live-Version holen (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: live
+
+      - name: Test-Version holen (test)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: test
+          path: testversion
+
+      - name: Seite zusammenbauen
+        run: |
+          mkdir -p _site/test
+          cp live/*.html _site/
+          if [ -d testversion ]; then cp testversion/*.html _site/test/; fi
+          ls -R _site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

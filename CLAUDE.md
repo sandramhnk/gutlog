@@ -10,10 +10,18 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 ## Dateien
 - `index.html` – die App für die Patientin (läuft auf Android). Alles in einer Datei: HTML, CSS, JavaScript.
 - `auswertung.html` – Auswertungs-Tool für Sandra. Lädt einen geteilten Bericht (Datei oder eingefügter Text) und zeigt Zahlen, Diagramme und eine regelbasierte Zusammenfassung.
-- Online: https://sandramhnk.github.io/gutlog/ und https://sandramhnk.github.io/gutlog/auswertung.html (GitHub Pages, veröffentlicht automatisch nach jedem Push auf `main`).
+- Online, zwei Stufen (GitHub Pages über die Action `.github/workflows/pages.yml`):
+  - Live: https://sandramhnk.github.io/gutlog/ und …/gutlog/auswertung.html, aus Zweig `main`. Das nutzt Fabienne.
+  - Test: https://sandramhnk.github.io/gutlog/test/ und …/gutlog/test/auswertung.html, aus Zweig `test`.
+
+## Arbeitsweise mit Test-Stage
+- Neue Funktionen und Bugfixes immer auf dem Zweig `test` (oder einem Zweig davon) bauen und pushen. Nie direkt auf `main`.
+- Sandra testet auf dem Handy unter /gutlog/test/. Erst wenn sie zustimmt: Pull Request `test` → `main`, dann ist es live.
+- Die Testversion erkennt sich am Pfad `/test/` (Konstante `STAGE`) und speichert unter `glt_d`, `glt_n`, `glt_c` statt `gl_…`. Neue Speicherschlüssel immer mit dem Präfix `K` bauen, nie fest `gl_` schreiben.
+- In der Testversion steht oben ein rotbraunes Band „Testversion“.
 
 ## Wie die App funktioniert
-- Daten liegen nur lokal im Browser (localStorage). Schlüssel: `gl_d` Einträge, `gl_n` Notizen, `gl_c` Einstellungen.
+- Daten liegen nur lokal im Browser (localStorage). Schlüssel: `gl_d` Einträge, `gl_n` Notizen, `gl_c` Einstellungen (in der Testversion `glt_…`, siehe „Arbeitsweise mit Test-Stage“).
 - Ein Eintrag hat `id`, `time`, `type` (`meal` | `symptom` | `medication`) und je nach Typ weitere Felder. Medikamente haben `status`: `eingenommen` | `reduziert` | `ausgelassen`.
 - Datumsschlüssel sind `JJJJ-MM-TT` in Ortszeit (Funktion `dk`). Nicht `toISOString()` verwenden, das ist UTC.
 - Wochenbericht: Tab „Bericht“ → `shareReport()` nutzt die Teilen-Funktion des Handys (Web Share API). Gesendet wird eine `.txt`-Datei: oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON. `auswertung.html` liest genau dieses Format. Format nur ändern, wenn beide Dateien angepasst werden.
