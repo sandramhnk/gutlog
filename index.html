@@ -165,8 +165,9 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 }
 .input:focus{outline:2px solid var(--brand);outline-offset:1px}
 /* iPhone: Zeitfelder haben sonst eine eigene Mindestbreite (ragen über den Rand) und zentrierten Text */
-.input[type="time"]{-webkit-appearance:none;appearance:none;display:block;min-width:0;text-align:left}
-.input::-webkit-date-and-time-value{text-align:left}
+.input[type="time"]{-webkit-appearance:none;appearance:none;display:block;min-width:0;text-align:left;line-height:49px;padding-top:0;padding-bottom:0}
+/* iPhone setzt die Zeit sonst an den oberen Rand: Höhe 52 px minus 2 × 1,5 px Rahmen = 49 px Zeilenhöhe */
+.input::-webkit-date-and-time-value{text-align:left;margin:0;line-height:49px}
 /* Überschrift im Sheet bekommt beim Öffnen den Fokus (statt des X-Buttons), ohne Rahmen */
 .sheet-title:focus{outline:none}
 .chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
@@ -540,7 +541,9 @@ function renderMedChips(){
 }
 $('medZuletzt').addEventListener('click',e=>{
   const b=e.target.closest('[data-name]');if(!b)return;
-  $('medName').value=b.dataset.name;renderMedChips();updateMedSave();
+  // Ein zweiter Tipp auf den gewählten Chip leert das Feld wieder.
+  $('medName').value=$('medName').value.trim()===b.dataset.name?'':b.dataset.name;
+  renderMedChips();updateMedSave();
 });
 
 // Speichern geht erst, wenn ein Name da ist (bei anderen Medikamenten).
