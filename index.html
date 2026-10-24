@@ -180,6 +180,27 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 .btn-wide:disabled{background:var(--surface-sunken);color:var(--ink-muted);cursor:default}
 .btn-danger-text{display:block;margin:var(--space-3) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--danger);cursor:pointer}
 
+/* Mahlzeit: Art (Frühstück, Mittag, Abend, Snack) als Leiste mit vier Feldern */
+.segmented{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:18px;padding:6px;border-radius:var(--radius-lg);background:var(--surface-raised)}
+.segmented button{height:60px;border:none;border-radius:18px;background:transparent;color:var(--ink-muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 13px var(--font-sans);cursor:pointer}
+.segmented button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+/* Eingabefeld mit rundem Button daneben (Stern, Hinzufügen) */
+.input-row{display:flex;gap:var(--space-2)}
+.input-row .input{flex:1;min-width:0}
+textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:none}
+/* Zutaten: hellgrüne Fläche mit Chips */
+.ingredients{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px;padding:14px 14px var(--space-4);border-radius:var(--radius-lg);background:var(--brand-soft)}
+.ingredients-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:800;color:var(--brand)}
+.ingredients-head span:last-child{font-size:13px;font-weight:700}
+.chip--solid[aria-pressed="true"]{border-color:var(--brand);background:var(--brand);color:var(--on-brand)}
+.chip--add{border:1.5px dashed var(--brand);background:transparent;color:var(--brand)}
+/* Portion: drei Kacheln mit Schalen */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
+.tile{height:60px;border-radius:20px;border:1.5px solid var(--surface-raised);background:var(--surface-raised);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 14px var(--font-sans);color:var(--ink);cursor:pointer}
+.tile[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.tile svg{color:var(--ink-muted)}
+.tile[aria-pressed="true"] svg{color:var(--brand)}
+
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
 </style>
@@ -206,7 +227,7 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
       <section class="card" aria-labelledby="mahlzeitenTitel">
         <div class="card-row">
           <h2 id="mahlzeitenTitel">Mahlzeiten</h2>
-          <button class="btn-round btn-round--lg btn-round--brand" data-bald="2" aria-label="Mahlzeit eintragen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="btn-round btn-round--lg btn-round--brand" id="mealPlus" aria-label="Mahlzeit eintragen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
         <p class="hint" id="mahlzeitenHinweis">Noch nichts eingetragen</p>
         <ul class="entries" id="mahlzeitenListe"></ul>
@@ -304,6 +325,70 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 
     <button class="btn-wide" id="medSpeichern" type="submit">Speichern</button>
     <button class="btn-danger-text" id="medLoeschen" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
+<!-- ══ SHEET: MAHLZEIT ═══════════════════════════════════════════════
+     Titel ist das Einzige, was man eintragen muss. Alles andere ist vorausgefüllt
+     oder freiwillig. Die App merkt sich Titel und Zutaten für Vorschläge. -->
+<dialog class="sheet" id="mealSheet" aria-labelledby="mealSheetTitel">
+  <form id="mealForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="mealSheetTitel" tabindex="-1" autofocus>Mahlzeit</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="segmented" role="group" aria-label="Art der Mahlzeit" id="mealKinds"></div>
+
+    <div class="field">
+      <label class="label" for="mealTitle">Was hast du gegessen?</label>
+      <div class="input-row">
+        <input class="input" id="mealTitle" autocomplete="off" enterkeyhint="done" placeholder="z. B. Haferbrei">
+        <button type="button" class="btn-round btn-round--lg" id="mealPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+      </div>
+      <p class="hint" id="mealPinHint" hidden style="color:var(--brand)">Bleibt bei den Vorschlägen ganz vorne</p>
+    </div>
+
+    <div class="field" id="mealSuggestField">
+      <div class="hint" id="mealSuggestLabel">Zuletzt gegessen</div>
+      <div class="chips" id="mealSuggest"></div>
+    </div>
+
+    <div class="ingredients" id="mealIngr" hidden>
+      <div class="ingredients-head"><span>Zutaten</span><span>freiwillig</span></div>
+      <div class="chips" id="mealIngrChips"></div>
+      <div class="input-row" id="ingrAdd" hidden>
+        <input class="input" id="ingrInput" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
+        <button type="button" class="btn-round btn-round--lg btn-round--brand" id="ingrOk" aria-label="Zutat hinzufügen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      </div>
+      <div class="chips" id="ingrSuggest"></div>
+    </div>
+
+    <div class="field">
+      <div class="label" id="portionLabel">Portion</div>
+      <div class="tiles" role="group" aria-labelledby="portionLabel" id="mealPortion"></div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="mealTime">Uhrzeit <span class="opt" id="mealTimeOpt"></span></label>
+      <input class="input" id="mealTime" type="time">
+    </div>
+
+    <button type="button" class="link-plus" id="mealMoreBtn" aria-expanded="false" style="margin-bottom:18px;height:44px">+ Getränk, Notiz</button>
+    <div id="mealMore" hidden>
+      <div class="field">
+        <label class="label" for="mealDrink">Getränk</label>
+        <input class="input" id="mealDrink" autocomplete="off" placeholder="z. B. Kaffee mit Milch">
+      </div>
+      <div class="field">
+        <label class="label" for="mealNote">Notiz</label>
+        <textarea class="input" id="mealNote" rows="2" placeholder="z. B. sehr schnell gegessen, unterwegs"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-wide" id="mealSave" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="mealDelete" type="button" hidden>Löschen</button>
   </form>
 </dialog>
 
@@ -420,10 +505,14 @@ function renderHeute(){
   $('tagVor').disabled=viewKey>=t;
   const day=getDay(viewKey);
 
-  // Mahlzeiten (Eintragen kommt in Etappe 2)
+  // Mahlzeiten
   const meals=[...day.meals].sort(byTime);
   $('mahlzeitenHinweis').hidden=meals.length>0;
-  $('mahlzeitenListe').innerHTML=meals.map(m=>`<li class="entry"><span class="entry-main">${esc(m.title||'')}${isLate(m,viewKey)?'<span class="entry-sub">nachgetragen</span>':''}</span><span class="entry-time">${esc(m.time||'')}</span></li>`).join('');
+  $('mahlzeitenListe').innerHTML=meals.map(m=>{
+    const kind=KINDS.find(k=>k.id===m.kind);
+    const sub=[kind?kind.label:'',(m.ingredients||[]).join(', '),m.portion&&m.portion!=='normal'?`Portion ${PORTIONS.find(x=>x.id===m.portion).label.toLowerCase()}`:'',isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-meal="${esc(m.id)}"><span class="entry-main">${esc(m.title)}${sub?`<span class="entry-sub">${esc(sub)}</span>`:''}</span><span class="entry-time">${esc(m.time||'')}</span></button></li>`;
+  }).join('');
 
   // Pantoprazol: Eingetragen wird nur, wenn es genommen wurde. Kein Eintrag = nicht genommen.
   const p=findPanto(day);
@@ -595,6 +684,238 @@ $('medListe').addEventListener('click',e=>{const b=e.target.closest('[data-med]'
 
 // Platzhalter: Buttons, die erst in einer späteren Etappe funktionieren.
 document.querySelectorAll('[data-bald]').forEach(b=>b.addEventListener('click',()=>toast(`Kommt in Etappe ${b.dataset.bald}`)));
+
+// ══════════════════════════════════════════════════════════════════
+// MAHLZEIT
+// Eine Mahlzeit: { id, time, kind, title, ingredients:[…], portion, drink, note, addedAt }
+// Nur der Titel ist Pflicht. Zutaten sind freiwillig.
+// ══════════════════════════════════════════════════════════════════
+const KINDS=[
+  {id:'fruehstueck',label:'Frühstück',icon:'<path d="M3 18h18M7 18a5 5 0 0110 0M12 4v3M4.9 9.9l2 2M19.1 9.9l-2 2"/>'},
+  {id:'mittag',label:'Mittag',icon:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'},
+  {id:'abend',label:'Abend',icon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'},
+  {id:'snack',label:'Snack',icon:'<path d="M12 7c-1-2-3-3-5-2.5C4 5.5 3.5 9 4.5 13c1 4 3.5 7 5.5 7 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 4.5-3 5.5-7 1-4 .5-7.5-2.5-8.5-2-.5-4 .5-5 2.5z"/><path d="M12 7c0-2 1-3.5 3-4"/>'}
+];
+const PORTIONS=[
+  {id:'klein',label:'Klein',bowl:'M11 12h12a6 6 0 01-12 0z'},
+  {id:'normal',label:'Normal',bowl:'M7 9h20a10 10 0 01-20 0z'},
+  {id:'gross',label:'Groß',bowl:'M3 5h28a14 14 0 01-28 0z'}
+];
+// Art nach Uhrzeit vorschlagen: 4–11 Uhr Frühstück, 11–15 Uhr Mittag, 15–17:30 Uhr Snack, sonst Abend.
+function kindForTime(t){
+  if(!t)return null;
+  const[h,m]=t.split(':').map(Number),x=h*60+m;
+  if(x>=240&&x<660)return 'fruehstueck';
+  if(x>=660&&x<900)return 'mittag';
+  if(x>=900&&x<1050)return 'snack';
+  return 'abend';
+}
+
+// Gerichte-Gedächtnis (K+'f'): pro Titel die bekannten Zutaten, die vom letzten Mal,
+// wie oft gegessen, wann zuletzt und ob angeheftet (Stern).
+// Schlüssel ist der Titel in Kleinbuchstaben, damit „haferbrei“ und „Haferbrei“ dasselbe sind.
+const memKey=t=>t.trim().toLocaleLowerCase('de-DE');
+const loadMem=()=>STORE.load('f',{});
+const findMem=t=>loadMem()[memKey(t)]||null;
+// Alle Zutaten aus allen Gerichten, die häufigsten zuerst. So bleibt die Schreibweise einheitlich.
+function allIngredients(){
+  const n={};
+  Object.values(loadMem()).forEach(e=>e.ingredients.forEach(i=>{n[i]=(n[i]||0)+1}));
+  return Object.keys(n).sort((a,b)=>n[b]-n[a]||a.localeCompare(b,'de'));
+}
+function rememberMeal(meal,isNew,pinned){
+  const mem=loadMem(),k=memKey(meal.title);
+  const e=mem[k]||{title:meal.title,ingredients:[],lastIngredients:[],count:0,pinned:false,lastUsed:''};
+  e.title=meal.title;
+  e.ingredients=[...new Set([...e.ingredients,...meal.ingredients])];
+  e.lastIngredients=[...meal.ingredients];
+  if(isNew)e.count++;
+  e.pinned=pinned;
+  e.lastUsed=new Date().toISOString();
+  mem[k]=e;STORE.save('f',mem);
+}
+
+// Zustand des offenen Sheets
+const mealSheet=$('mealSheet');
+let MS={};
+
+function openMealSheet(id=null){
+  const day=getDay(viewKey);
+  const m=id?day.meals.find(x=>x.id===id):null;
+  const time=m?m.time:defaultTime();
+  const mem=m?findMem(m.title):null;
+  MS={
+    id,
+    time,
+    kind:m?m.kind:kindForTime(time),
+    kindManual:!!m,
+    ingredients:m?[...(m.ingredients||[])]:[],
+    known:m?[...new Set([...(mem?mem.ingredients:[]),...(m.ingredients||[])])]:[],
+    portion:m?(m.portion||'normal'):'normal',
+    pinned:mem?mem.pinned:false,
+    adding:false
+  };
+  $('mealSheetTitel').textContent=m?'Mahlzeit bearbeiten':'Mahlzeit';
+  $('mealTitle').value=m?m.title:'';
+  $('mealTime').value=time||'';
+  $('mealTimeOpt').textContent=isToday()?'':'(freiwillig)';
+  $('mealDrink').value=m?(m.drink||''):'';
+  $('mealNote').value=m?(m.note||''):'';
+  const more=!!(m&&(m.drink||m.note));
+  $('mealMore').hidden=!more;$('mealMoreBtn').hidden=more;
+  $('mealDelete').hidden=!m;
+  $('ingrInput').value='';
+  renderMealSheet();
+  mealSheet.showModal();
+}
+
+function renderMealSheet(){
+  const title=$('mealTitle').value.trim();
+
+  // Art
+  $('mealKinds').innerHTML=KINDS.map(k=>`<button type="button" data-kind="${k.id}" aria-pressed="${MS.kind===k.id}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${k.icon}</svg><span>${k.label}</span></button>`).join('');
+
+  // Stern
+  $('mealPin').setAttribute('aria-pressed',String(MS.pinned));
+  $('mealPin').disabled=!title;
+  $('mealPin').querySelector('svg').setAttribute('fill',MS.pinned?'currentColor':'none');
+  $('mealPinHint').hidden=!MS.pinned;
+
+  // Vorschläge: leer = zuletzt gegessen (angeheftete zuerst), beim Tippen = passende Titel
+  const all=Object.values(loadMem());
+  let list;
+  if(!title){
+    list=all.sort((a,b)=>(b.pinned-a.pinned)||b.lastUsed.localeCompare(a.lastUsed)).slice(0,8);
+    $('mealSuggestLabel').textContent='Zuletzt gegessen';
+  }else{
+    const q=memKey(title);
+    list=all.filter(e=>memKey(e.title).includes(q)).sort((a,b)=>(b.pinned-a.pinned)||b.count-a.count).slice(0,8);
+    $('mealSuggestLabel').textContent='Vorschläge';
+  }
+  $('mealSuggestField').hidden=list.length===0;
+  $('mealSuggest').innerHTML=list.map(e=>`<button type="button" class="chip" data-title="${esc(e.title)}" aria-pressed="${memKey(e.title)===memKey(title)}">${e.pinned?'★ ':''}${esc(e.title)}</button>`).join('');
+
+  // Zutaten: erst sichtbar, wenn ein Titel da ist
+  $('mealIngr').hidden=!title;
+  const chips=[...new Set([...MS.known,...MS.ingredients])];
+  $('mealIngrChips').innerHTML=chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
+    +(MS.adding?'':'<button type="button" class="chip chip--add" id="ingrPlus">+ Zutat</button>');
+  $('ingrAdd').hidden=!MS.adding;
+  const q=memKey($('ingrInput').value);
+  const sug=MS.adding&&q?allIngredients().filter(i=>memKey(i).includes(q)&&!chips.includes(i)).slice(0,5):[];
+  $('ingrSuggest').innerHTML=sug.map(i=>`<button type="button" class="chip" data-addingr="${esc(i)}">${esc(i)}</button>`).join('');
+  $('ingrSuggest').hidden=sug.length===0;
+
+  // Portion
+  $('mealPortion').innerHTML=PORTIONS.map(p=>`<button type="button" class="tile" data-portion="${p.id}" aria-pressed="${MS.portion===p.id}"><svg aria-hidden="true" width="28" height="18" viewBox="0 0 34 22"><path d="${p.bowl}" fill="currentColor"/><rect x="2" y="19" width="30" height="2" rx="1" fill="currentColor"/></svg><span>${p.label}</span></button>`).join('');
+
+  $('mealSave').disabled=!title;
+}
+
+// Eine Zutat hinzufügen. Gibt es sie schon (andere Groß-/Kleinschreibung), wird die bekannte Schreibweise genommen.
+function addIngredient(raw){
+  const v=raw.trim();if(!v)return;
+  const known=[...MS.known,...allIngredients()].find(i=>memKey(i)===memKey(v));
+  const name=known||v;
+  if(!MS.ingredients.includes(name))MS.ingredients.push(name);
+  if(!MS.known.includes(name))MS.known.push(name);
+  $('ingrInput').value='';
+  renderMealSheet();
+  $('ingrInput').focus();
+}
+
+// ── Ereignisse im Sheet ──
+$('mealPlus').addEventListener('click',()=>openMealSheet());
+$('mahlzeitenListe').addEventListener('click',e=>{const b=e.target.closest('[data-meal]');if(b)openMealSheet(b.dataset.meal)});
+
+$('mealKinds').addEventListener('click',e=>{
+  const b=e.target.closest('[data-kind]');if(!b)return;
+  MS.kind=MS.kind===b.dataset.kind?null:b.dataset.kind;MS.kindManual=true;renderMealSheet();
+});
+$('mealTitle').addEventListener('input',()=>{
+  // Passt der getippte Titel zu einem bekannten Gericht, kommen dessen Zutaten als Vorschlag.
+  const mem=findMem($('mealTitle').value);
+  MS.known=mem?[...new Set([...mem.ingredients,...MS.ingredients])]:[...MS.ingredients];
+  if(mem&&MS.ingredients.length===0)MS.ingredients=[...mem.lastIngredients];
+  MS.pinned=mem?mem.pinned:MS.pinned&&!!$('mealTitle').value.trim();
+  renderMealSheet();
+});
+$('mealTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur()}});
+$('mealSuggest').addEventListener('click',e=>{
+  const b=e.target.closest('[data-title]');if(!b)return;
+  if(b.getAttribute('aria-pressed')==='true'){
+    // Zweiter Tipp: wieder abwählen
+    $('mealTitle').value='';MS.ingredients=[];MS.known=[];MS.pinned=false;
+  }else{
+    const mem=findMem(b.dataset.title);
+    $('mealTitle').value=mem.title;
+    MS.ingredients=[...mem.lastIngredients];
+    MS.known=[...mem.ingredients];
+    MS.pinned=mem.pinned;
+  }
+  MS.adding=false;
+  renderMealSheet();
+});
+$('mealPin').addEventListener('click',()=>{MS.pinned=!MS.pinned;renderMealSheet()});
+$('mealIngrChips').addEventListener('click',e=>{
+  if(e.target.closest('#ingrPlus')){MS.adding=true;renderMealSheet();$('ingrInput').focus();return}
+  const b=e.target.closest('[data-ingr]');if(!b)return;
+  const i=b.dataset.ingr;
+  MS.ingredients=MS.ingredients.includes(i)?MS.ingredients.filter(x=>x!==i):[...MS.ingredients,i];
+  renderMealSheet();
+});
+$('ingrOk').addEventListener('click',()=>{
+  if($('ingrInput').value.trim())addIngredient($('ingrInput').value);
+  else{MS.adding=false;renderMealSheet()}
+});
+$('ingrInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addIngredient(e.target.value)}});
+$('ingrInput').addEventListener('input',renderMealSheet);
+$('ingrSuggest').addEventListener('click',e=>{const b=e.target.closest('[data-addingr]');if(b)addIngredient(b.dataset.addingr)});
+$('mealPortion').addEventListener('click',e=>{const b=e.target.closest('[data-portion]');if(b){MS.portion=b.dataset.portion;renderMealSheet()}});
+$('mealTime').addEventListener('change',()=>{
+  MS.time=$('mealTime').value||null;
+  if(!MS.kindManual)MS.kind=kindForTime(MS.time);
+  renderMealSheet();
+});
+$('mealMoreBtn').addEventListener('click',()=>{$('mealMore').hidden=false;$('mealMoreBtn').hidden=true;$('mealDrink').focus()});
+
+$('mealForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  let title=$('mealTitle').value.trim();if(!title)return;
+  // Kleine Abweichungen in der Schreibweise an das bekannte Gericht angleichen
+  const mem=findMem(title);if(mem)title=mem.title;
+  // Eine halb getippte Zutat nicht verlieren
+  if(MS.adding&&$('ingrInput').value.trim())addIngredient($('ingrInput').value);
+  const day=getDay(viewKey);
+  const data={time:$('mealTime').value||null,kind:MS.kind,title,ingredients:[...MS.ingredients],portion:MS.portion,
+    drink:$('mealDrink').value.trim()||null,note:$('mealNote').value.trim()||null};
+  const existing=MS.id?day.meals.find(x=>x.id===MS.id):null;
+  if(existing)Object.assign(existing,data);
+  else day.meals.push({id:uid(),...data,addedAt:new Date().toISOString()});
+  saveDay(viewKey,day);
+  rememberMeal(data,!existing,MS.pinned);
+  mealSheet.close();
+  renderHeute();
+  toast(savedMsg());
+});
+$('mealDelete').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.meals=day.meals.filter(m=>m.id!==MS.id);
+  saveDay(viewKey,day);
+  mealSheet.close();
+  renderHeute();
+  toast('Gelöscht');
+});
+
+// Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
+[mealSheet].forEach(d=>{
+  d.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));
+  d.addEventListener('click',e=>{
+    if(e.target!==d)return;
+    const r=d.getBoundingClientRect();
+    if(e.clientY<r.top||e.clientX<r.left||e.clientX>r.right)d.close();
+  });
+});
 
 // ══════════════════════════════════════════════════════════════════
 // APP-ICON, MANIFEST, OFFLINE
