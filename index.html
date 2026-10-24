@@ -190,8 +190,9 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:none}
 /* Zutaten: hellgrüne Fläche mit Chips */
 .ingredients{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px;padding:14px 14px var(--space-4);border-radius:var(--radius-lg);background:var(--brand-soft)}
-.ingredients-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:800;color:var(--brand)}
-.ingredients-head span:last-child{font-size:13px;font-weight:700}
+.ingredients-head{display:flex;justify-content:space-between;align-items:center;margin:-6px -6px -4px 0;font-size:14px;font-weight:800;color:var(--brand)}
+/* Runder Button ohne Fläche, z. B. der Stift zum Bearbeiten der Zutaten */
+.btn-round--ghost{background:transparent;color:var(--brand)}
 .chip--solid[aria-pressed="true"]{border-color:var(--brand);background:var(--brand);color:var(--on-brand)}
 .chip--add{border:1.5px dashed var(--brand);background:transparent;color:var(--brand)}
 /* Bearbeiten-Modus: Chips zum Entfernen mit ×, umrandet statt gefüllt */
@@ -359,7 +360,7 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
     </div>
 
     <div class="ingredients" id="mealIngr" hidden>
-      <div class="ingredients-head"><span>Zutaten</span><span><span id="ingrOptional">freiwillig</span> <button type="button" class="inline-link" id="ingrEdit">bearbeiten</button></span></div>
+      <div class="ingredients-head"><span>Zutaten</span><button type="button" class="btn-round btn-round--ghost" id="ingrEdit" aria-label="Zutaten bearbeiten" aria-pressed="false"></button></div>
       <div class="chips" id="mealIngrChips"></div>
       <div class="input-row" id="ingrAdd" hidden>
         <input class="input" id="ingrInput" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
@@ -805,8 +806,11 @@ function renderMealSheet(){
   if(!chips.length)MS.editIngr=false;
   // Bearbeiten-Modus: ein Tipp entfernt die Zutat aus der Liste dieses Gerichts (z. B. bei Tippfehlern).
   $('ingrEdit').hidden=!chips.length;
-  $('ingrEdit').textContent=MS.editIngr?'fertig':'bearbeiten';
-  $('ingrOptional').hidden=MS.editIngr;
+  // Stift = bearbeiten, Haken = fertig
+  $('ingrEdit').innerHTML=MS.editIngr
+    ?'<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+    :'<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+  $('ingrEdit').setAttribute('aria-label',MS.editIngr?'Bearbeiten beenden':'Zutaten bearbeiten');
   $('mealIngrChips').innerHTML=MS.editIngr
     ? chips.map(i=>`<button type="button" class="chip chip--remove" data-remove="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
     : chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
