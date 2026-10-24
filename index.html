@@ -203,7 +203,41 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
 .tile{height:60px;border-radius:20px;border:1.5px solid var(--surface-raised);background:var(--surface-raised);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 14px var(--font-sans);color:var(--ink);cursor:pointer}
 .tile[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
 .tile svg{color:var(--ink-muted)}
+/* Stärke-Kacheln im Ereignis: dieselben Balken wie im Tagesabschluss */
+.lv-tile .on{fill:var(--ink-muted)}
+.lv-tile .off{fill:var(--surface-sunken)}
+.lv-tile[aria-pressed="true"] .on{fill:var(--accent-ink)}
+.lv-tile[aria-pressed="true"] .off{fill:var(--accent);opacity:.3}
 .tile[aria-pressed="true"] svg{color:var(--brand)}
+
+/* Tagesabschluss: eine Karte pro Frage, rechts die Stufen-Buttons */
+.group-title{margin:var(--space-2) 0 0 var(--space-1);font:500 21px/26px var(--font-display)}
+.q-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:12px 12px 12px 18px}
+.q-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.q-name{font-size:16px;font-weight:800}
+.q-val{font-size:14px;font-weight:700;color:var(--ink-muted)}
+.q-val.is-set{color:var(--accent-ink)}
+.tone-brand .q-val.is-set{color:var(--brand)}
+.levels{display:flex;gap:6px}
+/* Stufen-Button: Strich = keins, 1–3 Balken = leicht bis stark */
+.lv{width:44px;height:44px;flex-shrink:0;padding:0;border-radius:var(--radius-md);border:1.5px solid var(--border-control);background:var(--surface-raised);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.lv .on{fill:var(--ink-muted)}
+.lv .off{fill:var(--surface-sunken)}
+.lv[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.lv[aria-pressed="true"] .on{fill:var(--accent-ink)}
+.lv[aria-pressed="true"] .off{fill:var(--accent);opacity:.3}
+.tone-brand .lv[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.tone-brand .lv[aria-pressed="true"] .on{fill:var(--brand)}
+.tone-brand .lv[aria-pressed="true"] .off{fill:var(--brand);opacity:.3}
+.count{width:40px;text-align:center;font-size:20px;font-weight:800}
+.kinds4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:var(--space-3)}
+.chip--outline{border-color:var(--border-control);padding:0 var(--space-2)}
+.chip--accent[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile--accent[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile--accent[aria-pressed="true"] svg{color:var(--accent-ink)}
+.bottom-actions{display:flex;align-items:center;gap:10px;margin-top:var(--space-3)}
+.btn-round--xl{width:56px;height:56px}
+a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoration:none}
 
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
@@ -251,13 +285,40 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
         <button class="link-plus" id="medPlus" style="margin-top:var(--space-2)">+ Medikament</button>
       </section>
 
-      <button class="card card--accent card-row card-button" data-bald="3">
+      <a href="#abschluss" class="card card--accent card-row card-button" style="text-decoration:none;color:inherit">
         <span>
           <span class="card-title">Wie war dein Tag?</span>
           <span class="hint hint--accent" id="abschlussHinweis" style="display:block;margin-top:2px">0 von 6 ausgefüllt</span>
         </span>
         <span class="btn-round btn-round--lg btn-round--white" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ TAGESABSCHLUSS ═════════════════════════════════════════════
+       Wird jederzeit gespeichert, sobald etwas angetippt wird. „Fertig“ führt nur zurück. -->
+  <section class="screen" id="screen-abschluss" aria-labelledby="abschlussTitel" hidden>
+    <div class="screen-head" style="justify-content:flex-start;align-items:center">
+      <a href="#heute" class="btn-round" aria-label="Zurück zu Heute"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a>
+      <div>
+        <h1 id="abschlussTitel" style="font-size:28px;line-height:34px">Wie war dein Tag?</h1>
+        <div class="eyebrow" id="abschlussDatum"></div>
+      </div>
+    </div>
+    <div class="stack" style="gap:10px">
+      <h2 class="group-title">Beschwerden</h2>
+      <div class="stack" style="gap:10px;margin:0" id="qBeschwerden"></div>
+      <div class="q-card" id="qStuhl"></div>
+      <h2 class="group-title" style="margin-top:var(--space-4)">Alltag</h2>
+      <div class="stack tone-brand" style="gap:10px;margin:0" id="qAlltag"></div>
+      <div id="ereignisBlock" hidden>
+        <h2 class="group-title" style="margin-top:var(--space-4)">Ereignisse</h2>
+        <div class="card" style="margin-top:10px;padding-top:6px;padding-bottom:6px"><ul class="entries" id="ereignisListe" style="margin:0"></ul></div>
+      </div>
+      <div class="bottom-actions">
+        <button class="btn-round btn-round--xl" id="eventPlus" aria-label="Einzelnes Ereignis mit Uhrzeit notieren"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+        <a href="#heute" class="btn-wide" id="abschlussFertig" style="flex:1">Fertig</a>
+      </div>
     </div>
   </section>
 
@@ -396,6 +457,43 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
   </form>
 </dialog>
 
+<!-- ══ SHEET: EREIGNIS ═══════════════════════════════════════════════
+     Für einzelne Momente, bei denen die Uhrzeit wichtig ist. -->
+<dialog class="sheet" id="eventSheet" aria-labelledby="eventSheetTitel">
+  <form id="eventForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div>
+        <h2 class="sheet-title" id="eventSheetTitel" tabindex="-1" autofocus>Ereignis</h2>
+        <p class="hint">Wenn die Uhrzeit wichtig ist, z. B. Sodbrennen direkt nach dem Essen</p>
+      </div>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="field">
+      <div class="label" id="eventTypeLabel">Was ist passiert?</div>
+      <div class="chips" role="group" aria-labelledby="eventTypeLabel" id="eventTypes"></div>
+    </div>
+    <div class="field" id="eventOtherFeld" hidden>
+      <label class="label" for="eventOther">Was genau?</label>
+      <input class="input" id="eventOther" autocomplete="off" placeholder="z. B. Kopfschmerzen">
+    </div>
+    <div class="field">
+      <div class="label" id="eventLevelLabel">Wie stark?</div>
+      <div class="tiles" role="group" aria-labelledby="eventLevelLabel" id="eventLevels"></div>
+    </div>
+    <div class="field">
+      <label class="label" for="eventTime">Uhrzeit <span class="opt" id="eventTimeOpt"></span></label>
+      <input class="input" id="eventTime" type="time">
+    </div>
+    <div class="field">
+      <label class="label" for="eventNote">Notiz <span class="opt">(freiwillig)</span></label>
+      <textarea class="input" id="eventNote" rows="2" placeholder="z. B. nach dem Hinlegen schlimmer"></textarea>
+    </div>
+    <button class="btn-wide" id="eventSave" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="eventDelete" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -473,15 +571,20 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 // Jeder Bereich hat eine eigene Adresse (#heute, #verlauf …). So funktioniert
 // auch die Zurück-Taste des Handys.
 // ══════════════════════════════════════════════════════════════════
-const SCREENS=['heute','verlauf','bericht','einstellungen'];
+// „abschluss“ ist ein Unterbereich von Heute: eigener Screen, aber ohne eigenen Navigationspunkt.
+const SCREENS=['heute','abschluss','verlauf','bericht','einstellungen'];
 function showScreen(){
   const wanted=location.hash.slice(1);
   const current=SCREENS.includes(wanted)?wanted:'heute';
+  const navName=current==='abschluss'?'heute':current;
   SCREENS.forEach(name=>{
     $('screen-'+name).hidden=name!==current;
     const link=document.querySelector(`.nav a[href="#${name}"]`);
-    if(name===current)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+    if(!link)return;
+    if(name===navName)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
   });
+  if(current==='abschluss')renderAbschluss();
+  if(current==='heute')renderHeute();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',showScreen);
@@ -501,6 +604,11 @@ const byTime=(a,b)=>(a.time||'99').localeCompare(b.time||'99');
 
 // Die sechs Angaben des Tagesabschlusses (Etappe 3)
 const CLOSE_FIELDS=['sodbrennen','blaehbauch','blaehungen','stuhl','stress','bewegung'];
+// Stuhlgang zählt als ausgefüllt, wenn „keiner“ (0×) gewählt ist oder Anzahl und Konsistenz da sind.
+function closeFilled(c){
+  if(!c)return 0;
+  return CLOSE_FIELDS.filter(k=>k==='stuhl'?(c.stuhl&&(c.stuhl.count===0||c.stuhl.kind)):c[k]!=null).length;
+}
 
 function renderHeute(){
   const t=todayKey();
@@ -538,9 +646,9 @@ function renderHeute(){
   }).join('');
 
   // Tagesabschluss: wie viele der sechs Angaben sind schon da?
-  const c=day.close;
-  const filled=c?CLOSE_FIELDS.filter(k=>c[k]!=null).length:0;
-  $('abschlussHinweis').textContent=filled===6?'Alles ausgefüllt':`${filled} von 6 ausgefüllt`;
+  const filled=closeFilled(day.close);
+  const ev=day.events.length;
+  $('abschlussHinweis').textContent=(filled===6?'Alles ausgefüllt':`${filled} von 6 ausgefüllt`)+(ev?` · ${ev} ${ev===1?'Ereignis':'Ereignisse'}`:'');
 }
 $('tagZurueck').addEventListener('click',()=>{viewKey=addDays(viewKey,-1);renderHeute()});
 $('tagVor').addEventListener('click',()=>{if(viewKey<todayKey()){viewKey=addDays(viewKey,1);renderHeute()}});
@@ -687,7 +795,6 @@ $('medPlus').addEventListener('click',()=>openMedSheet('med'));
 $('medListe').addEventListener('click',e=>{const b=e.target.closest('[data-med]');if(b)openMedSheet('med',b.dataset.med)});
 
 // Platzhalter: Buttons, die erst in einer späteren Etappe funktionieren.
-document.querySelectorAll('[data-bald]').forEach(b=>b.addEventListener('click',()=>toast(`Kommt in Etappe ${b.dataset.bald}`)));
 
 // ══════════════════════════════════════════════════════════════════
 // MAHLZEIT
@@ -939,8 +1046,154 @@ $('mealDelete').addEventListener('click',()=>{
   toast('Gelöscht');
 });
 
+
+// ══════════════════════════════════════════════════════════════════
+// TAGESABSCHLUSS „Wie war dein Tag?“
+// day.close = { sodbrennen, blaehbauch, blaehungen, stress: 0–3, bewegung: 1–3,
+//               stuhl: {count, kind}, savedAt }   (null = noch nicht beantwortet)
+// Jeder Tipp wird sofort gespeichert. Ein zweiter Tipp auf dieselbe Stufe nimmt sie zurück.
+// ══════════════════════════════════════════════════════════════════
+const QUESTIONS={
+  beschwerden:[
+    {key:'sodbrennen',name:'Sodbrennen',labels:['Keins','Leicht','Mittel','Stark']},
+    {key:'blaehbauch',name:'Blähbauch',labels:['Keiner','Leicht','Mittel','Stark']},
+    {key:'blaehungen',name:'Blähungen',labels:['Keine','Wenig','Oft','Ständig']}
+  ],
+  alltag:[
+    {key:'stress',name:'Stress',labels:['Keiner','Etwas','Viel','Sehr viel']},
+    {key:'bewegung',name:'Bewegung',labels:['Kaum','Etwas','Viel'],from:1}
+  ]
+};
+const STOOL_KINDS=[{id:'hart',label:'Hart'},{id:'normal',label:'Normal'},{id:'breiig',label:'Breiig'},{id:'fluessig',label:'Flüssig'}];
+
+// Symbol einer Stufe: 0 = Strich, 1–3 = so viele gefüllte Balken
+function levelIcon(level){
+  if(level===0)return '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18"><rect class="on" x="4" y="8" width="10" height="2" rx="1"/></svg>';
+  const c=n=>level>=n?'on':'off';
+  return `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18"><rect class="${c(1)}" x="2" y="10" width="3" height="5" rx="1.5"/><rect class="${c(2)}" x="7.5" y="6" width="3" height="9" rx="1.5"/><rect class="${c(3)}" x="13" y="2" width="3" height="13" rx="1.5"/></svg>`;
+}
+function questionCard(q,c){
+  const v=c?c[q.key]:null, from=q.from||0, set=v!=null;
+  const buttons=q.labels.map((label,i)=>{const value=from+i;
+    return `<button type="button" class="lv" data-q="${q.key}" data-v="${value}" aria-pressed="${v===value}" aria-label="${q.name}: ${label}">${levelIcon(value)}</button>`}).join('');
+  return `<div class="q-card q-row"><div style="min-width:0"><div class="q-name">${q.name}</div><div class="q-val${set?' is-set':''}">${set?q.labels[v-from]:'Offen'}</div></div><div class="levels">${buttons}</div></div>`;
+}
+function stoolCard(c){
+  const st=c?c.stuhl:null;
+  let val='Offen';
+  if(st){val=st.count===0?'Keiner':`${st.count}×`+(st.kind?` · ${STOOL_KINDS.find(k=>k.id===st.kind).label}`:' · Wie war er?')}
+  const done=st&&(st.count===0||st.kind);
+  const kinds=st&&st.count>0?`<div class="kinds4" role="group" aria-label="Konsistenz">${STOOL_KINDS.map(k=>`<button type="button" class="chip chip--outline chip--accent" data-stool-kind="${k.id}" aria-pressed="${st.kind===k.id}">${k.label}</button>`).join('')}</div>`:'';
+  return `<div class="q-row"><div><div class="q-name">Stuhlgang</div><div class="q-val${done?' is-set':''}">${val}</div></div>
+    <div class="row"><button type="button" class="btn-round btn-round--outline" data-stool="-1" aria-label="Einmal weniger"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+    <span class="count" aria-live="polite">${st?st.count:0}×</span>
+    <button type="button" class="btn-round btn-round--brand" data-stool="1" aria-label="Einmal mehr"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>${kinds}`;
+}
+
+function renderAbschluss(){
+  const day=getDay(viewKey),c=day.close;
+  $('abschlussDatum').textContent=`${fmtDate(viewKey)} · ${closeFilled(c)} von 6 ausgefüllt`;
+  $('qBeschwerden').innerHTML=QUESTIONS.beschwerden.map(q=>questionCard(q,c)).join('');
+  $('qAlltag').innerHTML=QUESTIONS.alltag.map(q=>questionCard(q,c)).join('');
+  $('qStuhl').innerHTML=stoolCard(c);
+  const evs=[...day.events].sort(byTime);
+  $('ereignisBlock').hidden=evs.length===0;
+  $('ereignisListe').innerHTML=evs.map(e=>{
+    const sub=[LEVELS.find(l=>l.v===e.level).label,isLate(e,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-event="${esc(e.id)}"><span class="entry-main">${esc(eventName(e))}<span class="entry-sub">${esc(sub)}</span></span><span class="entry-time">${esc(e.time||'')}</span></button></li>`;
+  }).join('');
+}
+
+// Eine Angabe speichern. Der Tagesabschluss wird beim ersten Tipp angelegt.
+function setClose(update){
+  const day=getDay(viewKey);
+  day.close=Object.assign({sodbrennen:null,blaehbauch:null,blaehungen:null,stuhl:null,stress:null,bewegung:null,addedAt:new Date().toISOString()},day.close||{},update,{savedAt:new Date().toISOString()});
+  saveDay(viewKey,day);
+  renderAbschluss();
+}
+$('screen-abschluss').addEventListener('click',e=>{
+  const lv=e.target.closest('[data-q]');
+  if(lv){
+    const key=lv.dataset.q,v=Number(lv.dataset.v);
+    const cur=getDay(viewKey).close;
+    setClose({[key]:cur&&cur[key]===v?null:v});
+    return;
+  }
+  const st=e.target.closest('[data-stool]');
+  if(st){
+    const cur=(getDay(viewKey).close||{}).stuhl;
+    const n=Math.min(Math.max((cur?cur.count:0)+Number(st.dataset.stool),0),20);
+    setClose({stuhl:{count:n,kind:n>0&&cur?cur.kind:null}});
+    return;
+  }
+  const k=e.target.closest('[data-stool-kind]');
+  if(k){
+    const cur=getDay(viewKey).close.stuhl;
+    setClose({stuhl:{count:cur.count,kind:cur.kind===k.dataset.stoolKind?null:k.dataset.stoolKind}});
+    return;
+  }
+  const ev=e.target.closest('[data-event]');
+  if(ev)openEventSheet(ev.dataset.event);
+});
+$('abschlussFertig').addEventListener('click',()=>toast(savedMsg()));
+
+// ══════════════════════════════════════════════════════════════════
+// EREIGNIS
+// Ein Ereignis: { id, time, type, other, level: 1–3, note, addedAt }
+// ══════════════════════════════════════════════════════════════════
+const EVENT_TYPES=['Sodbrennen','Bauchschmerzen','Blähbauch','Übelkeit','Anderes'];
+const LEVELS=[{v:1,label:'Leicht'},{v:2,label:'Mittel'},{v:3,label:'Stark'}];
+const eventName=e=>e.type==='Anderes'&&e.other?e.other:e.type;
+const eventSheet=$('eventSheet');
+let ES={};
+
+function openEventSheet(id=null){
+  const day=getDay(viewKey);
+  const e=id?day.events.find(x=>x.id===id):null;
+  ES={id,type:e?e.type:null,level:e?e.level:null};
+  $('eventSheetTitel').textContent=e?'Ereignis bearbeiten':'Ereignis';
+  $('eventOther').value=e?(e.other||''):'';
+  $('eventTime').value=e?(e.time||''):(defaultTime()||'');
+  $('eventTimeOpt').textContent=isToday()?'':'(freiwillig)';
+  $('eventNote').value=e?(e.note||''):'';
+  $('eventDelete').hidden=!e;
+  renderEventSheet();
+  eventSheet.showModal();
+}
+function renderEventSheet(){
+  $('eventTypes').innerHTML=EVENT_TYPES.map(t=>`<button type="button" class="chip chip--accent" data-type="${t}" aria-pressed="${ES.type===t}">${t}</button>`).join('');
+  $('eventOtherFeld').hidden=ES.type!=='Anderes';
+  $('eventLevels').innerHTML=LEVELS.map(l=>`<button type="button" class="tile tile--accent lv-tile" data-level="${l.v}" aria-pressed="${ES.level===l.v}">${levelIcon(l.v)}<span>${l.label}</span></button>`).join('');
+  $('eventSave').disabled=!ES.type||!ES.level||(ES.type==='Anderes'&&!$('eventOther').value.trim());
+}
+$('eventPlus').addEventListener('click',()=>openEventSheet());
+$('eventTypes').addEventListener('click',e=>{const b=e.target.closest('[data-type]');if(b){ES.type=ES.type===b.dataset.type?null:b.dataset.type;renderEventSheet()}});
+$('eventLevels').addEventListener('click',e=>{const b=e.target.closest('[data-level]');if(b){ES.level=Number(b.dataset.level);renderEventSheet()}});
+$('eventOther').addEventListener('input',renderEventSheet);
+$('eventForm').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  if($('eventSave').disabled)return;
+  const day=getDay(viewKey);
+  const data={time:$('eventTime').value||null,type:ES.type,other:ES.type==='Anderes'?$('eventOther').value.trim():null,level:ES.level,note:$('eventNote').value.trim()||null};
+  const existing=ES.id?day.events.find(x=>x.id===ES.id):null;
+  if(existing)Object.assign(existing,data);
+  else day.events.push({id:uid(),...data,addedAt:new Date().toISOString()});
+  saveDay(viewKey,day);
+  eventSheet.close();
+  renderAbschluss();
+  toast(savedMsg());
+});
+$('eventDelete').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.events=day.events.filter(x=>x.id!==ES.id);
+  saveDay(viewKey,day);
+  eventSheet.close();
+  renderAbschluss();
+  toast('Gelöscht');
+});
+
 // Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
-[mealSheet].forEach(d=>{
+[mealSheet,eventSheet].forEach(d=>{
   d.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));
   d.addEventListener('click',e=>{
     if(e.target!==d)return;
