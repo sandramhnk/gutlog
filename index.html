@@ -194,6 +194,9 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
 .ingredients-head span:last-child{font-size:13px;font-weight:700}
 .chip--solid[aria-pressed="true"]{border-color:var(--brand);background:var(--brand);color:var(--on-brand)}
 .chip--add{border:1.5px dashed var(--brand);background:transparent;color:var(--brand)}
+/* Bearbeiten-Modus: Chips zum Entfernen mit ×, umrandet statt gefüllt */
+.chip--remove{border-color:var(--brand);background:var(--surface-raised);color:var(--ink)}
+.chip--remove span{margin-left:6px;color:var(--brand);font-weight:800}
 /* Portion: drei Kacheln mit Schalen */
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
 .tile{height:60px;border-radius:20px;border:1.5px solid var(--surface-raised);background:var(--surface-raised);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 14px var(--font-sans);color:var(--ink);cursor:pointer}
@@ -356,7 +359,7 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
     </div>
 
     <div class="ingredients" id="mealIngr" hidden>
-      <div class="ingredients-head"><span>Zutaten</span><span>freiwillig</span></div>
+      <div class="ingredients-head"><span>Zutaten</span><span><span id="ingrOptional">freiwillig</span> <button type="button" class="inline-link" id="ingrEdit">bearbeiten</button></span></div>
       <div class="chips" id="mealIngrChips"></div>
       <div class="input-row" id="ingrAdd" hidden>
         <input class="input" id="ingrInput" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
@@ -753,7 +756,8 @@ function openMealSheet(id=null){
     known:m?[...new Set([...(mem?mem.ingredients:[]),...(m.ingredients||[])])]:[],
     portion:m?(m.portion||'normal'):'normal',
     pinned:mem?mem.pinned:false,
-    adding:false
+    adding:false,
+    editIngr:false
   };
   $('mealSheetTitel').textContent=m?'Mahlzeit bearbeiten':'Mahlzeit';
   $('mealTitle').value=m?m.title:'';
@@ -798,9 +802,16 @@ function renderMealSheet(){
   // Zutaten: erst sichtbar, wenn ein Titel da ist
   $('mealIngr').hidden=!title;
   const chips=[...new Set([...MS.known,...MS.ingredients])];
-  $('mealIngrChips').innerHTML=chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
-    +(MS.adding?'':'<button type="button" class="chip chip--add" id="ingrPlus">+ Zutat</button>');
-  $('ingrAdd').hidden=!MS.adding;
+  if(!chips.length)MS.editIngr=false;
+  // Bearbeiten-Modus: ein Tipp entfernt die Zutat aus der Liste dieses Gerichts (z. B. bei Tippfehlern).
+  $('ingrEdit').hidden=!chips.length;
+  $('ingrEdit').textContent=MS.editIngr?'fertig':'bearbeiten';
+  $('ingrOptional').hidden=MS.editIngr;
+  $('mealIngrChips').innerHTML=MS.editIngr
+    ? chips.map(i=>`<button type="button" class="chip chip--remove" data-remove="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
+    : chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
+      +(MS.adding?'':'<button type="button" class="chip chip--add" id="ingrPlus">+ Zutat</button>');
+  $('ingrAdd').hidden=!MS.adding||MS.editIngr;
   const q=memKey($('ingrInput').value);
   const sug=MS.adding&&q?allIngredients().filter(i=>memKey(i).includes(q)&&!chips.includes(i)).slice(0,5):[];
   $('ingrSuggest').innerHTML=sug.map(i=>`<button type="button" class="chip" data-addingr="${esc(i)}">${esc(i)}</button>`).join('');
@@ -837,6 +848,7 @@ $('mealTitle').addEventListener('input',()=>{
   const mem=findMem($('mealTitle').value);
   MS.known=mem?[...new Set([...mem.ingredients,...MS.ingredients])]:[...MS.ingredients];
   if(mem&&MS.ingredients.length===0)MS.ingredients=[...mem.lastIngredients];
+  MS.editIngr=false;
   MS.pinned=mem?mem.pinned:MS.pinned&&!!$('mealTitle').value.trim();
   renderMealSheet();
 });
@@ -853,12 +865,28 @@ $('mealSuggest').addEventListener('click',e=>{
     MS.known=[...mem.ingredients];
     MS.pinned=mem.pinned;
   }
-  MS.adding=false;
+  MS.adding=false;MS.editIngr=false;
   renderMealSheet();
 });
 $('mealPin').addEventListener('click',()=>{MS.pinned=!MS.pinned;renderMealSheet()});
+$('ingrEdit').addEventListener('click',()=>{MS.editIngr=!MS.editIngr;MS.adding=false;renderMealSheet()});
 $('mealIngrChips').addEventListener('click',e=>{
   if(e.target.closest('#ingrPlus')){MS.adding=true;renderMealSheet();$('ingrInput').focus();return}
+  const r=e.target.closest('[data-remove]');
+  if(r){
+    // Zutat entfernen: hier im Sheet und sofort auch im Gerichte-Gedächtnis dieses Titels.
+    const i=r.dataset.remove;
+    MS.known=MS.known.filter(x=>x!==i);
+    MS.ingredients=MS.ingredients.filter(x=>x!==i);
+    const mem=loadMem(),k=memKey($('mealTitle').value);
+    if(mem[k]){
+      mem[k].ingredients=mem[k].ingredients.filter(x=>x!==i);
+      mem[k].lastIngredients=mem[k].lastIngredients.filter(x=>x!==i);
+      STORE.save('f',mem);
+    }
+    renderMealSheet();
+    return;
+  }
   const b=e.target.closest('[data-ingr]');if(!b)return;
   const i=b.dataset.ingr;
   MS.ingredients=MS.ingredients.includes(i)?MS.ingredients.filter(x=>x!==i):[...MS.ingredients,i];
