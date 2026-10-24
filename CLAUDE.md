@@ -27,6 +27,7 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 - Navigation über die Adresse: `#heute`, `#verlauf`, `#bericht`, `#einstellungen` (Funktion `showScreen`).
 - Daten liegen nur lokal im Browser (localStorage), immer mit Präfix `K`: `K+'d'` Tage, `K+'f'` Gerichte-Gedächtnis, `K+'c'` Einstellungen. `K` ist `gl_` (Live) oder `glt_` (Test). Zugriff nur über `STORE`, `getDay`, `saveDay`.
 - Datenmodell v2: `{v:2, days:{'JJJJ-MM-TT':{meals:[], meds:[], events:[], close:null}}}`. Felder je Eintrag stehen im Umsetzungsplan („Neues Datenmodell“). Daten im alten Format werden beim Start nach `K+'d_v1'` verschoben.
+- Pantoprazol wird nur eingetragen, wenn es genommen wurde (`status`: `eingenommen` | `reduziert`, reduziert = weniger als die übliche Dosis). Kein Eintrag an einem Tag, an dem sonst etwas erfasst wurde, heißt: nicht genommen. Tage ganz ohne Einträge zählen in der Auswertung nicht.
 - Datumsschlüssel sind `JJJJ-MM-TT` in Ortszeit (Funktion `dk`). Nicht `toISOString()` verwenden, das ist UTC. Was bis 4:00 Uhr nachts passiert, zählt zum Vortag (`dayKeyFor`).
 - Wochenbericht (ab Etappe 5): `.txt`-Datei, oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON. `auswertung.html` liest genau dieses Format. Format nur ändern, wenn beide Dateien angepasst werden.
 - Icon und Manifest werden per Canvas im Code erzeugt (`drawIcon`, `pwaBoot`). In der Testversion trägt das Icon ein Schild „TEST“. Offline-Betrieb über `sw.js` (zuerst Netz, sonst Speicher; Live und Test getrennt).
