@@ -9,10 +9,11 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 
 ## Dateien
 - `index.html` – die App für die Patientin (läuft auf Android). Alles in einer Datei: HTML, CSS, JavaScript.
-- `auswertung.html` – Auswertungs-Tool für Sandra. Lädt einen geteilten Bericht (Datei oder eingefügter Text) und zeigt Zahlen, Diagramme und eine regelbasierte Zusammenfassung.
+- Ausgewertet wird nicht in einer eigenen Seite, sondern mit Claude im claude.ai-Projekt „GutLog“: Sandra lädt dort den Wochenbericht hoch, Claude wertet nach der Anleitung `claude/auswertung-anleitung.md` aus. (Das frühere `auswertung.html` wurde entfernt.)
+- `sw.js` – Service Worker für den Offline-Betrieb.
 - Online, zwei Stufen (GitHub Pages über die Action `.github/workflows/pages.yml`):
-  - Live: https://sandramhnk.github.io/gutlog/ und …/gutlog/auswertung.html, aus Zweig `main`. Das nutzt Fabienne.
-  - Test: https://sandramhnk.github.io/gutlog/test/ und …/gutlog/test/auswertung.html, aus Zweig `test`.
+  - Live: https://sandramhnk.github.io/gutlog/, aus Zweig `main`. Das nutzt Fabienne.
+  - Test: https://sandramhnk.github.io/gutlog/test/, aus Zweig `test`.
 
 ## Arbeitsweise mit Test-Stage
 - Neue Funktionen und Bugfixes immer auf dem Zweig `test` (oder einem Zweig davon) bauen und pushen. Nie direkt auf `main`.
@@ -30,10 +31,10 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 - Pantoprazol wird nur eingetragen, wenn es genommen wurde (`status`: `eingenommen` | `reduziert`, reduziert = weniger als die übliche Dosis). Kein Eintrag an einem Tag, an dem sonst etwas erfasst wurde, heißt: nicht genommen. Tage ganz ohne Einträge zählen in der Auswertung nicht.
 - Mahlzeit: nur der Titel ist Pflicht, Zutaten freiwillig. Das Gerichte-Gedächtnis (`K+'f'`, Schlüssel = Titel in Kleinbuchstaben) liefert Titel-Vorschläge und die Zutaten vom letzten Mal. Zutaten werden an bekannte Schreibweisen angeglichen, damit die Auswertung sie zählen kann.
 - Tagesabschluss `day.close`: `sodbrennen`, `blaehbauch`, `blaehungen`, `stress` (0–3), `bewegung` (1–3), `stuhl` (`{count, kind}`), `null` = nicht beantwortet. Jeder Tipp speichert sofort. Ereignisse `day.events`: `type`, `other` (bei „Anderes“), `level` (1–3), `time`, `note`. Durchfall ist kein eigenes Feld, die Auswertung leitet ihn aus dem Stuhlgang ab (WHO: mindestens 3× breiig oder flüssig).
-- Verlauf: Woche Montag bis Sonntag als Balken aus dem Tagesabschluss, Pantoprazol-Punkt nur an Tagen mit Einträgen. Fabienne sieht keine Zusammenhänge; „Oft davor“ (mögliche Auslöser, auch vom Vortag) und „Gut vertragen“ gehören nur in `auswertung.html` (vielleicht später wieder in die App). Die Regeln zählen pro Tag über alle bisherigen Tage (Funktion `relations`): eine Beschwerde gilt ab Stufe 2 (Mittel) oder einem Ereignis ab Mittel; bei Stuhlgang zählt der Durchfall-Tag. „Oft davor“: mindestens 2 Treffer, mindestens die Hälfte der Tage und häufiger als im Schnitt. „Gut vertragen“: mindestens 3 Tage, nie mit Beschwerde.
+- Verlauf: Woche Montag bis Sonntag als Balken aus dem Tagesabschluss, Pantoprazol-Punkt nur an Tagen mit Einträgen. Fabienne sieht keine Zusammenhänge; „Oft davor“ (mögliche Auslöser, auch vom Vortag) und „Gut vertragen“ gehören in die Auswertung mit Claude (vielleicht später wieder in die App). Die Regeln zählen pro Tag über alle bisherigen Tage (Funktion `relations`): eine Beschwerde gilt ab Stufe 2 (Mittel) oder einem Ereignis ab Mittel; bei Stuhlgang zählt der Durchfall-Tag. „Oft davor“: mindestens 2 Treffer, mindestens die Hälfte der Tage und häufiger als im Schnitt. „Gut vertragen“: mindestens 3 Tage, nie mit Beschwerde.
 - Datumsschlüssel sind `JJJJ-MM-TT` in Ortszeit (Funktion `dk`). Nicht `toISOString()` verwenden, das ist UTC. Was bis 4:00 Uhr nachts passiert, zählt zum Vortag (`dayKeyFor`).
-- Wochenbericht Format 2.0 (`buildReport`, `shareReport`): `.txt`-Datei, oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON `{app, version:'2.0', stage, range:{from,to}, contextFrom, exportedAt, settings:{pantoDose}, days}`. Woche = Montag bis Sonntag; der Sonntag davor wird als Vortag-Kontext mitgeschickt. Teilen als Datei, sonst als Text, sonst Zwischenablage. `auswertung.html` liest genau dieses Format, lädt mehrere Berichte und führt sie nach Datum zusammen. Format nur ändern, wenn beide Dateien und die Anleitung `auswertung-anleitung.md` im Projekt angepasst werden.
-- `auswertung.html` verwendet dieselben Regeln wie die App (Beschwerde ab Stufe 2, Durchfall nach WHO, kein Pantoprazol-Eintrag = nicht genommen) und zeigt „Oft davor“ und „Gut vertragen“ für denselben Tag und den Vortag. Andere Medikamente zählen nicht als Auslöser (werden meist wegen Beschwerden genommen).
+- Wochenbericht Format 2.0 (`buildReport`, `shareReport`): `.txt`-Datei, oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON `{app, version:'2.0', stage, range:{from,to}, contextFrom, exportedAt, settings:{pantoDose}, days}`. Woche = Montag bis Sonntag; der Sonntag davor wird als Vortag-Kontext mitgeschickt. Teilen als Datei, sonst als Text, sonst Zwischenablage. Die Anleitung `auswertung-anleitung.md` im Projekt beschreibt genau dieses Format. Format nur ändern, wenn die Anleitung gleichzeitig angepasst wird.
+- Die Auswertungs-Anleitung verwendet dieselben Regeln wie die App (Beschwerde ab Stufe 2, Durchfall nach WHO, kein Pantoprazol-Eintrag = nicht genommen) und prüft mögliche Auslöser am selben Tag und am Vortag. Andere Medikamente zählen nicht als Auslöser (werden meist wegen Beschwerden genommen). Ändern sich Regeln in der App, die Anleitung mit anpassen.
 - Testversion: In den Einstellungen legt „Testdaten einspielen“ zwei Wochen Beispieldaten an (`makeTestData`, bricht in Live sofort ab).
 - Icon und Manifest werden per Canvas im Code erzeugt (`drawIcon`, `pwaBoot`). In der Testversion trägt das Icon ein Schild „TEST“. Offline-Betrieb über `sw.js` (zuerst Netz, sonst Speicher; Live und Test getrennt).
 
@@ -43,9 +44,9 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 - Keine echten Patientendaten im Repository. Das Repository ist öffentlich.
 
 ## Offene Punkte
-- Teilen auf echtem Android- und iOS-Gerät testen (kommt die .txt-Datei in WhatsApp an und lässt sie sich in `auswertung.html` öffnen?).
+- Teilen auf echtem Android- und iOS-Gerät testen (kommt die .txt-Datei in WhatsApp an und lässt sie sich im claude.ai-Projekt hochladen?).
 - Erinnerungen auf Android: Web-Apps können Benachrichtigungen nicht zuverlässig senden, wenn sie geschlossen sind. Lösung klären oder Grenzen dokumentieren.
 
 ## Vor jedem Push
-- JavaScript auf Syntaxfehler prüfen und den Ablauf einmal im Browser in Handy-Größe durchspielen: Eintrag anlegen → Bericht teilen → in `auswertung.html` laden (die Teile, die in der aktuellen Etappe schon existieren).
+- JavaScript auf Syntaxfehler prüfen und den Ablauf einmal im Browser in Handy-Größe durchspielen: Eintrag anlegen → Bericht erstellen → Text und JSON-Teil prüfen (die Teile, die in der aktuellen Etappe schon existieren).
 - Commit-Nachrichten auf Deutsch, kurz beschreiben was und warum.

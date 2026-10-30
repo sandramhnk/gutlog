@@ -402,7 +402,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
         <p class="note-box" id="berichtLuecken" hidden></p>
       </section>
 
-      <p class="hint" style="text-align:center;padding:0 12px">Geht als Datei über dein Handy raus, z. B. per WhatsApp oder E-Mail. Sandra öffnet sie im Auswertungs-Tool.</p>
+      <p class="hint" style="text-align:center;padding:0 12px">Geht als Datei über dein Handy raus, z. B. per WhatsApp oder E-Mail, und Sandra wertet sie aus.</p>
       <button class="btn-wide" id="berichtTeilen">Bericht teilen</button>
       <button class="link-plus" id="berichtKopieren" style="align-self:center;height:44px;color:var(--brand);text-decoration:underline;font-size:14px">Als Text kopieren</button>
     </div>
@@ -1280,7 +1280,8 @@ $('eventDelete').addEventListener('click',()=>{
 // Eine Woche (Montag bis Sonntag) als Diagramm. Zusammenhänge („Oft davor“,
 // „Gut vertragen“) zeigt die App Fabienne bewusst nicht: Auslöser können auch
 // vom Vortag kommen, das bewertet Sandra in der Auswertung. relations() bleibt
-// im Code, damit die Regel in auswertung.html wiederverwendet werden kann.
+// im Code, falls „Gut vertragen“ später wieder in die App kommt. Ausgewertet wird
+// mit Claude im Projekt „GutLog“ nach denselben Regeln (auswertung-anleitung.md).
 // ══════════════════════════════════════════════════════════════════
 const FILTERS=[
   {id:'sodbrennen',label:'Sodbrennen',title:'Sodbrennen pro Tag',y:['Stark','Mittel','Leicht'],event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
@@ -1397,11 +1398,12 @@ $('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){wee
 // ══════════════════════════════════════════════════════════════════
 // BERICHT
 // Format 2.0: eine .txt-Datei, oben lesbarer Text, unten nach der Zeile
-// MARKER die Daten als JSON. auswertung.html liest genau dieses Format.
+// MARKER die Daten als JSON. Sandra wertet den Bericht mit Claude im Projekt
+// „GutLog“ aus, nach der Anleitung auswertung-anleitung.md (beschreibt dieses Format).
 // Mitgeschickt wird zusätzlich der Tag VOR der Woche (Sonntag davor), damit
 // die Auswertung auch für Montag schauen kann, was am Vortag war.
 // ══════════════════════════════════════════════════════════════════
-const REPORT_MARKER='=== GUTLOG-DATEN (für das Auswertungs-Tool, bitte nicht ändern) ===';
+const REPORT_MARKER='=== GUTLOG-DATEN (für die Auswertung, bitte nicht ändern) ===';
 const REPORT_VERSION='2.0';
 let reportWeek=null;
 
