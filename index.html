@@ -197,6 +197,9 @@ dialog.popup .hint{margin:var(--space-3) 0 var(--space-5)}
 .switch span{display:block;width:24px;height:24px;border-radius:12px;background:var(--ink-muted)}
 .switch[aria-checked="true"]{border-color:var(--brand);background:var(--brand);justify-content:flex-end}
 .switch[aria-checked="true"] span{width:26px;height:26px;border-radius:13px;background:var(--on-brand)}
+/* Eine Erinnerung in der Karte, mit Trennlinie zur nächsten */
+.reminder{margin-top:var(--space-3)}
+.reminder+.reminder{padding-top:var(--space-3);border-top:1px solid var(--border)}
 /* Zeile in einer Liste zum Antippen (Gerichte) mit Pfeil rechts */
 .list-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);width:100%;min-height:56px;padding:8px 0;border:0;border-top:1px solid var(--border);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .list-row:first-child{border-top:0}
@@ -435,18 +438,32 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
   <section class="screen" id="screen-einstellungen" aria-labelledby="einstTitel" hidden>
     <div class="screen-head"><div><h1 id="einstTitel">Einstellungen</h1></div></div>
     <div class="stack">
-      <!-- Erinnerung am Abend. Ehrlich: Web-Apps können nur erinnern, solange sie noch im Hintergrund laufen. -->
+      <!-- Erinnerungen. Ehrlich: Web-Apps können nur erinnern, solange sie noch im Hintergrund laufen. -->
       <section class="card" aria-labelledby="erinnTitel">
-        <div class="card-row">
-          <div><h2 id="erinnTitel">Erinnerung</h2><p class="hint" style="margin-top:2px">Abends an „Wie war dein Tag?“ erinnern</p></div>
-          <button type="button" class="switch" id="erinnSchalter" role="switch" aria-checked="false" aria-labelledby="erinnTitel"><span></span></button>
+        <h2 id="erinnTitel">Erinnerungen</h2>
+        <div class="reminder" data-rem="abend">
+          <div class="card-row">
+            <div><div class="q-name" id="rem-abend-name">Wie war dein Tag?</div><p class="hint" style="margin-top:2px">Jeden Abend</p></div>
+            <button type="button" class="switch" data-rem-toggle role="switch" aria-checked="false" aria-labelledby="rem-abend-name"><span></span></button>
+          </div>
+          <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
+            <label class="label" for="rem-abend-zeit">Uhrzeit</label>
+            <input class="input" id="rem-abend-zeit" data-rem-time type="time" value="20:30">
+          </div>
+          <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
         </div>
-        <div class="field" id="erinnZeitFeld" style="margin:var(--space-4) 0 0" hidden>
-          <label class="label" for="erinnZeit">Uhrzeit</label>
-          <input class="input" id="erinnZeit" type="time" value="20:30">
+        <div class="reminder" data-rem="bericht">
+          <div class="card-row">
+            <div><div class="q-name" id="rem-bericht-name">Bericht an Sandra schicken</div><p class="hint" style="margin-top:2px">Sonntags</p></div>
+            <button type="button" class="switch" data-rem-toggle role="switch" aria-checked="false" aria-labelledby="rem-bericht-name"><span></span></button>
+          </div>
+          <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
+            <label class="label" for="rem-bericht-zeit">Uhrzeit</label>
+            <input class="input" id="rem-bericht-zeit" data-rem-time type="time" value="19:00">
+          </div>
+          <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
         </div>
         <p class="hint" id="erinnHinweis"></p>
-        <button type="button" class="inline-link" id="erinnTest" hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
       </section>
 
       <!-- Pantoprazol-Dosis: wird mit dem Haken unter Heute eingetragen -->
@@ -1616,12 +1633,12 @@ async function shareReport(){
     const f=new File([text],file,{type:'text/plain'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){
       await navigator.share({files:[f],title:'GutLog Wochenbericht'});
-      toast('Bericht geteilt');return;
+      markReportSent(reportWeek);toast('Bericht geteilt');return;
     }
     // 2. Versuch: als Text teilen
     if(navigator.share){
       await navigator.share({title:'GutLog Wochenbericht',text});
-      toast('Bericht geteilt');return;
+      markReportSent(reportWeek);toast('Bericht geteilt');return;
     }
   }catch(err){
     if(err&&err.name==='AbortError')return; // Teilen abgebrochen
@@ -1641,8 +1658,9 @@ $('berichtVor').addEventListener('click',()=>{if(reportWeek<mondayOf(todayKey())
 
 // ══════════════════════════════════════════════════════════════════
 // EINSTELLUNGEN
-// Gespeichert unter K+'c': pantoDose (mg), reminder (an/aus), reminderTime ('20:30'),
-// reminderLast (Tag, an dem zuletzt erinnert wurde, damit es nur einmal am Tag kommt).
+// Gespeichert unter K+'c': pantoDose (mg); Abend-Erinnerung reminder/reminderTime/reminderLast;
+// Bericht-Erinnerung reportReminder/reportReminderTime/reportReminderLast; reportSentWeeks
+// (Montage der Wochen, deren Bericht geteilt wurde). „…Last“ = Tag der letzten Erinnerung.
 // ══════════════════════════════════════════════════════════════════
 const settings=()=>STORE.load('c',{});
 function saveSetting(name,value){const c=settings();c[name]=value;STORE.save('c',c)}
@@ -1667,77 +1685,109 @@ $('pantoDosen').addEventListener('click',e=>{
   saveSetting('pantoDose',Number(b.dataset.dose));renderEinstellungen();toast('Gespeichert');
 });
 
-// ── Erinnerung am Abend ──
+// ── Erinnerungen ──
+// Zwei Erinnerungen mit denselben Regeln, beschrieben in REMINDERS:
+//   abend:   jeden Abend an den Tagesabschluss, nur wenn er noch nicht fertig ist
+//   bericht: sonntags an den Wochenbericht, nur wenn der Bericht dieser Woche noch nicht geteilt wurde
+// on/time/last sind die Namen der Einstellungen in K+'c'. weekday: 0 = Sonntag, null = jeden Tag.
 // Grenze von Web-Apps: Sie dürfen nur benachrichtigen, solange sie noch laufen (offen oder
 // kurz im Hintergrund). Android und iOS legen Apps im Hintergrund nach einigen Minuten schlafen,
 // dann kommt nichts. Zuverlässig ginge das nur mit einem Server („Push“), den wir bewusst nicht haben.
+const REMINDERS={
+  abend:{on:'reminder',time:'reminderTime',last:'reminderLast',def:'20:30',weekday:null,
+    body:'Wie war dein Tag? Kurz eintragen.',hash:'#abschluss',
+    due:k=>closeFilled(getDay(k).close)<CLOSE_FIELDS.length},
+  bericht:{on:'reportReminder',time:'reportReminderTime',last:'reportReminderLast',def:'19:00',weekday:0,
+    body:'Sonntag: Bitte den Wochenbericht an Sandra schicken.',hash:'#bericht',
+    due:k=>!(settings().reportSentWeeks||[]).includes(mondayOf(k))}
+};
 const canNotify=()=>'Notification' in window&&'serviceWorker' in navigator;
+const remBox=id=>document.querySelector(`[data-rem="${id}"]`);
+
 function renderReminder(){
-  const c=settings(),on=!!c.reminder;
-  $('erinnSchalter').setAttribute('aria-checked',String(on));
-  $('erinnZeitFeld').hidden=!on;
-  $('erinnZeit').value=c.reminderTime||'20:30';
-  $('erinnTest').hidden=!on;
+  const c=settings();
+  Object.entries(REMINDERS).forEach(([id,r])=>{
+    const box=remBox(id),on=!!c[r.on];
+    box.querySelector('[data-rem-toggle]').setAttribute('aria-checked',String(on));
+    box.querySelector('[data-rem-timefield]').hidden=!on;
+    box.querySelector('[data-rem-time]').value=c[r.time]||r.def;
+    box.querySelector('[data-rem-test]').hidden=!on;
+  });
   let h;
-  if(!canNotify())h='Hier sind keine Benachrichtigungen möglich. Auf dem iPhone gehen sie nur, wenn GutLog auf dem Home-Bildschirm liegt. Verlässlich ist ein täglicher Wecker im Handy.';
+  if(!canNotify())h='Hier sind keine Benachrichtigungen möglich. Auf dem iPhone gehen sie nur, wenn GutLog auf dem Home-Bildschirm liegt. Verlässlich ist ein Wecker im Handy.';
   else if(Notification.permission==='denied')h='Benachrichtigungen sind für GutLog blockiert. Du kannst sie in den Einstellungen des Handys erlauben.';
-  else h='Kommt nur, wenn GutLog kurz vorher noch offen war. Ist die App länger zu, bleibt die Erinnerung aus. Verlässlich ist ein täglicher Wecker im Handy.';
+  else h='Kommen nur, wenn GutLog kurz vorher noch offen war. Ist die App länger zu, bleibt die Erinnerung aus. Verlässlich ist ein Wecker im Handy.';
   $('erinnHinweis').textContent=h;
 }
-$('erinnSchalter').addEventListener('click',async()=>{
-  if(settings().reminder){saveSetting('reminder',false);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
-  if(!canNotify()){renderReminder();toast('Geht hier leider nicht');return}
-  // Beim ersten Einschalten fragt das Handy, ob GutLog Benachrichtigungen schicken darf.
-  let perm=Notification.permission;
-  if(perm==='default'){try{perm=await Notification.requestPermission()}catch{perm='denied'}}
-  if(perm!=='granted'){renderReminder();toast('Benachrichtigungen nicht erlaubt');return}
-  saveSetting('reminder',true);
-  if(!settings().reminderTime)saveSetting('reminderTime','20:30');
-  scheduleReminder();renderReminder();toast('Erinnerung an');
+Object.entries(REMINDERS).forEach(([id,r])=>{
+  const box=remBox(id);
+  box.querySelector('[data-rem-toggle]').addEventListener('click',async()=>{
+    if(settings()[r.on]){saveSetting(r.on,false);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
+    if(!canNotify()){renderReminder();toast('Geht hier leider nicht');return}
+    // Beim ersten Einschalten fragt das Handy, ob GutLog Benachrichtigungen schicken darf.
+    let perm=Notification.permission;
+    if(perm==='default'){try{perm=await Notification.requestPermission()}catch{perm='denied'}}
+    if(perm!=='granted'){renderReminder();toast('Benachrichtigungen nicht erlaubt');return}
+    saveSetting(r.on,true);
+    if(!settings()[r.time])saveSetting(r.time,r.def);
+    scheduleReminder();renderReminder();toast('Erinnerung an');
+  });
+  box.querySelector('[data-rem-time]').addEventListener('change',e=>{
+    if(!e.target.value)return;
+    saveSetting(r.time,e.target.value);saveSetting(r.last,null);
+    scheduleReminder();toast('Gespeichert');
+  });
+  box.querySelector('[data-rem-test]').addEventListener('click',async()=>toast(await showReminder(id)?'Benachrichtigung geschickt':'Hat nicht geklappt'));
 });
-$('erinnZeit').addEventListener('change',()=>{
-  if(!$('erinnZeit').value)return;
-  saveSetting('reminderTime',$('erinnZeit').value);saveSetting('reminderLast',null);
-  scheduleReminder();toast('Gespeichert');
-});
-$('erinnTest').addEventListener('click',async()=>toast(await showReminder()?'Benachrichtigung geschickt':'Hat nicht geklappt'));
 
 // Zeigt die Benachrichtigung. Auf Android geht das nur über den Service Worker.
-async function showReminder(){
-  const opts={body:'Wie war dein Tag? Kurz eintragen.',icon:drawIcon(192),tag:'gutlog-abend',
-    data:{url:new URL('./#abschluss',location.href).href}};
+async function showReminder(id){
+  const r=REMINDERS[id];
+  const opts={body:r.body,icon:drawIcon(192),tag:'gutlog-'+id,data:{url:new URL('./'+r.hash,location.href).href}};
+  const title=STAGE==='test'?'GutLog Test':'GutLog';
   try{
     const reg=await navigator.serviceWorker.getRegistration();
-    if(reg){await reg.showNotification(STAGE==='test'?'GutLog Test':'GutLog',opts);return true}
-    new Notification('GutLog',opts);return true;
+    if(reg){await reg.showNotification(title,opts);return true}
+    new Notification(title,opts);return true;
   }catch{return false}
 }
 
-// Wecker innerhalb der App: wartet bis zur eingestellten Uhrzeit.
-let reminderTimer=null;
-function reminderAt(){
-  const [h,m]=(settings().reminderTime||'20:30').split(':').map(Number);
+// Wecker innerhalb der App: wartet bis zur nächsten eingestellten Uhrzeit (beim Bericht: nächster Sonntag).
+const reminderTimers={};
+function reminderToday(r){
+  const [h,m]=(settings()[r.time]||r.def).split(':').map(Number);
   const at=new Date();at.setHours(h,m,0,0);return at;
 }
+function nextReminder(r){
+  const now=new Date(),at=reminderToday(r);
+  while(at<=now||(r.weekday!=null&&at.getDay()!==r.weekday))at.setDate(at.getDate()+1);
+  return at;
+}
 function scheduleReminder(){
-  clearTimeout(reminderTimer);
-  const c=settings();
-  if(!c.reminder||!canNotify()||Notification.permission!=='granted')return;
-  const now=new Date(),at=reminderAt();
-  if(at<=now)at.setDate(at.getDate()+1);
-  reminderTimer=setTimeout(checkReminder,at-now);
+  const c=settings(),allowed=canNotify()&&Notification.permission==='granted';
+  Object.entries(REMINDERS).forEach(([id,r])=>{
+    clearTimeout(reminderTimers[id]);
+    if(!c[r.on]||!allowed)return;
+    reminderTimers[id]=setTimeout(()=>{checkReminder(id);scheduleReminder()},nextReminder(r)-new Date());
+  });
 }
-// Erinnert nur, wenn der Tagesabschluss noch nicht fertig ist, höchstens einmal am Tag
-// und nur bis 2 Stunden nach der Uhrzeit (ein schlafendes Handy weckt den Wecker oft zu spät).
-function checkReminder(){
-  const c=settings(),k=todayKey(),late=new Date()-reminderAt();
-  if(c.reminder&&late>=0&&late<2*36e5&&c.reminderLast!==k&&closeFilled(getDay(k).close)<CLOSE_FIELDS.length){
-    saveSetting('reminderLast',k);showReminder();
-  }
-  scheduleReminder();
+// Erinnert nur, wenn es noch etwas zu tun gibt (due), höchstens einmal am Tag und nur bis
+// 2 Stunden nach der Uhrzeit (ein schlafendes Handy weckt den Wecker oft zu spät).
+function checkReminder(id){
+  const r=REMINDERS[id],c=settings(),k=todayKey(),at=reminderToday(r),late=new Date()-at;
+  if(!c[r.on]||c[r.last]===k||late<0||late>=2*36e5)return;
+  if(r.weekday!=null&&at.getDay()!==r.weekday)return;
+  if(!r.due(k))return;
+  saveSetting(r.last,k);showReminder(id);
 }
-// Kommt die App wieder nach vorne, den Wecker neu stellen (im Hintergrund kann er stehen geblieben sein).
+// Kommt die App wieder nach vorne, die Wecker neu stellen (im Hintergrund können sie stehen geblieben sein).
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleReminder()});
+
+// Geteilte Wochen merken (Montag der Woche), damit die Sonntags-Erinnerung danach still bleibt.
+function markReportSent(week){
+  const sent=(settings().reportSentWeeks||[]).filter(w=>w!==week);
+  saveSetting('reportSentWeeks',[...sent,week].slice(-12));
+}
 
 // ── Gerichte verwalten ──
 // Liste aller gemerkten Gerichte. Antippen öffnet die Bearbeiten-Ansicht im selben Sheet.
