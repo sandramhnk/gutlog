@@ -399,6 +399,13 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
     <div class="screen-head"><div><h1 id="einstTitel">Einstellungen</h1></div></div>
     <div class="stack">
       <div class="card"><h2>Kommt in Etappe 6</h2><p class="hint">Erinnerung, Pantoprazol-Dosis, Favoriten, Daten löschen.</p></div>
+      <!-- Nur in der Testversion sichtbar: Beispieldaten zum Ausprobieren -->
+      <section class="card" id="testdatenKarte" aria-labelledby="testdatenTitel" hidden>
+        <h2 id="testdatenTitel">Testdaten</h2>
+        <p class="hint">Nur in der Testversion. Legt zwei Wochen ausgedachte Beispieldaten an und ersetzt dabei alles, was hier in der Testversion eingetragen ist.</p>
+        <button class="btn-wide" id="testdatenEinspielen" style="margin-top:var(--space-4)">Testdaten einspielen</button>
+        <button class="btn-danger-text" id="testdatenLoeschen">Alle Testdaten löschen</button>
+      </section>
       <p class="hint" style="text-align:center" id="versionInfo"></p>
     </div>
   </section>
@@ -1281,7 +1288,7 @@ function symptomOn(day,f){
   const v=day.close?day.close[f.id]:null;
   const ev=f.event&&day.events.some(e=>e.type===f.event&&e.level>=2);
   if(v==null&&!ev)return null;
-  return (v!=null&&v>=2)||ev;
+  return (v!=null&&v>=2)||!!ev;
 }
 
 // Alles, was an einem Tag „dabei“ war: Gerichte, Zutaten, Getränke, Alltag, Pantoprazol
@@ -1381,6 +1388,49 @@ $('verlaufFilter').addEventListener('click',e=>{const b=e.target.closest('[data-
 $('wocheZurueck').addEventListener('click',()=>{weekKey=addDays(weekKey,-7);renderVerlauf()});
 $('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){weekKey=addDays(weekKey,7);renderVerlauf()}});
 
+// ══════════════════════════════════════════════════════════════════
+// TESTDATEN (nur Testversion)
+// Zwei Wochen ausgedachte Daten bis heute, immer gleich (kein Zufall), damit man
+// Verlauf und später den Bericht ausprobieren kann. Eingebaute Muster:
+// Honig → Sodbrennen, Pizza am Abend → Sodbrennen, Kaffee → Blähbauch,
+// Linsensuppe → Blähungen, Reis mit Gemüse und Brot gut vertragen.
+// ══════════════════════════════════════════════════════════════════
+function makeTestData(){
+  if(STAGE!=='test')return;
+  const days={},mem={};
+  const ts=new Date().toISOString();
+  const meal=(id,time,kind,title,ingredients,extra={})=>({id,time,kind,title,ingredients,portion:'normal',drink:null,note:null,addedAt:ts,...extra});
+  for(let n=0;n<14;n++){
+    const k=addDays(todayKey(),n-13);
+    const honey=n%3===1, pizza=n===4||n===9, coffee=n%4===0, lentils=n===2||n===6||n===11;
+    const meals=[];
+    if(n%2===0)meals.push(meal('f'+n,'07:45','fruehstueck','Haferbrei',['Haferflocken','Hafermilch','Banane'].concat(honey?['Honig']:[]),{drink:coffee?'Kaffee':null}));
+    else meals.push(meal('f'+n,'07:45','fruehstueck','Brot',['Vollkornbrot','Butter','Käse'].concat(honey?['Honig']:[]),{drink:coffee?'Kaffee':null}));
+    meals.push(lentils?meal('m'+n,'12:30','mittag','Linsensuppe',['Linsen','Karotte','Zwiebel']):meal('m'+n,'12:30','mittag','Reis mit Gemüse',['Reis','Karotte','Zucchini']));
+    meals.push(pizza?meal('a'+n,'20:30','abend','Pizza',['Teig','Tomatensoße','Käse','Salami'],{portion:'gross'}):meal('a'+n,'18:30','abend','Nudeln mit Tomatensoße',['Nudeln','Tomatensoße']));
+    const meds=[];
+    if(n!==5&&n!==9)meds.push({id:'p'+n,name:'Pantoprazol',status:n===3||n===12?'reduziert':'eingenommen',dose:n===3||n===12?10:20,time:'07:30',addedAt:ts});
+    if(pizza)meds.push({id:'g'+n,name:'Gaviscon',amount:'10 ml',time:'22:00',status:'eingenommen',addedAt:ts});
+    const events=pizza?[{id:'e'+n,time:'21:30',type:'Sodbrennen',other:null,level:3,note:'nach dem Hinlegen',addedAt:ts}]:[];
+    const sod=pizza?3:honey?2:(n%5===0?1:0);
+    // Der heutige Tag bleibt ohne Tagesabschluss, damit man ihn selbst ausfüllen kann.
+    const close=n===13?null:{sodbrennen:sod,blaehbauch:coffee?2:1,blaehungen:lentils?2:1,
+      stuhl:n===6?{count:4,kind:'fluessig'}:{count:n%3===0?2:1,kind:'normal'},stress:n===9?3:1,bewegung:n%6===0?1:2,addedAt:ts,savedAt:ts};
+    days[k]={meals,meds,events,close};
+    meals.forEach(m=>{const mk=memKey(m.title);const e=mem[mk]||{title:m.title,ingredients:[],lastIngredients:[],count:0,pinned:m.title==='Haferbrei',lastUsed:''};
+      e.ingredients=[...new Set([...e.ingredients,...m.ingredients])];e.lastIngredients=[...m.ingredients];e.count++;e.lastUsed=new Date(keyToDate(k).getTime()+n).toISOString();mem[mk]=e});
+  }
+  DATA={v:2,days};STORE.save('d',DATA);STORE.save('f',mem);
+}
+$('testdatenEinspielen').addEventListener('click',()=>{
+  if(!confirm('Alle Einträge in der Testversion werden durch Beispieldaten ersetzt. Fortfahren?'))return;
+  makeTestData();viewKey=todayKey();weekKey=null;toast('Testdaten eingespielt');
+});
+$('testdatenLoeschen').addEventListener('click',()=>{
+  if(STAGE!=='test'||!confirm('Alle Einträge in der Testversion löschen?'))return;
+  DATA={v:2,days:{}};STORE.save('d',DATA);STORE.save('f',{});viewKey=todayKey();weekKey=null;toast('Testdaten gelöscht');
+});
+
 // Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
 [mealSheet,eventSheet].forEach(d=>{
   d.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));
@@ -1430,7 +1480,7 @@ function pwaBoot(){
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-if(STAGE==='test'){document.title='GutLog Test';$('stageBand').hidden=false}
+if(STAGE==='test'){document.title='GutLog Test';$('stageBand').hidden=false;$('testdatenKarte').hidden=false}
 $('versionInfo').textContent=`GutLog · Version ${APP_VERSION}${STAGE==='test'?' · Testversion':''}`;
 showScreen();
 renderHeute();
