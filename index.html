@@ -239,6 +239,35 @@ textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:n
 .btn-round--xl{width:56px;height:56px}
 a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoration:none}
 
+/* Verlauf: Wochen-Diagramm aus Balken (eine Spalte pro Tag) */
+.chart{display:flex;gap:var(--space-2);margin-top:var(--space-3)}
+.y-axis{width:48px;height:120px;display:flex;flex-direction:column;justify-content:space-between;text-align:right;font-size:12px;font-weight:700;color:var(--ink-muted)}
+.days{flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--space-1)}
+.day-col{display:flex;flex-direction:column;align-items:center;gap:var(--space-2)}
+.track{width:26px;height:120px;border-radius:13px;background:var(--surface);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.bar{width:26px;border-radius:13px;background:var(--accent)}
+.bar--strong{background:var(--accent-ink)}
+.bar--zero{height:6px;background:var(--border-control);opacity:.45}
+.day-label{font-size:13px;font-weight:800}
+.day-label.is-today{color:var(--brand)}
+.panto{height:14px;display:flex;align-items:center}
+.panto .fill{fill:var(--brand)}
+.panto .ring{fill:none;stroke:var(--brand);stroke-width:1.5}
+.panto .ring--none{stroke:var(--border-control)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-1) 14px;margin-top:var(--space-3);font-size:13px;font-weight:700;color:var(--ink-muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+/* Zusammenhänge: Zeilen mit Etikett, Mini-Balken und Zahl */
+.rel-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--border)}
+.card--accent .rel-row{border-top-color:var(--surface-raised)}
+.rel-name{display:flex;align-items:center;gap:var(--space-2);min-width:0;flex-wrap:wrap}
+.rel-name b{font-size:16px;font-weight:700}
+.tag{height:22px;padding:0 var(--space-2);border-radius:11px;display:inline-flex;align-items:center;font-size:12px;font-weight:700;background:var(--surface-raised);color:var(--accent-ink)}
+.tag--brand{background:var(--brand-soft);color:var(--brand)}
+.mini{width:48px;height:6px;border-radius:3px;background:var(--surface-raised);display:flex;overflow:hidden}
+.mini i{display:block;height:6px;border-radius:3px;background:var(--accent)}
+.rel-val{flex-shrink:0;white-space:nowrap;text-align:right;font-size:14px;font-weight:800;color:var(--accent-ink)}
+.rel-val--brand{color:var(--brand)}
+
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
 </style>
@@ -324,8 +353,39 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 
   <!-- ══ VERLAUF ════════════════════════════════════════════════════ -->
   <section class="screen" id="screen-verlauf" aria-labelledby="verlaufTitel" hidden>
-    <div class="screen-head"><div><div class="eyebrow">Diese Woche</div><h1 id="verlaufTitel">Verlauf</h1></div></div>
-    <div class="stack"><div class="card"><h2>Kommt in Etappe 4</h2><p class="hint">Wochen-Diagramm, „Oft davor“ und „Gut vertragen“.</p></div></div>
+    <div class="screen-head">
+      <div><div class="eyebrow" id="wocheText"></div><h1 id="verlaufTitel">Verlauf</h1></div>
+      <div class="row">
+        <button class="btn-round" id="wocheZurueck" aria-label="Vorherige Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="btn-round" id="wocheVor" aria-label="Nächste Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="chips" role="group" aria-label="Beschwerde auswählen" id="verlaufFilter"></div>
+
+      <section class="card" aria-labelledby="chartTitel" style="padding:18px 16px 16px 14px">
+        <h2 id="chartTitel" style="margin-left:6px"></h2>
+        <div class="chart">
+          <div class="y-axis" aria-hidden="true" id="yAchse"></div>
+          <div class="days" id="chartTage"></div>
+        </div>
+        <div class="legend" id="legende"></div>
+      </section>
+
+      <section class="card card--accent" aria-labelledby="oftTitel">
+        <h2 id="oftTitel">Oft davor</h2>
+        <p class="hint hint--accent" id="oftHinweis" style="margin:2px 0 6px"></p>
+        <div id="oftListe"></div>
+      </section>
+
+      <section class="card" aria-labelledby="gutTitel">
+        <h2 id="gutTitel">Gut vertragen</h2>
+        <p class="hint" id="gutHinweis" style="margin:2px 0 6px"></p>
+        <div id="gutListe"></div>
+      </section>
+
+      <p class="hint" style="padding:0 6px">Zeigt Zusammenhänge aus allen bisherigen Tagen, keine Ursachen. Erst ab 2 Fällen sichtbar.</p>
+    </div>
   </section>
 
   <!-- ══ BERICHT ════════════════════════════════════════════════════ -->
@@ -585,6 +645,7 @@ function showScreen(){
   });
   if(current==='abschluss')renderAbschluss();
   if(current==='heute')renderHeute();
+  if(current==='verlauf')renderVerlauf();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',showScreen);
@@ -1191,6 +1252,134 @@ $('eventDelete').addEventListener('click',()=>{
   renderAbschluss();
   toast('Gelöscht');
 });
+
+// ══════════════════════════════════════════════════════════════════
+// VERLAUF
+// Oben eine Woche (Montag bis Sonntag) als Diagramm, darunter Zusammenhänge
+// aus ALLEN bisherigen Tagen. Gezählt wird pro Tag: Gab es an Tagen mit einem
+// bestimmten Essen (oder Umstand) auffällig oft die Beschwerde?
+// ══════════════════════════════════════════════════════════════════
+const FILTERS=[
+  {id:'sodbrennen',label:'Sodbrennen',title:'Sodbrennen pro Tag',y:['Stark','Mittel','Leicht'],event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
+  {id:'blaehbauch',label:'Blähbauch',title:'Blähbauch pro Tag',y:['Stark','Mittel','Leicht'],event:'Blähbauch',what:'mittlerem oder starkem Blähbauch'},
+  {id:'blaehungen',label:'Blähungen',title:'Blähungen pro Tag',y:['Ständig','Oft','Wenig'],event:null,what:'oft oder ständig Blähungen'},
+  {id:'stuhl',label:'Stuhlgang',title:'Stuhlgang pro Tag',y:['3×+','2×','1×'],event:null,what:'Durchfall (mind. 3× breiig oder flüssig)'}
+];
+let verlaufFilter='sodbrennen';
+let weekKey=null; // Montag der angezeigten Woche
+
+const mondayOf=k=>{const d=keyToDate(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return dk(d)};
+const shortDate=k=>{const d=keyToDate(k);return `${d.getDate()}. ${d.toLocaleDateString('de-DE',{month:'short'}).replace('.','')}`};
+const hasData=day=>!!day&&(day.meals.length||day.meds.length||day.events.length||!!day.close);
+
+// Durchfall-Tag nach WHO: mindestens 3× Stuhlgang, breiig oder flüssig
+const isDiarrhea=st=>!!st&&st.count>=3&&(st.kind==='breiig'||st.kind==='fluessig');
+
+// Hatte der Tag die Beschwerde deutlich? true/false, oder null wenn nicht beantwortet.
+function symptomOn(day,f){
+  if(f.id==='stuhl'){const st=day.close&&day.close.stuhl;return st?isDiarrhea(st):null}
+  const v=day.close?day.close[f.id]:null;
+  const ev=f.event&&day.events.some(e=>e.type===f.event&&e.level>=2);
+  if(v==null&&!ev)return null;
+  return (v!=null&&v>=2)||ev;
+}
+
+// Alles, was an einem Tag „dabei“ war: Gerichte, Zutaten, Getränke, Alltag, Pantoprazol
+function dayItems(day){
+  const items=new Map();
+  const add=(tag,label)=>items.set(tag+'|'+label.toLocaleLowerCase('de-DE'),{tag,label});
+  day.meals.forEach(m=>{
+    add('Gericht',m.title);
+    (m.ingredients||[]).forEach(i=>add('Zutat',i));
+    if(m.drink)add('Getränk',m.drink);
+    if(m.portion==='gross')add('Alltag','Große Portion');
+    if(m.time&&m.time>='20:00')add('Alltag','Essen nach 20 Uhr');
+  });
+  const c=day.close;
+  if(c&&c.stress!=null&&c.stress>=2)add('Alltag','Viel Stress');
+  if(c&&c.bewegung===1)add('Alltag','Kaum Bewegung');
+  const p=findPanto(day);
+  if(!p)add('Medikament','Kein Pantoprazol');
+  else if(p.status==='reduziert')add('Medikament','Pantoprazol reduziert');
+  return [...items.values()];
+}
+
+// Zählt über alle Tage, an denen die Beschwerde beantwortet ist.
+function relations(f){
+  const stats=new Map();let known=0,hits=0;
+  Object.values(DATA.days).forEach(day=>{
+    if(!hasData(day))return;
+    const on=symptomOn(day,f);if(on==null)return;
+    known++;if(on)hits++;
+    dayItems(day).forEach(it=>{
+      const k=it.tag+'|'+it.label.toLocaleLowerCase('de-DE');
+      const s=stats.get(k)||{...it,days:0,hits:0};
+      s.days++;if(on)s.hits++;stats.set(k,s);
+    });
+  });
+  const base=known?hits/known:0;
+  const all=[...stats.values()];
+  const often=all.filter(s=>s.days>=2&&s.hits>=2&&s.hits/s.days>=0.5&&s.hits/s.days>base)
+    .sort((a,b)=>b.hits/b.days-a.hits/a.days||b.hits-a.hits).slice(0,5);
+  const good=all.filter(s=>s.days>=3&&s.hits===0&&(s.tag==='Gericht'||s.tag==='Zutat'))
+    .sort((a,b)=>b.days-a.days).slice(0,4);
+  return {known,hits,often,good};
+}
+
+function pantoMark(day){
+  if(!hasData(day))return '';
+  const p=findPanto(day);
+  if(!p)return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="ring ring--none" cx="7" cy="7" r="5.25"/></svg>';
+  if(p.status==='reduziert')return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="ring" cx="7" cy="7" r="5.25"/><path class="fill" d="M7 1.75a5.25 5.25 0 010 10.5z"/></svg>';
+  return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="fill" cx="7" cy="7" r="6"/></svg>';
+}
+
+function renderVerlauf(){
+  const today=todayKey();
+  if(!weekKey)weekKey=mondayOf(today);
+  const thisWeek=mondayOf(today);
+  const end=addDays(weekKey,6);
+  $('wocheText').textContent=weekKey===thisWeek?`Diese Woche · ${shortDate(weekKey)} – ${shortDate(end)}`:weekKey===addDays(thisWeek,-7)?`Letzte Woche · ${shortDate(weekKey)} – ${shortDate(end)}`:`${shortDate(weekKey)} – ${shortDate(end)}`;
+  $('wocheVor').disabled=weekKey>=thisWeek;
+
+  const f=FILTERS.find(x=>x.id===verlaufFilter);
+  $('verlaufFilter').innerHTML=FILTERS.map(x=>`<button type="button" class="chip chip--accent" data-filter="${x.id}" aria-pressed="${x.id===f.id}">${x.label}</button>`).join('');
+  $('chartTitel').textContent=f.title;
+  $('yAchse').innerHTML=f.y.map(t=>`<span>${t}</span>`).join('');
+
+  // Eine Spalte pro Tag
+  const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  $('chartTage').innerHTML=WD.map((wd,i)=>{
+    const k=addDays(weekKey,i),day=DATA.days[k];
+    let v=null,strong=false,text='nicht eingetragen';
+    if(day&&day.close){
+      if(f.id==='stuhl'){const st=day.close.stuhl;if(st){v=Math.min(st.count,3);strong=isDiarrhea(st);text=st.count===0?'kein Stuhlgang':`${st.count}× Stuhlgang${st.kind?', '+STOOL_KINDS.find(x=>x.id===st.kind).label.toLowerCase():''}${strong?', Durchfall':''}`}}
+      else{const q=[...QUESTIONS.beschwerden].find(x=>x.key===f.id);const x=day.close[f.id];if(x!=null){v=x;strong=x>=3;text=`${f.label}: ${q.labels[x]}`}}
+    }
+    const bar=v==null?'':v===0?'<div class="bar bar--zero"></div>':`<div class="bar${strong?' bar--strong':''}" style="height:${Math.round(v/3*120)}px"></div>`;
+    const p=day?findPanto(day):null;
+    const ptext=!hasData(day)?'':!p?', kein Pantoprazol':p.status==='reduziert'?', Pantoprazol reduziert':', Pantoprazol genommen';
+    return `<div class="day-col" role="img" aria-label="${wd} ${shortDate(k)}: ${text}${ptext}"><div class="track">${bar}</div><div class="day-label${k===today?' is-today':''}">${wd}</div><div class="panto" aria-hidden="true">${pantoMark(day)}</div></div>`;
+  }).join('');
+  $('legende').innerHTML=`<span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="fill" cx="7" cy="7" r="6"/></svg>Pantoprazol</span>
+    <span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="ring" cx="7" cy="7" r="5.25"/><path class="fill" d="M7 1.75a5.25 5.25 0 010 10.5z"/></svg>reduziert</span>
+    <span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="ring ring--none" cx="7" cy="7" r="5.25"/></svg>nicht genommen</span>`
+    +(f.id==='stuhl'?'<span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><rect width="12" height="12" rx="3" style="fill:var(--accent-ink)"/></svg>Durchfall-Tag</span>':'');
+
+  // Zusammenhänge
+  const r=relations(f);
+  $('oftHinweis').textContent=`Was an Tagen mit ${f.what} oft dabei war (Tage mit Beschwerden von allen Tagen damit)`;
+  $('gutHinweis').textContent=`Mindestens 3 Tage gegessen, nie mit ${f.what}`;
+  const row=(s,good)=>`<div class="rel-row"><div class="rel-name"><b>${esc(s.label)}</b><span class="tag${good?' tag--brand':''}">${s.tag}</span></div>`
+    +(good?`<span class="rel-val rel-val--brand">${s.days} Tage</span>`
+          :`<div class="row" style="gap:var(--space-2);flex-shrink:0"><div class="mini" aria-hidden="true"><i style="width:${Math.round(s.hits/s.days*100)}%"></i></div><span class="rel-val" aria-label="an ${s.hits} von ${s.days} Tagen">${s.hits} von ${s.days}</span></div>`)+'</div>';
+  const few=r.known<3;
+  $('oftListe').innerHTML=r.often.length?r.often.map(s=>row(s,false)).join(''):`<p class="hint" style="margin-top:6px">${few?'Noch zu wenige Tage mit Tagesabschluss. Nach ein paar Tagen erscheinen hier Hinweise.':'Bisher nichts Auffälliges.'}</p>`;
+  $('gutListe').innerHTML=r.good.length?r.good.map(s=>row(s,true)).join(''):`<p class="hint" style="margin-top:6px">${few?'Noch zu wenige Tage.':'Noch nichts, das mindestens 3-mal ohne Beschwerden gegessen wurde.'}</p>`;
+}
+$('verlaufFilter').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){verlaufFilter=b.dataset.filter;renderVerlauf()}});
+$('wocheZurueck').addEventListener('click',()=>{weekKey=addDays(weekKey,-7);renderVerlauf()});
+$('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){weekKey=addDays(weekKey,7);renderVerlauf()}});
 
 // Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
 [mealSheet,eventSheet].forEach(d=>{
