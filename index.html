@@ -1722,14 +1722,14 @@ function renderReminder(){
 Object.entries(REMINDERS).forEach(([id,r])=>{
   const box=remBox(id);
   box.querySelector('[data-rem-toggle]').addEventListener('click',async()=>{
-    if(settings()[r.on]){saveSetting(r.on,false);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
+    // Ausschalten setzt auch die Uhrzeit zurück: Beim nächsten Einschalten gilt wieder die Standardzeit.
+    if(settings()[r.on]){saveSetting(r.on,false);saveSetting(r.time,r.def);saveSetting(r.last,null);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
     if(!canNotify()){renderReminder();toast('Geht hier leider nicht');return}
     // Beim ersten Einschalten fragt das Handy, ob GutLog Benachrichtigungen schicken darf.
     let perm=Notification.permission;
     if(perm==='default'){try{perm=await Notification.requestPermission()}catch{perm='denied'}}
     if(perm!=='granted'){renderReminder();toast('Benachrichtigungen nicht erlaubt');return}
-    saveSetting(r.on,true);
-    if(!settings()[r.time])saveSetting(r.time,r.def);
+    saveSetting(r.on,true);saveSetting(r.time,r.def);
     scheduleReminder();renderReminder();toast('Erinnerung an');
   });
   // Uhrzeit sofort speichern. Das iPhone meldet Änderungen am Uhrzeit-Rad nur als „input“,
