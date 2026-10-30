@@ -1,588 +1,2046 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>GutLog</title>
-<meta name="theme-color" content="#2C5F3F">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F3EE">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="GutLog">
-<link id="appleTouchIcon" rel="apple-touch-icon">
-<link id="manifestLink" rel="manifest">
+<title>GutLog</title>
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleTouchIcon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ══════════════════════════════════════════════════════════════════
+   1. DESIGN-TOKENS
+   Alle Farben, Schriften, Abstände und Rundungen aus dem Design System
+   „GutLog“. Wer eine Farbe ändern will, ändert sie NUR hier – alle Stellen,
+   die var(--name) benutzen, ändern sich mit.
+   ══════════════════════════════════════════════════════════════════ */
 :root{
-  --green:#4A7C59;--gd:#2C5F3F;--gp:#EEF5F0;--gl:#C8E6C9;
-  --bg:#F2F5F2;--text:#1E2E25;--mut:#7A9080;
-  --amb:#E8924A;--ap:#FDF0E6;--red:#C0392B;--rp:#FDECEA;
-  --pur:#7B5EA7;--pp:#f0ebf8;--wh:#fff;--bd:#D4E4D8;
-  --sh:0 2px 14px rgba(30,46,37,.09);--r:14px;
+  /* Flächen */
+  --surface:#F7F3EE;          /* Seitenhintergrund, warmes Off-White */
+  --surface-raised:#FFFFFF;   /* Karten, Sheets, Felder */
+  --surface-sunken:#ECE6DD;   /* runde Neben-Buttons ohne Rahmen */
+  /* Text und Linien */
+  --ink:#23302A;              /* Haupttext */
+  --ink-muted:#5C6B62;        /* Nebentext: Datum, Uhrzeiten, Hinweise */
+  --border:#F0EAE2;           /* Haarlinie zwischen Listenzeilen */
+  --border-control:#7C8C82;   /* Rahmen nicht gewählter Buttons */
+  /* Salbeigrün: tun, gewählt, hier bin ich */
+  --brand:#3F6B55;
+  --on-brand:#FFFFFF;
+  --brand-soft:#E3EDE6;
+  /* Pfirsich: nur für Beschwerden */
+  --accent:#C96A42;           /* Grafikfarbe, nie für Text */
+  --accent-ink:#A3522F;       /* Text zu Beschwerden */
+  --accent-soft:#FBEAE0;      /* Fläche der Beschwerden-Karte */
+  --danger:#B3362A;           /* nur Löschen und Fehler */
+  /* Schriften */
+  --font-display:"Fraunces",Georgia,serif;
+  --font-sans:"Nunito",system-ui,sans-serif;
+  /* Abstände */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px;
+  /* Rundungen */
+  --radius-md:16px; --radius-lg:24px; --radius-full:9999px;
+  /* Höhe der unteren Navigation */
+  --nav-h:76px;
 }
-html,body{height:100%}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;display:flex;flex-direction:column;overscroll-behavior:none}
-header{background:var(--gd);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);z-index:10}
-.hb h1{font-family:'DM Serif Display',serif;font-size:1.35rem;font-weight:400}
-.hb .hs{font-size:.7rem;opacity:.65;margin-top:1px}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#64DC8C;flex-shrink:0;transition:background .3s}
-.sync-dot.off{background:rgba(255,255,255,.3)}
-.sync-dot.syncing{background:#f9c74f;animation:pulse .8s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.header-right{display:flex;align-items:center;gap:10px}
-.dnav{display:flex;align-items:center;gap:8px}
-.dnav button{background:rgba(255,255,255,.14);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;-webkit-tap-highlight-color:transparent}
-.dnav button:hover{background:rgba(255,255,255,.26)}
-#dateLbl{font-size:.84rem;font-weight:600;min-width:120px;text-align:center}
-.app-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.dtabs{display:flex;background:#fff;border-bottom:1px solid var(--bd);padding:0 16px;gap:2px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
-.dtabs::-webkit-scrollbar{display:none}
-.dtab{padding:11px 14px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--mut);border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.dtab.active{color:var(--green);border-bottom-color:var(--green)}
-.content{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.view{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-.view.active{display:flex;flex-direction:column}
-#view-today{flex-direction:column}
-.today-form{background:#fff;padding:20px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pt{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
-.fg{margin-bottom:13px}
-.fl{display:block;font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
-input[type=text],input[type=time],input[type=number],textarea,select{width:100%;padding:8px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none}
-input:focus,textarea:focus,select:focus{border-color:var(--green);background:#fff}
-textarea{resize:vertical;min-height:58px}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A9080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
-.tbts{display:flex;gap:6px;margin-bottom:16px}
-.tb{flex:1;padding:9px 4px;border:1.5px solid var(--bd);border-radius:9px;cursor:pointer;font-size:.76rem;font-weight:600;text-align:center;background:var(--bg);color:var(--mut);transition:all .15s;line-height:1.3;-webkit-tap-highlight-color:transparent}
-.tb.am{border-color:var(--green);background:var(--gp);color:var(--green)}
-.tb.as{border-color:var(--amb);background:var(--ap);color:#c0621a}
-.tb.ad{border-color:var(--pur);background:var(--pp);color:var(--pur)}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.sc{display:flex;align-items:center;gap:7px;padding:9px 11px;border:2px solid var(--bd);border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:500;transition:all .15s;background:#fff;user-select:none;color:var(--text)}
-.sc input{display:none}
-.ck{width:16px;height:16px;border-radius:4px;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:#fff;margin-left:auto;font-size:.65rem;color:transparent}
-.sc.checked{border-color:var(--amb);background:var(--ap);color:#9a4e0f}
-.sc.checked .ck{background:var(--amb);border-color:var(--amb);color:#fff}
-.sr{display:flex;align-items:center;gap:10px}
-input[type=range]{flex:1;accent-color:var(--amb);cursor:pointer;padding:0;border:none;background:transparent;height:4px}
-.sv{font-weight:700;font-size:1rem;color:var(--amb);min-width:22px;text-align:center}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{flex:1;min-width:90px;padding:9px 6px;border:1.5px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--mut);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.seg button.on{border-color:var(--pur);background:var(--pp);color:var(--pur)}
-.tc{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.sav{width:100%;padding:12px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s,transform .08s;-webkit-tap-highlight-color:transparent}
-.sav:hover{background:#234d30}.sav:active{transform:scale(.98)}
-.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.pill{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600}
-.pm{background:var(--gp);color:var(--green)}.ps{background:var(--ap);color:#c0621a}.pd{background:var(--pp);color:var(--pur)}.pe{background:#fff;color:var(--mut)}
-.tl{position:relative;padding-left:24px}
-.tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gl),var(--bd));border-radius:2px}
-.tle{position:relative;margin-bottom:12px}
-.tld{position:absolute;left:-20px;top:14px;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bg);box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.dm{background:var(--green)}.ds{background:var(--amb)}.dd{background:var(--pur)}
-.ec{border-radius:var(--r);padding:12px 14px;box-shadow:0 1px 6px rgba(30,46,37,.07);border-left:3px solid transparent;position:relative;transition:box-shadow .15s}
-.ec:hover{box-shadow:var(--sh)}
-.ecm{background:#fff;border-left-color:var(--green)}.ecs{background:#fffcf8;border-left-color:var(--amb)}.ecd{background:#faf8ff;border-left-color:var(--pur)}
-.ct{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px}
-.cti{font-size:.68rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-.cb{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
-.bm{background:var(--gp);color:var(--green)}.bs{background:var(--ap);color:#c0621a}.bd2{background:var(--pp);color:var(--pur)}
-.cm{font-size:.88rem;font-weight:500;margin-bottom:3px}
-.cd{font-size:.76rem;color:var(--mut);line-height:1.45}
-.stgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-.stg{font-size:.68rem;padding:2px 7px;background:var(--ap);color:#c0621a;border-radius:10px}
-.sb{height:3px;background:var(--bd);border-radius:2px;margin-top:7px;overflow:hidden}
-.sf{height:100%;border-radius:2px;background:linear-gradient(90deg,#f9c74f,var(--amb),var(--red))}
-.db{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--bd);font-size:.82rem;padding:3px 5px;border-radius:5px;transition:all .12s;opacity:0;line-height:1}
-.ec:hover .db,.ec:focus-within .db{opacity:1}
-.db:hover{color:var(--red);background:var(--rp)}
-.es{text-align:center;padding:50px 20px;color:var(--mut)}
-.ei{font-size:2.6rem;margin-bottom:12px}
-.es p{font-size:.87rem;line-height:1.7}
-.inner{padding:20px 22px;max-width:820px}
-.st{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:16px}
-.hd{margin-bottom:26px}
-.hdl{font-size:.78rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);padding-bottom:6px;margin-bottom:12px}
-.hdl.tdy{color:var(--green);font-size:.82rem}
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.scc{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);text-align:center}
-.sn{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--green);line-height:1}
-.sl{font-size:.72rem;color:var(--mut);margin-top:5px;line-height:1.3}
-.cb2{background:#fff;border-radius:var(--r);padding:18px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:14px}
-.cbt{font-weight:600;font-size:.85rem;margin-bottom:13px}
-.br{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:.81rem}
-.bl{min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bbg{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
-.bf{height:100%;border-radius:4px;transition:width .4s ease}
-.bfs{background:var(--amb)}.bft{background:linear-gradient(90deg,var(--amb),var(--red))}
-.bc{font-size:.73rem;color:var(--mut);min-width:28px;text-align:right}
-.cn{font-size:.71rem;color:var(--mut);margin-top:10px;line-height:1.5}
-.nb{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:18px}
-.nta{width:100%;min-height:120px;padding:12px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);outline:none;resize:vertical;transition:border-color .15s}
-.nta:focus{border-color:var(--green);background:#fff}
-.nsb{margin-top:9px;padding:8px 18px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;transition:background .15s}
-.nsb:hover{background:#234d30}
-.nc{background:#fff;border-radius:var(--r);padding:13px 15px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:10px;border-left:3px solid var(--gl)}
-.nd{font-size:.7rem;color:var(--mut);margin-bottom:5px}
-.nt{font-size:.85rem;line-height:1.7;white-space:pre-wrap}
-/* REPORT */
-.wn{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.wb{background:#fff;border:1.5px solid var(--bd);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);transition:all .15s;box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.wb:hover:not(:disabled){border-color:var(--green);color:var(--green)}
-.wb:disabled{opacity:.35;cursor:not-allowed}
-.wl{font-weight:600;font-size:.9rem}
-.rc{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:16px;border-left:4px solid var(--green)}
-.rh{display:flex;align-items:center;gap:9px;margin-bottom:14px}
-.rp2{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);background:var(--gp);padding:3px 9px;border-radius:10px}
-.rt{font-family:'DM Serif Display',serif;font-size:1.05rem}
-/* SETTINGS */
-.ss{background:#fff;border-radius:var(--r);box-shadow:0 1px 6px rgba(30,46,37,.07);padding:16px 18px;margin-bottom:16px}
-.ssl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin-bottom:13px}
-.srow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);gap:14px}
-.srow:last-child{border-bottom:none;padding-bottom:0}
-.srl{font-size:.88rem;font-weight:500}
-.srs{font-size:.72rem;color:var(--mut);margin-top:2px;line-height:1.4}
-.tog{position:relative;width:44px;height:26px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tr2{position:absolute;inset:0;background:var(--bd);border-radius:26px;cursor:pointer;transition:background .2s}
-.tr2::before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.22)}
-.tog input:checked+.tr2{background:var(--green)}
-.tog input:checked+.tr2::before{transform:translateX(18px)}
-.ns{font-size:.77rem;padding:8px 11px;border-radius:8px;margin-top:10px;display:none;line-height:1.5}
-.nso{background:var(--gp);color:var(--green);display:block}
-.nsw{background:var(--ap);color:#c0621a;display:block}
-.nse{background:var(--rp);color:var(--red);display:block}
-.tss{margin-top:14px;display:none}
-.tcs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.tch{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:18px;border:1.5px solid var(--bd);font-size:.78rem;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
-.tcd{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.72rem;padding:0 0 0 2px;line-height:1;transition:color .12s}
-.tcd:hover{color:var(--red)}
-.atr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ti{padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none;flex:1;max-width:130px;min-width:0;-webkit-appearance:none}
-.ti:focus{border-color:var(--green)}
-.atb{padding:8px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0}
-.ab{padding:7px 13px;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.79rem;font-weight:600;background:var(--bg);color:var(--text);transition:all .15s;white-space:nowrap}
-.ab:hover{border-color:var(--green);color:var(--green)}
-.ab.dng{border-color:var(--red);color:var(--red);background:var(--rp)}
-/* SUPABASE CONFIG */
-.cfg-box{background:var(--gp);border:1.5px solid var(--gl);border-radius:var(--r);padding:18px;margin-bottom:16px}
-.cfg-title{font-weight:700;font-size:.88rem;margin-bottom:4px;color:var(--gd)}
-.cfg-sub{font-size:.78rem;color:var(--mut);margin-bottom:14px;line-height:1.5}
-.cfg-input{width:100%;padding:9px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);background:#fff;outline:none;margin-bottom:8px;-webkit-appearance:none}
-.cfg-input:focus{border-color:var(--green)}
-.cfg-save{padding:9px 20px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600}
-/* BOTTOM NAV */
-.bnav{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;z-index:200;background:rgba(22,36,28,.97);backdrop-filter:blur(24px) saturate(200%);-webkit-backdrop-filter:blur(24px) saturate(200%);border-top:1px solid rgba(255,255,255,.07);box-shadow:0 -4px 24px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
-.bni2{display:flex;padding:6px 4px}
-.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;cursor:pointer;gap:3px;border:none;background:none;color:rgba(255,255,255,.38);font-family:'Inter',sans-serif;border-radius:10px;transition:all .18s ease;min-width:0;-webkit-tap-highlight-color:transparent}
-.bni.active{color:#fff}
-.bni:active{transform:scale(.9);opacity:.7}
-.bni svg{width:22px;height:22px;flex-shrink:0;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8;transition:transform .18s ease}
-.bni.active svg{transform:scale(1.1)}
-.bni span{font-size:.56rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
-/* TOAST */
-.toast{position:fixed;top:calc(76px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-16px);min-width:180px;max-width:calc(100vw - 48px);text-align:center;padding:12px 22px;border-radius:22px;font-size:.87rem;font-weight:600;opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.18);background:var(--gd);color:#fff}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.err{background:var(--red)}.toast.info{background:#1E2E25}
-@media(max-width:700px){
-  .dtabs{display:none}.bnav{display:block}
-  .content{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
-  .sgrid{grid-template-columns:1fr 1fr}.sgrid .scc:last-child{grid-column:span 2}
+
+/* ══════════════════════════════════════════════════════════════════
+   2. GRUNDLAGEN
+   ══════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--surface); color:var(--ink);
+  font:400 16px/22px var(--font-sans);
+  -webkit-tap-highlight-color:transparent;
 }
-@media(min-width:701px){
-  .dtabs{display:flex}.bnav{display:none}
-  .toast{left:auto;right:24px;top:80px;min-width:0;text-align:left;transform:translateY(-10px)}
-  .toast.show{transform:translateY(0)}
-  #view-today{flex-direction:row}
-  .today-form{width:420px;flex:none;border-right:1px solid var(--bd);overflow-y:auto}
+[hidden]{display:none!important}
+button{font-family:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1{margin:0;font:600 34px/40px var(--font-display)}
+h2{margin:0;font:500 21px/26px var(--font-display)}
+p{margin:0}
+
+/* Die App ist nur fürs Handy gestaltet. Auf größeren Bildschirmen bleibt sie eine schmale Spalte. */
+.app{max-width:480px;margin:0 auto;min-height:100dvh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-4))}
+
+/* ══════════════════════════════════════════════════════════════════
+   3. BAUSTEINE (siehe „Bausteine“ im Design System)
+   ══════════════════════════════════════════════════════════════════ */
+.screen{padding:28px var(--space-5) var(--space-4)}
+.screen-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-3);padding:0 var(--space-1) var(--space-2)}
+.eyebrow{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.stack{display:flex;flex-direction:column;gap:14px;margin-top:var(--space-4)}
+.row{display:flex;align-items:center;gap:6px}
+
+/* Karte: weiß auf Off-White, keine Rahmen, keine Schatten */
+.card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:18px 18px 18px var(--space-5)}
+.card-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.card--accent{background:var(--accent-soft)}
+/* Eine ganze Karte als Button (Beschwerden-Karte) */
+.card-button{width:100%;border:none;text-align:left;cursor:pointer;font:inherit}
+.card-title{display:block;font:500 21px/26px var(--font-display)}
+
+.hint{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.hint--accent{font-weight:700;color:var(--accent-ink)}
+.card .hint{margin-top:var(--space-2)}
+
+/* Runde Icon-Buttons: 44 px für Nebenaktionen, 52 px für Hauptaktionen */
+.btn-round{
+  width:44px;height:44px;flex-shrink:0;padding:0;border:none;border-radius:var(--radius-full);
+  background:var(--surface-sunken);color:var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
 }
-.hidden{display:none!important}
+.btn-round:disabled{background:transparent;color:var(--border-control);cursor:default}
+.btn-round--lg{width:52px;height:52px}
+.btn-round--brand{background:var(--brand);color:var(--on-brand)}
+.btn-round--outline{background:var(--surface-raised);border:1.5px solid var(--border-control)}
+.btn-round--white{background:var(--surface-raised);color:var(--accent-ink)}
+
+/* Breiter Button: nur Wort, kein Icon */
+.btn-wide{width:100%;height:56px;border:none;border-radius:var(--radius-full);background:var(--brand);color:var(--on-brand);font:800 17px var(--font-sans);cursor:pointer}
+
+/* Kleiner Textlink für Optionales, beginnt mit „+“ */
+.link-plus{height:28px;padding:0;border:none;background:none;font:700 13px var(--font-sans);color:var(--ink-muted);cursor:pointer;text-align:left}
+
+/* Untere Navigation mit vier Punkten */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+.nav-inner{max-width:480px;margin:0 auto;height:var(--nav-h);display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-1);text-decoration:none;color:var(--ink-muted);font-size:12px;line-height:16px;font-weight:700}
+.nav a[aria-current="page"]{color:var(--brand);font-weight:800}
+
+/* Kurze Rückmeldung unten, z. B. „Gespeichert“ */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--space-4));
+  transform:translate(-50%,8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+  max-width:calc(100% - 40px);padding:10px 18px;border-radius:var(--radius-full);
+  background:var(--ink);color:var(--surface);font-size:14px;font-weight:700;z-index:20;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Gewählter runder Button (z. B. Haken bei Pantoprazol): gefüllt in Salbeigrün */
+.btn-round[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+
+/* Einträge in einer Karte: eine Zeile pro Mahlzeit oder Medikament */
+.entries{list-style:none;margin:var(--space-2) 0 0;padding:0}
+.entry{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);
+  width:100%;min-height:44px;padding:10px 0;border:0;border-top:1px solid var(--border);
+  background:none;text-align:left;font:inherit;
+}
+button.entry{cursor:pointer}
+.entry-main{min-width:0}
+.entry-sub{display:block;font-size:14px;line-height:18px;font-weight:600;color:var(--ink-muted)}
+.entry-time{flex-shrink:0;font-size:14px;font-weight:600;color:var(--ink-muted)}
+/* Unterstrichener Link im Text, z. B. „ändern“ */
+.inline-link{min-height:28px;padding:0 2px;border:none;background:none;font:700 14px var(--font-sans);color:var(--brand);text-decoration:underline;cursor:pointer}
+
+/* Sheet: Fenster, das sich von unten über den Screen schiebt */
+dialog.sheet{
+  position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:480px;max-height:92dvh;overflow:auto;
+  border:none;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:10px var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+  background:var(--surface);color:var(--ink);
+}
+dialog.sheet::backdrop{background:var(--ink);opacity:.45}
+.sheet-handle{width:40px;height:5px;border-radius:3px;background:var(--border-control);opacity:.35;margin:0 auto 14px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:18px}
+.sheet-title{margin:0;font:600 26px/32px var(--font-display)}
+
+/* Popup: kleines Fenster in der Mitte, z. B. für Rückfragen vor dem Löschen */
+dialog.popup{width:calc(100% - 2*var(--space-6));max-width:360px;margin:auto;padding:var(--space-6) var(--space-5) var(--space-3);border:none;border-radius:var(--radius-lg);background:var(--surface);color:var(--ink);text-align:center}
+dialog.popup::backdrop{background:var(--ink);opacity:.45}
+dialog.popup h2{font:600 24px/30px var(--font-display)}
+dialog.popup h2:focus{outline:none}
+dialog.popup .hint{margin:var(--space-3) 0 var(--space-5)}
+/* Formularfelder */
+.field{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px}
+.label{font-size:16px;font-weight:800}
+.label .opt{font-weight:600;color:var(--ink-muted)}
+.input{
+  width:100%;height:52px;padding:0 var(--space-4);
+  border:1.5px solid var(--border-control);border-radius:var(--radius-md);
+  background:var(--surface-raised);color:var(--ink);font:400 16px var(--font-sans);
+}
+.input:focus{outline:2px solid var(--brand);outline-offset:1px}
+/* iPhone: Zeitfelder haben sonst eine eigene Mindestbreite (ragen über den Rand) und zentrierten Text */
+.input[type="time"]{-webkit-appearance:none;appearance:none;display:block;min-width:0;text-align:left;line-height:49px;padding-top:0;padding-bottom:0}
+/* iPhone setzt die Zeit sonst an den oberen Rand: Höhe 52 px minus 2 × 1,5 px Rahmen = 49 px Zeilenhöhe */
+.input::-webkit-date-and-time-value{text-align:left;margin:0;line-height:49px}
+/* Überschrift im Sheet bekommt beim Öffnen den Fokus (statt des X-Buttons), ohne Rahmen */
+.sheet-title:focus{outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.chip{
+  height:44px;padding:0 var(--space-4);border-radius:var(--radius-full);
+  border:1.5px solid var(--surface-raised);background:var(--surface-raised);
+  font:700 15px var(--font-sans);color:var(--ink);cursor:pointer;
+}
+.chip[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.btn-wide:disabled{background:var(--surface-sunken);color:var(--ink-muted);cursor:default}
+.btn-danger-text{display:block;margin:var(--space-3) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--danger);cursor:pointer}
+/* Leiser Textbutton, z. B. „Abbrechen“ */
+.btn-quiet-text{display:block;margin:var(--space-2) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--ink-muted);cursor:pointer}
+/* Breiter Button in Rot: nur für endgültiges Löschen */
+.btn-wide--danger{background:var(--danger)}
+/* Chips auf einer weißen Karte brauchen einen sichtbaren Rahmen */
+.card .chip{border-color:var(--border-control)}
+.card .chip[aria-pressed="true"]{border-color:var(--brand)}
+/* Ein/Aus-Schalter (Einstellungen) */
+.switch{width:56px;height:34px;flex-shrink:0;padding:3px;border-radius:17px;border:1.5px solid var(--border-control);background:var(--surface-raised);display:flex;align-items:center;justify-content:flex-start;cursor:pointer}
+.switch span{display:block;width:24px;height:24px;border-radius:12px;background:var(--ink-muted)}
+.switch[aria-checked="true"]{border-color:var(--brand);background:var(--brand);justify-content:flex-end}
+.switch[aria-checked="true"] span{width:26px;height:26px;border-radius:13px;background:var(--on-brand)}
+/* Eine Erinnerung in der Karte, mit Trennlinie zur nächsten */
+.reminder{margin-top:var(--space-3)}
+.reminder+.reminder{padding-top:var(--space-3);border-top:1px solid var(--border)}
+/* Lange Wörter ohne Leerzeichen umbrechen, statt die Seite breiter zu machen */
+.entry-main,.chip,.list-row,.q-name,.hint,.sheet-title{overflow-wrap:anywhere}
+.chip{height:auto;min-height:44px;max-width:100%;text-align:left}
+/* Unsichtbar größere Tippfläche für kleine Textlinks und Schalter (mindestens 44 px hoch) */
+.inline-link,.link-plus,.switch{position:relative}
+.inline-link::after,.link-plus::after,.switch::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:44px;transform:translateY(-50%)}
+/* Zeile in einer Liste zum Antippen (Gerichte) mit Pfeil rechts */
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);width:100%;min-height:56px;padding:8px 0;border:0;border-top:1px solid var(--border);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.list-row:first-child{border-top:0}
+.list-row svg{flex-shrink:0;color:var(--ink-muted)}
+.dish-list{margin-top:var(--space-2);padding:4px 18px;border-radius:var(--radius-lg);background:var(--surface-raised)}
+
+/* Mahlzeit: Art (Frühstück, Mittag, Abend, Snack) als Leiste mit vier Feldern */
+.segmented{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:18px;padding:6px;border-radius:var(--radius-lg);background:var(--surface-raised)}
+.segmented button{height:60px;border:none;border-radius:18px;background:transparent;color:var(--ink-muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 13px var(--font-sans);cursor:pointer}
+.segmented button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+/* Eingabefeld mit rundem Button daneben (Stern, Hinzufügen) */
+.input-row{display:flex;gap:var(--space-2)}
+.input-row .input{flex:1;min-width:0}
+textarea.input{height:auto;padding:12px var(--space-4);line-height:22px;resize:none}
+/* Zutaten: hellgrüne Fläche mit Chips */
+.ingredients{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px;padding:14px 14px var(--space-4);border-radius:var(--radius-lg);background:var(--brand-soft)}
+.ingredients-head{display:flex;justify-content:space-between;align-items:center;margin:-6px -6px -4px 0;font-size:14px;font-weight:800;color:var(--brand)}
+/* Runder Button ohne Fläche, z. B. der Stift zum Bearbeiten der Zutaten */
+.btn-round--ghost{background:transparent;color:var(--brand)}
+.chip--solid[aria-pressed="true"]{border-color:var(--brand);background:var(--brand);color:var(--on-brand)}
+.chip--add{border:1.5px dashed var(--brand);background:transparent;color:var(--brand)}
+/* Bearbeiten-Modus: Chips zum Entfernen mit ×, umrandet statt gefüllt */
+.chip--remove{border-color:var(--brand);background:var(--surface-raised);color:var(--ink)}
+.chip--remove span{margin-left:6px;color:var(--brand);font-weight:800}
+/* Portion: drei Kacheln mit Schalen */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
+.tile{height:60px;border-radius:20px;border:1.5px solid var(--surface-raised);background:var(--surface-raised);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 14px var(--font-sans);color:var(--ink);cursor:pointer}
+.tile[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.tile svg{color:var(--ink-muted)}
+/* Stärke-Kacheln im Ereignis: dieselben Balken wie im Tagesabschluss */
+.lv-tile .on{fill:var(--ink-muted)}
+.lv-tile .off{fill:var(--surface-sunken)}
+.lv-tile[aria-pressed="true"] .on{fill:var(--accent-ink)}
+.lv-tile[aria-pressed="true"] .off{fill:var(--accent);opacity:.3}
+.tile[aria-pressed="true"] svg{color:var(--brand)}
+
+/* Tagesabschluss: eine Karte pro Frage, rechts die Stufen-Buttons */
+.group-title{margin:var(--space-2) 0 0 var(--space-1);font:500 21px/26px var(--font-display)}
+.q-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:12px 12px 12px 18px}
+.q-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.q-name{font-size:16px;font-weight:800}
+.q-val{font-size:14px;font-weight:700;color:var(--ink-muted)}
+.q-val.is-set{color:var(--accent-ink)}
+.tone-brand .q-val.is-set{color:var(--brand)}
+.levels{display:flex;gap:6px}
+/* Stufen-Button: Strich = keins, 1–3 Balken = leicht bis stark */
+.lv{width:44px;height:44px;flex-shrink:0;padding:0;border-radius:var(--radius-md);border:1.5px solid var(--border-control);background:var(--surface-raised);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.lv .on{fill:var(--ink-muted)}
+.lv .off{fill:var(--surface-sunken)}
+.lv[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.lv[aria-pressed="true"] .on{fill:var(--accent-ink)}
+.lv[aria-pressed="true"] .off{fill:var(--accent);opacity:.3}
+.tone-brand .lv[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.tone-brand .lv[aria-pressed="true"] .on{fill:var(--brand)}
+.tone-brand .lv[aria-pressed="true"] .off{fill:var(--brand);opacity:.3}
+.count{width:40px;text-align:center;font-size:20px;font-weight:800}
+.kinds4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:var(--space-3)}
+.chip--outline{border-color:var(--border-control);padding:0 var(--space-2)}
+.chip--accent[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile--accent[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile--accent[aria-pressed="true"] svg{color:var(--accent-ink)}
+.bottom-actions{display:flex;align-items:center;gap:10px;margin-top:var(--space-3)}
+.btn-round--xl{width:56px;height:56px}
+a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoration:none}
+
+/* Verlauf: Wochen-Diagramm aus Balken (eine Spalte pro Tag) */
+.chart{display:flex;gap:var(--space-2);margin-top:var(--space-3)}
+.y-axis{width:48px;height:120px;display:flex;flex-direction:column;justify-content:space-between;text-align:right;font-size:12px;font-weight:700;color:var(--ink-muted)}
+.days{flex:1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--space-1)}
+.day-col{display:flex;flex-direction:column;align-items:center;gap:var(--space-2)}
+.track{width:26px;height:120px;border-radius:13px;background:var(--surface);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.bar{width:26px;border-radius:13px;background:var(--accent)}
+.bar--strong{background:var(--accent-ink)}
+.bar--zero{height:6px;background:var(--border-control);opacity:.45}
+.day-label{font-size:13px;font-weight:800}
+.day-label.is-today{color:var(--brand)}
+.panto{height:14px;display:flex;align-items:center}
+.panto .fill{fill:var(--brand)}
+.panto .ring{fill:none;stroke:var(--brand);stroke-width:1.5}
+.panto .ring--none{stroke:var(--border-control)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-1) 14px;margin-top:var(--space-3);font-size:13px;font-weight:700;color:var(--ink-muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+
+/* Bericht: Woche wählen und drei Kennzahlen */
+.week-pick{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:6px;border-radius:var(--radius-lg);background:var(--surface-raised)}
+.week-pick-text{display:flex;flex-direction:column;align-items:center;text-align:center}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
+.kpi{border-radius:20px;padding:14px 12px;background:var(--surface-raised);display:flex;flex-direction:column;gap:2px}
+.kpi b{font:600 28px/32px var(--font-display)}
+.kpi b small{font-size:16px;color:var(--ink-muted)}
+.kpi span{font-size:13px;line-height:17px;font-weight:700;color:var(--ink-muted)}
+.kpi--brand b{color:var(--brand)}
+.kpi--accent{background:var(--accent-soft)}
+.kpi--accent b,.kpi--accent b small,.kpi--accent span{color:var(--accent-ink)}
+.share-list{list-style:none;margin:var(--space-2) 0 0;padding:0}
+.share-list li{display:flex;align-items:center;gap:var(--space-3);padding:10px 0;border-top:1px solid var(--border)}
+.note-box{margin-top:var(--space-2);padding:10px 14px;border-radius:var(--radius-md);background:var(--surface);font-size:14px;font-weight:600;color:var(--ink-muted)}
+
+/* Testband (nur in der Testversion sichtbar) */
+.stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:var(--on-brand);font:700 12px/22px var(--font-sans);text-align:center}
 </style>
 </head>
 <body>
-<header>
-  <div class="hb"><h1>📖 GutLog</h1><div class="hs">Ernährungs- & Symptomprotokoll</div></div>
-  <div class="header-right">
-    <div class="dnav">
-      <button onclick="changeDay(-1)">‹</button>
-      <span id="dateLbl"></span>
-      <button onclick="changeDay(1)">›</button>
-    </div>
-  </div>
-</header>
-<div class="app-body">
-  <nav class="dtabs">
-    <div class="dtab active" onclick="go('today')">Heute</div>
-    <div class="dtab" onclick="go('history')">Verlauf</div>
-    <div class="dtab" onclick="go('analysis')">Auswertung</div>
-    <div class="dtab" onclick="go('notes')">Notizen</div>
-    <div class="dtab" onclick="go('report')">📤 Bericht</div>
-    <div class="dtab" onclick="go('settings')">⚙️ Einstellungen</div>
-  </nav>
-  <div class="content">
-    <!-- TODAY -->
-    <div id="view-today" class="view active">
-      <div class="today-form">
-        <div class="pt">Eintrag hinzufügen</div>
-        <div class="tbts">
-          <div class="tb am" id="btn-meal" onclick="setType('meal')">🍽<br>Mahlzeit</div>
-          <div class="tb" id="btn-symptom" onclick="setType('symptom')">⚡<br>Symptom</div>
-          <div class="tb" id="btn-medication" onclick="setType('medication')">💊<br>Medikament</div>
-        </div>
-        <div class="fg"><label class="fl">Uhrzeit</label><input type="time" id="eTime"></div>
-        <div id="mealF">
-          <div class="fg"><label class="fl">Gericht / Lebensmittel</label><input type="text" id="mName" placeholder="z. B. Haferbrei mit Banane"></div>
-          <div class="fg"><label class="fl">Zutaten & Menge</label><textarea id="mDet" placeholder="z. B. 60g Haferflocken, 200ml Hafermilch"></textarea></div>
-          <div class="fg"><label class="fl">Getränke dazu</label><input type="text" id="mDrk" placeholder="z. B. Wasser, Kamillentee"></div>
-        </div>
-        <div id="symF" class="hidden">
-          <div class="fg">
-            <label class="fl">Symptome</label>
-            <div class="sg">
-              <label class="sc"><input type="checkbox" value="Sodbrennen">🔥 Sodbrennen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Blähbauch">🎈 Blähbauch<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Blähungen">💨 Blähungen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Durchfall">🚿 Durchfall<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Übelkeit">🤢 Übelkeit<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Magenschmerzen">😣 Magenschm.<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Aufstoßen">↑ Aufstoßen<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Völlegefühl">🍱 Völlegefühl<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Magenkrämpfe">⚡ Magenkrämpfe<span class="ck">✓</span></label>
-              <label class="sc"><input type="checkbox" value="Brustschmerzen">💔 Brustschm.<span class="ck">✓</span></label>
-            </div>
-          </div>
-          <div class="fg"><label class="fl">Intensität (1–10)</label><div class="sr"><input type="range" id="sevS" min="1" max="10" value="5" oninput="document.getElementById('sevV').textContent=this.value"><span class="sv" id="sevV">5</span></div></div>
-          <div class="fg"><label class="fl">Situation</label><select id="sTim"><option value="">– keine Angabe –</option><option>Im Liegen / nachts</option><option>Beim Bücken / bei Bewegung</option><option>Bei / nach Stress</option><option>Mit leerem Magen</option></select></div>
-          <div class="fg"><label class="fl">Anmerkungen</label><textarea id="sNot" placeholder="z. B. nach fettigem Essen..."></textarea></div>
-        </div>
-        <div id="medF" class="hidden">
-          <div class="tc">
-            <div class="fg"><label class="fl">Medikament</label><select id="mdSel" onchange="document.getElementById('mdOther').classList.toggle('hidden',this.value!=='other')"><option value="Pantoprazol">Pantoprazol</option><option value="other">Anderes …</option></select></div>
-            <div class="fg"><label class="fl">Dosis (mg)</label><input type="number" id="mdDos" value="40" min="0"></div>
-          </div>
-          <div class="fg hidden" id="mdOther"><label class="fl">Name des Medikaments</label><input type="text" id="mdNam" placeholder="z. B. Gaviscon"></div>
-          <div class="fg"><label class="fl">Status</label><div class="seg" id="mdStat"><button type="button" class="on" data-v="eingenommen">Eingenommen</button><button type="button" data-v="reduziert">Reduziert</button><button type="button" data-v="ausgelassen">Ausgelassen</button></div></div>
-          <div class="fg"><label class="fl">Einnahmezeitpunkt</label><select id="mdTim"><option>Nüchtern (30 min vor Frühstück)</option><option>Zum Frühstück</option><option>Mittags</option><option>Abends</option><option>Nach Bedarf</option></select></div>
-          <div class="fg"><label class="fl">Notiz</label><textarea id="mdNot" placeholder="z. B. Grund fürs Auslassen..."></textarea></div>
-        </div>
-        <button class="sav" onclick="addEntry()">Eintrag speichern</button>
-      </div>
-    </div>
-    <!-- HISTORY -->
-    <div id="view-history" class="view"><div class="inner" id="histC"></div></div>
-    <!-- ANALYSIS -->
-    <div id="view-analysis" class="view"><div class="inner" id="analC"></div></div>
-    <!-- NOTES -->
-    <div id="view-notes" class="view">
-      <div class="inner">
-        <div class="st">Notizen & Arzttermine</div>
-        <div class="nb"><textarea class="nta" id="nIn" placeholder="z. B. Beobachtungen, Fragen für den Arzt..."></textarea><button class="nsb" onclick="saveNote()">Notiz speichern</button></div>
-        <div id="nList"></div>
-      </div>
-    </div>
-    <!-- REPORT -->
-    <div id="view-report" class="view"><div class="inner" id="repC"></div></div>
-    <!-- SETTINGS -->
-    <div id="view-settings" class="view">
-      <div class="inner">
-        <div class="st">Einstellungen</div>
+<div class="stage-band" id="stageBand" hidden>Testversion · Daten getrennt von der echten App</div>
 
+<main class="app">
 
-        <div class="ss">
-          <div class="ssl">🔔 Erinnerungen</div>
-          <div class="srow"><div><div class="srl">Tägliche Erinnerungen</div><div class="srs">Benachrichtigung wenn noch kein Eintrag heute</div></div><label class="tog"><input type="checkbox" id="nTog" onchange="toggleNotif(this.checked)"><span class="tr2"></span></label></div>
-          <div id="nStat" class="ns"></div>
-          <div class="tss" id="tSec">
-            <div style="font-size:.81rem;font-weight:600;color:var(--text);margin-bottom:9px">Erinnerungszeiten</div>
-            <div class="tcs" id="tChps"></div>
-            <div class="atr"><input type="time" id="nTi" class="ti" value="12:00"><button class="atb" onclick="addTime()">+ Hinzufügen</button></div>
-          </div>
-          <div class="srow" style="margin-top:12px"><div><div class="srl">Test-Benachrichtigung</div><div class="srs">Sofort eine Probe senden</div></div><button class="ab" onclick="testNotif()">Testen</button></div>
-        </div>
-        <div class="ss">
-          <div class="ssl">📱 App & Daten</div>
-          <div class="srow"><div><div class="srl">Version</div></div><span style="font-size:.8rem;color:var(--mut)">GutLog 1.0</span></div>
-          <div class="srow"><div><div class="srl">Alle Daten löschen</div><div class="srs">Unwiderruflich – nur lokale Daten</div></div><button class="ab dng" onclick="deleteAll()">Löschen</button></div>
-        </div>
+  <!-- ══ HEUTE ══════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-heute" aria-labelledby="heuteTitel">
+    <div class="screen-head">
+      <div>
+        <div class="eyebrow" id="heuteDatum"></div>
+        <h1 id="heuteTitel">Heute</h1>
+      </div>
+      <div class="row">
+        <button class="btn-round" id="tagZurueck" aria-label="Vorheriger Tag"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="btn-round" id="tagVor" aria-label="Nächster Tag"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>
     </div>
-  </div>
-  <!-- BOTTOM NAV -->
-  <nav class="bnav">
-    <div class="bni2">
-      <button class="bni active" id="bn-today" onclick="go('today')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Heute</span></button>
-      <button class="bni" id="bn-history" onclick="go('history')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Verlauf</span></button>
-      <button class="bni" id="bn-analysis" onclick="go('analysis')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Analyse</span></button>
-      <button class="bni" id="bn-report" onclick="go('report')"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Bericht</span></button>
-      <button class="bni" id="bn-settings" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Einst.</span></button>
+
+    <div class="stack">
+      <section class="card" aria-labelledby="mahlzeitenTitel">
+        <div class="card-row">
+          <h2 id="mahlzeitenTitel">Mahlzeiten</h2>
+          <button class="btn-round btn-round--lg btn-round--brand" id="mealPlus" aria-label="Mahlzeit eintragen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <p class="hint" id="mahlzeitenHinweis">Noch nichts eingetragen</p>
+        <ul class="entries" id="mahlzeitenListe"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="pantoTitel">
+        <div class="card-row">
+          <div>
+            <h2 id="pantoTitel">Pantoprazol</h2>
+            <p class="hint" id="pantoStatus" style="margin-top:2px"></p>
+          </div>
+          <div class="row" style="gap:var(--space-2)">
+            <button class="btn-round btn-round--lg btn-round--outline" id="pantoJa" aria-pressed="false" aria-label="Pantoprazol genommen"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+          </div>
+        </div>
+        <ul class="entries" id="medListe"></ul>
+        <button class="link-plus" id="medPlus" style="margin-top:var(--space-2)">+ Medikament</button>
+      </section>
+
+      <a href="#abschluss" class="card card--accent card-row card-button" style="text-decoration:none;color:inherit">
+        <span>
+          <span class="card-title">Wie war dein Tag?</span>
+          <span class="hint hint--accent" id="abschlussHinweis" style="display:block;margin-top:2px">0 von 6 ausgefüllt</span>
+        </span>
+        <span class="btn-round btn-round--lg btn-round--white" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </a>
     </div>
-  </nav>
-</div>
-<div class="toast" id="toast"></div>
+  </section>
+
+  <!-- ══ TAGESABSCHLUSS ═════════════════════════════════════════════
+       Wird jederzeit gespeichert, sobald etwas angetippt wird. „Fertig“ führt nur zurück. -->
+  <section class="screen" id="screen-abschluss" aria-labelledby="abschlussTitel" hidden>
+    <div class="screen-head" style="justify-content:flex-start;align-items:center">
+      <a href="#heute" class="btn-round" aria-label="Zurück zu Heute"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a>
+      <div>
+        <h1 id="abschlussTitel" style="font-size:28px;line-height:34px">Wie war dein Tag?</h1>
+        <div class="eyebrow" id="abschlussDatum"></div>
+      </div>
+    </div>
+    <div class="stack" style="gap:10px">
+      <h2 class="group-title">Beschwerden</h2>
+      <div class="stack" style="gap:10px;margin:0" id="qBeschwerden"></div>
+      <div class="q-card" id="qStuhl"></div>
+      <h2 class="group-title" style="margin-top:var(--space-4)">Alltag</h2>
+      <div class="stack tone-brand" style="gap:10px;margin:0" id="qAlltag"></div>
+      <div id="ereignisBlock" hidden>
+        <h2 class="group-title" style="margin-top:var(--space-4)">Ereignisse</h2>
+        <div class="card" style="margin-top:10px;padding-top:6px;padding-bottom:6px"><ul class="entries" id="ereignisListe" style="margin:0"></ul></div>
+      </div>
+      <div class="bottom-actions">
+        <button class="btn-round btn-round--xl" id="eventPlus" aria-label="Einzelnes Ereignis mit Uhrzeit notieren"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+        <a href="#heute" class="btn-wide" id="abschlussFertig" style="flex:1">Fertig</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VERLAUF ════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-verlauf" aria-labelledby="verlaufTitel" hidden>
+    <div class="screen-head">
+      <div><div class="eyebrow" id="wocheText"></div><h1 id="verlaufTitel">Verlauf</h1></div>
+      <div class="row">
+        <button class="btn-round" id="wocheZurueck" aria-label="Vorherige Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="btn-round" id="wocheVor" aria-label="Nächste Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="chips" role="group" aria-label="Beschwerde auswählen" id="verlaufFilter"></div>
+
+      <section class="card" aria-labelledby="chartTitel" style="padding:18px 16px 16px 14px">
+        <h2 id="chartTitel" style="margin-left:6px"></h2>
+        <div class="chart">
+          <div class="y-axis" aria-hidden="true" id="yAchse"></div>
+          <div class="days" id="chartTage"></div>
+        </div>
+        <div class="legend" id="legende"></div>
+      </section>
+
+      <p class="hint" style="padding:0 6px">Mögliche Auslöser wertet Sandra im Wochenbericht aus.</p>
+    </div>
+  </section>
+
+  <!-- ══ BERICHT ════════════════════════════════════════════════════ -->
+  <section class="screen" id="screen-bericht" aria-labelledby="berichtTitel" hidden>
+    <div class="screen-head"><div><div class="eyebrow">Für Sandra</div><h1 id="berichtTitel">Bericht</h1></div></div>
+    <div class="stack">
+      <div class="week-pick">
+        <button class="btn-round" id="berichtZurueck" aria-label="Vorherige Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="week-pick-text"><b id="berichtWoche" style="font-size:16px"></b><span class="hint" id="berichtWocheName" style="font-size:13px"></span></div>
+        <button class="btn-round" id="berichtVor" aria-label="Nächste Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><b id="kpiTage"></b><span>Tage erfasst</span></div>
+        <div class="kpi kpi--brand"><b id="kpiPanto"></b><span>Pantoprazol</span></div>
+        <div class="kpi kpi--accent"><b id="kpiSod"></b><span>mit Sodbrennen</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="geteiltTitel">
+        <h2 id="geteiltTitel">Das wird geteilt</h2>
+        <ul class="share-list" id="berichtInhalt"></ul>
+        <p class="note-box" id="berichtLuecken" hidden></p>
+      </section>
+
+      <p class="hint" style="text-align:center;padding:0 12px">Geht als Datei über dein Handy raus, z. B. per WhatsApp oder E-Mail, und Sandra wertet sie aus.</p>
+      <button class="btn-wide" id="berichtTeilen">Bericht teilen</button>
+      <button class="link-plus" id="berichtKopieren" style="align-self:center;height:44px;color:var(--brand);text-decoration:underline;font-size:14px">Als Text kopieren</button>
+    </div>
+  </section>
+
+  <!-- ══ EINSTELLUNGEN ══════════════════════════════════════════════ -->
+  <section class="screen" id="screen-einstellungen" aria-labelledby="einstTitel" hidden>
+    <div class="screen-head"><div><h1 id="einstTitel">Einstellungen</h1></div></div>
+    <div class="stack">
+      <!-- Erinnerungen. Ehrlich: Web-Apps können nur erinnern, solange sie noch im Hintergrund laufen. -->
+      <section class="card" aria-labelledby="erinnTitel">
+        <h2 id="erinnTitel">Erinnerungen</h2>
+        <div class="reminder" data-rem="abend">
+          <div class="card-row">
+            <div><div class="q-name" id="rem-abend-name">Wie war dein Tag?</div><p class="hint" style="margin-top:2px">Jeden Abend</p></div>
+            <button type="button" class="switch" data-rem-toggle role="switch" aria-checked="false" aria-labelledby="rem-abend-name"><span></span></button>
+          </div>
+          <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
+            <label class="label" for="rem-abend-zeit">Uhrzeit</label>
+            <input class="input" id="rem-abend-zeit" data-rem-time type="time" value="19:00">
+          </div>
+          <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
+        </div>
+        <div class="reminder" data-rem="bericht">
+          <div class="card-row">
+            <div><div class="q-name" id="rem-bericht-name">Bericht an Sandra schicken</div><p class="hint" style="margin-top:2px">Sonntags</p></div>
+            <button type="button" class="switch" data-rem-toggle role="switch" aria-checked="false" aria-labelledby="rem-bericht-name"><span></span></button>
+          </div>
+          <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
+            <label class="label" for="rem-bericht-zeit">Uhrzeit</label>
+            <input class="input" id="rem-bericht-zeit" data-rem-time type="time" value="20:00">
+          </div>
+          <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
+        </div>
+        <p class="hint" id="erinnHinweis"></p>
+      </section>
+
+      <!-- Pantoprazol-Dosis: wird mit dem Haken unter Heute eingetragen -->
+      <section class="card" aria-labelledby="pantoEinstTitel">
+        <h2 id="pantoEinstTitel">Pantoprazol</h2>
+        <div class="field" style="margin:var(--space-3) 0 0">
+          <div class="label" id="pantoDosisLabel">Dosis</div>
+          <div class="chips" role="group" aria-labelledby="pantoDosisLabel" id="pantoDosen"></div>
+        </div>
+        <p class="hint" id="pantoDosisHinweis"></p>
+      </section>
+
+      <!-- Gerichte-Gedächtnis verwalten: umbenennen, anheften, löschen -->
+      <section class="card" aria-labelledby="gerichteTitel">
+        <button type="button" class="card-row card-button" id="gerichteOeffnen" style="background:none;padding:0;color:inherit">
+          <span><span class="card-title" id="gerichteTitel">Gerichte</span><span class="hint" id="gerichteAnzahl" style="display:block;margin-top:2px"></span></span>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-muted)"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </section>
+
+      <!-- Alle Daten löschen, mit Rückfrage -->
+      <section class="card" aria-labelledby="datenTitel">
+        <h2 id="datenTitel">Deine Daten</h2>
+        <p class="hint">Alles bleibt nur auf diesem Handy. Nur ein Bericht, den du selbst teilst, verlässt es.</p>
+        <button type="button" class="btn-danger-text" id="datenLoeschen">Alle Daten löschen</button>
+      </section>
+      <!-- Nur in der Testversion sichtbar: Beispieldaten zum Ausprobieren -->
+      <section class="card" id="testdatenKarte" aria-labelledby="testdatenTitel" hidden>
+        <h2 id="testdatenTitel">Testdaten</h2>
+        <p class="hint">Nur in der Testversion. Legt zwei Wochen ausgedachte Beispieldaten an und ersetzt dabei alles, was hier in der Testversion eingetragen ist.</p>
+        <button class="btn-wide" id="testdatenEinspielen" style="margin-top:var(--space-4)">Testdaten einspielen</button>
+        <button class="btn-danger-text" id="testdatenLoeschen">Alle Testdaten löschen</button>
+      </section>
+      <p class="hint" style="text-align:center" id="versionInfo"></p>
+    </div>
+  </section>
+</main>
+
+<!-- ══ NAVIGATION ════════════════════════════════════════════════════ -->
+<nav class="nav" aria-label="Hauptnavigation">
+  <div class="nav-inner">
+    <a href="#heute"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Heute</a>
+    <a href="#verlauf"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Verlauf</a>
+    <a href="#bericht"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Bericht</a>
+    <a href="#einstellungen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Einstellungen</a>
+  </div>
+</nav>
+
+<!-- ══ SHEET: MEDIKAMENT ═════════════════════════════════════════════
+     Ein Sheet für zwei Fälle: Uhrzeit von Pantoprazol ändern und andere Medikamente
+     eintragen oder bearbeiten. Je nach Fall werden Felder ein- oder ausgeblendet. -->
+<dialog class="sheet" id="medSheet" aria-labelledby="medSheetTitel">
+  <form id="medForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="medSheetTitel" tabindex="-1" autofocus>Medikament</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="field" id="medNameFeld">
+      <label class="label" for="medName">Welches Medikament?</label>
+      <input class="input" id="medName" maxlength="60" list="medVorschlaege" autocomplete="off" placeholder="z. B. Gaviscon">
+      <datalist id="medVorschlaege"></datalist>
+      <div class="chips" id="medZuletzt" role="group" aria-label="Zuletzt eingetragen"></div>
+    </div>
+
+    <!-- Bei Pantoprazol nur Hinweis zur Dosis; geändert wird sie in den Einstellungen -->
+    <p class="hint" id="pantoDosisInfo" style="margin:-6px 0 18px"></p>
+
+    <div class="field" id="medMengeFeld">
+      <label class="label" for="medMenge">Menge <span class="opt">(freiwillig)</span></label>
+      <input class="input" id="medMenge" maxlength="40" autocomplete="off" placeholder="z. B. 1 Tablette, 10 ml">
+    </div>
+
+    <div class="field">
+      <label class="label" for="medZeit">Uhrzeit <span class="opt" id="medZeitOpt"></span></label>
+      <input class="input" id="medZeit" type="time">
+    </div>
+
+    <button class="btn-wide" id="medSpeichern" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="medLoeschen" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
+<!-- ══ SHEET: GERICHTE ═══════════════════════════════════════════════
+     Zwei Ansichten in einem Sheet: Liste aller gemerkten Gerichte und
+     Bearbeiten eines Gerichts (umbenennen, anheften, Zutaten entfernen, löschen). -->
+<dialog class="sheet" id="dishSheet" aria-labelledby="dishSheetTitel">
+  <form id="dishForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <button type="button" class="btn-round" id="dishZurueck" aria-label="Zurück zur Liste" hidden><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <h2 class="sheet-title" id="dishSheetTitel" tabindex="-1" autofocus style="flex:1">Gerichte</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <!-- Ansicht 1: Liste -->
+    <div id="dishListeAnsicht">
+      <p class="hint">Die App schlägt diese Gerichte beim Eintragen vor. Tippe ein Gericht an, um es zu ändern.</p>
+      <div class="dish-list" id="dishListe"></div>
+    </div>
+
+    <!-- Ansicht 2: ein Gericht bearbeiten -->
+    <div id="dishEditAnsicht" hidden>
+      <div class="field">
+        <label class="label" for="dishTitel">Name</label>
+        <div class="input-row">
+          <input class="input" id="dishTitel" maxlength="80" autocomplete="off" enterkeyhint="done">
+          <button type="button" class="btn-round btn-round--lg" id="dishPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+        </div>
+        <p class="hint" id="dishTitelHinweis">Ein neuer Name gilt auch für alle bisherigen Einträge, z. B. um einen Tippfehler zu korrigieren.</p>
+      </div>
+      <div class="field" id="dishZutatenFeld">
+        <div class="label">Gemerkte Zutaten</div>
+        <div class="chips" id="dishZutaten" role="group" aria-label="Zutaten, antippen zum Entfernen"></div>
+        <p class="hint">Antippen zum Entfernen. Bisherige Einträge bleiben, wie sie sind.</p>
+      </div>
+      <button class="btn-wide" id="dishSpeichern" type="submit">Speichern</button>
+      <button class="btn-danger-text" id="dishLoeschen" type="button">Gericht löschen</button>
+      <p class="hint" style="text-align:center">Löschen nimmt es nur aus den Vorschlägen. Bisherige Einträge bleiben.</p>
+    </div>
+  </form>
+</dialog>
+
+<!-- ══ POPUP: ALLE DATEN LÖSCHEN ═════════════════════════════════════
+     Kleines Fenster in der Mitte mit Rückfrage. Erst „Endgültig löschen“ löscht wirklich. -->
+<dialog class="popup" id="loeschenPopup" aria-labelledby="loeschenTitel" aria-describedby="loeschenText">
+  <h2 id="loeschenTitel" tabindex="-1" autofocus>Wirklich alles löschen?</h2>
+  <p class="hint" id="loeschenText">Alle Einträge und Gerichte auf diesem Handy werden gelöscht. Das lässt sich nicht rückgängig machen. Teile vorher den Bericht, wenn Sandra ihn noch braucht.</p>
+  <button type="button" class="btn-wide btn-wide--danger" id="loeschenJa">Endgültig löschen</button>
+  <button type="button" class="btn-quiet-text" id="loeschenNein">Abbrechen</button>
+</dialog>
+
+<!-- ══ SHEET: MAHLZEIT ═══════════════════════════════════════════════
+     Titel ist das Einzige, was man eintragen muss. Alles andere ist vorausgefüllt
+     oder freiwillig. Die App merkt sich Titel und Zutaten für Vorschläge. -->
+<dialog class="sheet" id="mealSheet" aria-labelledby="mealSheetTitel">
+  <form id="mealForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="mealSheetTitel" tabindex="-1" autofocus>Mahlzeit</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="segmented" role="group" aria-label="Art der Mahlzeit" id="mealKinds"></div>
+
+    <div class="field">
+      <label class="label" for="mealTitle">Was hast du gegessen?</label>
+      <div class="input-row">
+        <input class="input" id="mealTitle" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Haferbrei">
+        <button type="button" class="btn-round btn-round--lg" id="mealPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+      </div>
+      <p class="hint" id="mealPinHint" hidden style="color:var(--brand)">Bleibt bei den Vorschlägen ganz vorne</p>
+    </div>
+
+    <div class="field" id="mealSuggestField">
+      <div class="hint" id="mealSuggestLabel">Zuletzt gegessen</div>
+      <div class="chips" id="mealSuggest"></div>
+    </div>
+
+    <div class="ingredients" id="mealIngr" hidden>
+      <div class="ingredients-head"><span>Zutaten</span><button type="button" class="btn-round btn-round--ghost" id="ingrEdit" aria-label="Zutaten bearbeiten" aria-pressed="false"></button></div>
+      <div class="chips" id="mealIngrChips"></div>
+      <div class="input-row" id="ingrAdd" hidden>
+        <input class="input" id="ingrInput" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
+        <button type="button" class="btn-round btn-round--lg btn-round--brand" id="ingrOk" aria-label="Zutat hinzufügen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      </div>
+      <div class="chips" id="ingrSuggest"></div>
+    </div>
+
+    <div class="field">
+      <div class="label" id="portionLabel">Portion</div>
+      <div class="tiles" role="group" aria-labelledby="portionLabel" id="mealPortion"></div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="mealTime">Uhrzeit <span class="opt" id="mealTimeOpt"></span></label>
+      <input class="input" id="mealTime" type="time">
+    </div>
+
+    <button type="button" class="link-plus" id="mealMoreBtn" aria-expanded="false" style="margin-bottom:18px;height:44px">+ Getränk, Notiz</button>
+    <div id="mealMore" hidden>
+      <div class="field">
+        <label class="label" for="mealDrink">Getränk</label>
+        <input class="input" id="mealDrink" maxlength="60" autocomplete="off" placeholder="z. B. Kaffee mit Milch">
+      </div>
+      <div class="field">
+        <label class="label" for="mealNote">Notiz</label>
+        <textarea class="input" id="mealNote" maxlength="500" rows="2" placeholder="z. B. sehr schnell gegessen, unterwegs"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-wide" id="mealSave" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="mealDelete" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
+<!-- ══ SHEET: EREIGNIS ═══════════════════════════════════════════════
+     Für einzelne Momente, bei denen die Uhrzeit wichtig ist. -->
+<dialog class="sheet" id="eventSheet" aria-labelledby="eventSheetTitel">
+  <form id="eventForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div>
+        <h2 class="sheet-title" id="eventSheetTitel" tabindex="-1" autofocus>Ereignis</h2>
+        <p class="hint">Wenn die Uhrzeit wichtig ist, z. B. Sodbrennen direkt nach dem Essen</p>
+      </div>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="field">
+      <div class="label" id="eventTypeLabel">Was ist passiert?</div>
+      <div class="chips" role="group" aria-labelledby="eventTypeLabel" id="eventTypes"></div>
+    </div>
+    <div class="field" id="eventOtherFeld" hidden>
+      <label class="label" for="eventOther">Was genau?</label>
+      <input class="input" id="eventOther" maxlength="60" autocomplete="off" placeholder="z. B. Kopfschmerzen">
+    </div>
+    <div class="field">
+      <div class="label" id="eventLevelLabel">Wie stark?</div>
+      <div class="tiles" role="group" aria-labelledby="eventLevelLabel" id="eventLevels"></div>
+    </div>
+    <div class="field">
+      <label class="label" for="eventTime">Uhrzeit <span class="opt" id="eventTimeOpt"></span></label>
+      <input class="input" id="eventTime" type="time">
+    </div>
+    <div class="field">
+      <label class="label" for="eventNote">Notiz <span class="opt">(freiwillig)</span></label>
+      <textarea class="input" id="eventNote" maxlength="500" rows="2" placeholder="z. B. nach dem Hinlegen schlimmer"></textarea>
+    </div>
+    <button class="btn-wide" id="eventSave" type="submit">Speichern</button>
+    <button class="btn-danger-text" id="eventDelete" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 'use strict';
+const APP_VERSION='2.0';
 
-// ── STORAGE ──────────────────────────────────────
-const DB={
-  d(){try{return JSON.parse(localStorage.getItem('gl_d')||'{}')}catch{return{}}},
-  sd(v){localStorage.setItem('gl_d',JSON.stringify(v))},
-  n(){try{return JSON.parse(localStorage.getItem('gl_n')||'[]')}catch{return[]}},
-  sn(v){localStorage.setItem('gl_n',JSON.stringify(v))},
-  c(){try{return JSON.parse(localStorage.getItem('gl_c')||'{}')}catch{return{}}},
-  sc(v){localStorage.setItem('gl_c',JSON.stringify(v))}
+// ══════════════════════════════════════════════════════════════════
+// STAGE (Live oder Test)
+// Die Testversion liegt unter /gutlog/test/. Live und Test teilen sich im Browser
+// denselben Speicher (gleiche Domain). Deshalb speichert die Testversion unter
+// eigenen Namen (glt_ statt gl_), damit sich Test- und echte Daten nie vermischen.
+// ══════════════════════════════════════════════════════════════════
+const STAGE=location.pathname.includes('/test/')?'test':'live';
+const K=STAGE==='test'?'glt_':'gl_';
+
+// ══════════════════════════════════════════════════════════════════
+// SPEICHER
+// Alles liegt im localStorage des Browsers, nur auf diesem Handy.
+//   K+'d'  Tage mit Mahlzeiten, Medikamenten, Ereignissen, Tagesabschluss
+//   K+'f'  Gerichte-Gedächtnis (Titel und Zutaten für Vorschläge)
+//   K+'c'  Einstellungen
+// ══════════════════════════════════════════════════════════════════
+const STORE={
+  load(name,fallback){try{const v=JSON.parse(localStorage.getItem(K+name));return v??fallback}catch{return fallback}},
+  save(name,value){localStorage.setItem(K+name,JSON.stringify(value))}
 };
 
-// ── STATE ─────────────────────────────────────────
-let today=new Date(),aType='meal',aTab='today';
-const timers=[];
-const dk=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const fmt=d=>d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const nowT=()=>{const d=new Date();return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
-function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');void t.offsetWidth;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)}
+// Datenmodell Version 2. Ein Tag sieht so aus:
+//   { meals:[…], meds:[…], events:[…], close:null }
+// Felder der einzelnen Einträge: siehe Umsetzungsplan „Neues Datenmodell“.
+// Liegen noch Daten im alten Format (Version 1) vor, werden sie zur Sicherheit
+// unter K+'d_v1' abgelegt und die App startet mit leeren Daten.
+// Ist der gespeicherte Text kaputt (kein gültiges JSON), wird er vor dem Neustart unter
+// K+'d_broken' gesichert, damit nichts unbemerkt verloren geht.
+// Jeder Tag wird beim Laden vervollständigt (fehlende Listen werden leer ergänzt),
+// damit unvollständige Daten die App nicht zum Absturz bringen.
+const emptyDay=()=>({meals:[],meds:[],events:[],close:null});
+function fixDay(day){
+  const d={...emptyDay(),...(day&&typeof day==='object'?day:{})};
+  ['meals','meds','events'].forEach(n=>{if(!Array.isArray(d[n]))d[n]=[]});
+  if(d.close&&typeof d.close!=='object')d.close=null;
+  return d;
+}
+function loadData(){
+  const raw=localStorage.getItem(K+'d');
+  let d=STORE.load('d',null);
+  if(raw&&d===null)localStorage.setItem(K+'d_broken',raw);
+  if(!d||d.v!==2){
+    if(d) STORE.save('d_v1',d);
+    d={v:2,days:{}};
+    STORE.save('d',d);
+  }
+  if(!d.days||typeof d.days!=='object')d.days={};
+  Object.keys(d.days).forEach(k=>{d.days[k]=fixDay(d.days[k])});
+  return d;
+}
+let DATA=loadData();
+const getDay=key=>DATA.days[key]||emptyDay();
+function saveDay(key,dayObj){DATA.days[key]=dayObj;STORE.save('d',DATA)}
 
-window.addEventListener('load',()=>{
-  document.getElementById('eTime').value=nowT();
-  updateDate(); renderNotes(); initSettings(); scheduleAll(); pwaBoot();
+// ══════════════════════════════════════════════════════════════════
+// DATUM
+// Datumsschlüssel sind JJJJ-MM-TT in Ortszeit. Nie toISOString() verwenden,
+// das rechnet in UTC und kann nachts den falschen Tag liefern.
+// ══════════════════════════════════════════════════════════════════
+const pad=n=>String(n).padStart(2,'0');
+const dk=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyToDate=k=>{const[y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=keyToDate(k);d.setDate(d.getDate()+n);return dk(d)};
+// Regel aus den User Flows: Was bis 4:00 Uhr nachts passiert, zählt zum Vortag.
+const dayKeyFor=date=>{const d=new Date(date);if(d.getHours()<4)d.setDate(d.getDate()-1);return dk(d)};
+const todayKey=()=>dayKeyFor(new Date());
+const fmtDate=k=>{const d=keyToDate(k);return `${d.toLocaleDateString('de-DE',{weekday:'short'}).replace('.','')}, ${d.getDate()}. ${d.toLocaleDateString('de-DE',{month:'long'})}`};
+// Für Rückmeldungen: „heute“, „gestern“ oder das Datum
+const dayWord=k=>k===todayKey()?'heute':k===addDays(todayKey(),-1)?'gestern':fmtDate(k);
+const savedMsg=()=>isToday()?'Gespeichert':`Für ${dayWord(viewKey)} gespeichert`;
+
+// ══════════════════════════════════════════════════════════════════
+// KLEINE HELFER
+// ══════════════════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+// Beschriftung aus einer Liste holen (z. B. Portion „Groß“). Unbekannte Werte zeigen sich selbst, statt abzustürzen.
+const lab=(list,id)=>{const x=list.find(e=>(e.id!==undefined?e.id:e.v)===id);return x?x.label:String(id??'?')};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const nowHM=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400)}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// Jeder Bereich hat eine eigene Adresse (#heute, #verlauf …). So funktioniert
+// auch die Zurück-Taste des Handys.
+// ══════════════════════════════════════════════════════════════════
+// „abschluss“ ist ein Unterbereich von Heute: eigener Screen, aber ohne eigenen Navigationspunkt.
+const SCREENS=['heute','abschluss','verlauf','bericht','einstellungen'];
+function showScreen(){
+  checkDayChange();
+  // Offene Sheets schließen, wenn sich der Screen ändert (z. B. Zurück-Taste)
+  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
+  const wanted=location.hash.slice(1);
+  const current=SCREENS.includes(wanted)?wanted:'heute';
+  const navName=current==='abschluss'?'heute':current;
+  SCREENS.forEach(name=>{
+    $('screen-'+name).hidden=name!==current;
+    const link=document.querySelector(`.nav a[href="#${name}"]`);
+    if(!link)return;
+    if(name===navName)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+  });
+  if(current==='abschluss')renderAbschluss();
+  if(current==='heute')renderHeute();
+  if(current==='verlauf')renderVerlauf();
+  if(current==='bericht')renderBericht();
+  if(current==='einstellungen')renderEinstellungen();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',showScreen);
+
+// ══════════════════════════════════════════════════════════════════
+// HEUTE
+// viewKey = der Tag, der gerade angezeigt wird. Mit den Pfeilen kann man
+// zurückblättern und nachtragen, aber nicht in die Zukunft.
+// ══════════════════════════════════════════════════════════════════
+let viewKey=todayKey();
+const isToday=()=>viewKey===todayKey();
+// Tageswechsel bei offener App: Bleibt GutLog über Nacht im Hintergrund, zeigt sie morgens
+// wieder „Heute“ an (sonst würden neue Einträge beim Vortag landen).
+let lastToday=todayKey();
+function checkDayChange(){
+  const t=todayKey();
+  if(t===lastToday)return false;
+  lastToday=t;viewKey=t;weekKey=null;reportWeek=null;
+  return true;
+}
+// Neue Einträge bekommen heute die aktuelle Uhrzeit, an früheren Tagen erst mal keine.
+const defaultTime=()=>isToday()?nowHM():null;
+// Ein Eintrag gilt als nachgetragen, wenn er an einem späteren Tag erfasst wurde als dem, zu dem er gehört.
+const isLate=(entry,key)=>!!entry.addedAt&&dayKeyFor(entry.addedAt)>key;
+// Sortieren nach Uhrzeit. Zeiten vor 4:00 gehören zur Nacht danach und kommen ans Ende des Tages.
+const timeOrder=t=>!t?'3':t<'04:00'?'2'+t:'1'+t;
+const byTime=(a,b)=>timeOrder(a.time).localeCompare(timeOrder(b.time));
+
+// Die sechs Angaben des Tagesabschlusses
+const CLOSE_FIELDS=['sodbrennen','blaehbauch','blaehungen','stuhl','stress','bewegung'];
+// Stuhlgang zählt als ausgefüllt, wenn „keiner“ (0×) gewählt ist oder Anzahl und Konsistenz da sind.
+function closeFilled(c){
+  if(!c)return 0;
+  return CLOSE_FIELDS.filter(k=>k==='stuhl'?(c.stuhl&&(c.stuhl.count===0||c.stuhl.kind)):c[k]!=null).length;
+}
+
+function renderHeute(){
+  const t=todayKey();
+  $('heuteTitel').textContent=viewKey===t?'Heute':viewKey===addDays(t,-1)?'Gestern':keyToDate(viewKey).toLocaleDateString('de-DE',{weekday:'long'});
+  $('heuteDatum').textContent=fmtDate(viewKey);
+  $('tagVor').disabled=viewKey>=t;
+  const day=getDay(viewKey);
+
+  // Mahlzeiten
+  const meals=[...day.meals].sort(byTime);
+  $('mahlzeitenHinweis').hidden=meals.length>0;
+  $('mahlzeitenListe').innerHTML=meals.map(m=>{
+    const kind=KINDS.find(k=>k.id===m.kind);
+    const sub=[kind?kind.label:'',(m.ingredients||[]).join(', '),m.portion&&m.portion!=='normal'?`Portion ${lab(PORTIONS,m.portion).toLowerCase()}`:'',isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-meal="${esc(m.id)}"><span class="entry-main">${esc(m.title)}${sub?`<span class="entry-sub">${esc(sub)}</span>`:''}</span><span class="entry-time">${esc(m.time||'')}</span></button></li>`;
+  }).join('');
+
+  // Pantoprazol: Eingetragen wird nur, wenn es genommen wurde. Kein Eintrag = nicht genommen.
+  const p=findPanto(day);
+  $('pantoJa').setAttribute('aria-pressed',String(!!p));
+  const status=$('pantoStatus');
+  if(!p){
+    status.textContent='Antippen, wenn genommen';
+  }else{
+    const parts=[`${p.dose} mg`,p.status==='reduziert'?'reduziert':'',p.time||'',isLate(p,viewKey)?'nachgetragen':''].filter(Boolean);
+    status.innerHTML=`${esc(parts.join(' · '))} · <button class="inline-link" id="pantoAendern">ändern</button>`;
+    $('pantoAendern').addEventListener('click',()=>openMedSheet('panto'));
+  }
+
+  // Andere Medikamente
+  const others=day.meds.filter(m=>m.name!==PANTO).sort(byTime);
+  $('medListe').innerHTML=others.map(m=>{
+    const sub=[m.amount,isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-med="${esc(m.id)}"><span class="entry-main">${esc(m.name)}${sub?`<span class="entry-sub">${esc(sub)}</span>`:''}</span><span class="entry-time">${esc(m.time||'')}</span></button></li>`;
+  }).join('');
+
+  // Tagesabschluss: wie viele der sechs Angaben sind schon da?
+  const filled=closeFilled(day.close);
+  const ev=day.events.length;
+  $('abschlussHinweis').textContent=(filled===6?'Alles ausgefüllt':`${filled} von 6 ausgefüllt`)+(ev?` · ${ev} ${ev===1?'Ereignis':'Ereignisse'}`:'');
+}
+$('tagZurueck').addEventListener('click',()=>{viewKey=addDays(viewKey,-1);renderHeute()});
+$('tagVor').addEventListener('click',()=>{if(viewKey<todayKey()){viewKey=addDays(viewKey,1);renderHeute()}});
+
+// ══════════════════════════════════════════════════════════════════
+// PANTOPRAZOL
+// Eingetragen wird nur, wenn Pantoprazol genommen wurde: ein Tipp auf den Haken.
+// Ein zweiter Tipp nimmt es wieder zurück (falls man sich vertippt hat).
+// Für die Auswertung gilt: An einem Tag mit Einträgen, aber ohne Pantoprazol, wurde es nicht genommen.
+// Die Dosis wird nicht jedes Mal gewählt: Der Haken trägt die Dosis aus den Einstellungen ein
+// (Standard 40 mg). Weniger als die volle Dosis (40 mg) wird als „reduziert“ gespeichert,
+// z. B. wenn beim Absetzen in den Einstellungen 20 mg eingestellt sind.
+// ══════════════════════════════════════════════════════════════════
+const PANTO='Pantoprazol';
+const PANTO_FULL=40;
+const PANTO_DOSES=[10,20,40];
+const pantoDose=()=>STORE.load('c',{}).pantoDose||PANTO_FULL;
+const pantoStatus=dose=>dose<PANTO_FULL?'reduziert':'eingenommen';
+const findPanto=day=>day.meds.find(m=>m.name===PANTO&&m.dose);
+
+let lastPantoTap=0;
+function togglePanto(){
+  // Doppeltipp-Schutz: ein zweiter Tipp innerhalb einer halben Sekunde zählt nicht
+  if(Date.now()-lastPantoTap<500)return;
+  lastPantoTap=Date.now();
+  const day=getDay(viewKey);
+  const cur=findPanto(day);
+  if(cur){
+    day.meds=day.meds.filter(m=>m!==cur);
+    toast('Zurückgenommen');
+  }else{
+    const dose=pantoDose();
+    day.meds.push({id:uid(),name:PANTO,status:pantoStatus(dose),dose,time:defaultTime(),addedAt:new Date().toISOString()});
+    toast(savedMsg());
+  }
+  saveDay(viewKey,day);
+  renderHeute();
+}
+$('pantoJa').addEventListener('click',togglePanto);
+
+// ══════════════════════════════════════════════════════════════════
+// SHEET: MEDIKAMENT
+// mode 'panto' = Uhrzeit von Pantoprazol ändern (die Dosis kommt aus den Einstellungen)
+// mode 'med'   = anderes Medikament neu eintragen (id leer) oder bearbeiten (mit id)
+// ══════════════════════════════════════════════════════════════════
+const sheet=$('medSheet');
+let sheetMode='med',sheetId=null;
+
+function openMedSheet(mode,id=null){
+  sheetMode=mode;sheetId=id;
+  const day=getDay(viewKey);
+  const isPanto=mode==='panto';
+  $('medNameFeld').hidden=isPanto;
+  $('medMengeFeld').hidden=isPanto;
+  $('pantoDosisInfo').hidden=!isPanto;
+  $('medLoeschen').hidden=isPanto||!id;
+  $('medZeitOpt').textContent=isToday()?'':'(freiwillig)';
+
+  if(isPanto){
+    const p=findPanto(day);
+    $('medSheetTitel').textContent=PANTO;
+    $('medZeit').value=p.time||'';
+    $('pantoDosisInfo').textContent=`${p.dose||pantoDose()} mg${p.status==='reduziert'?', reduziert':''}. Die Dosis stellst du in den Einstellungen ein.`;
+  }else{
+    const m=id?day.meds.find(x=>x.id===id):null;
+    $('medSheetTitel').textContent=m?'Medikament':'Anderes Medikament';
+    $('medName').value=m?m.name:'';
+    $('medMenge').value=m?(m.amount||''):'';
+    $('medZeit').value=m?(m.time||''):defaultTime();
+    // Vorschläge: Medikamente, die schon einmal eingetragen wurden, die zuletzt genutzten zuerst.
+    // Sie erscheinen als Chips (ein Tipp füllt das Feld) und zusätzlich als Tastatur-Vorschlag.
+    const last={};
+    Object.keys(DATA.days).sort().forEach(k=>DATA.days[k].meds.forEach(x=>{if(x.name!==PANTO)last[x.name]=k}));
+    const names=Object.keys(last).sort((a,b)=>last[b].localeCompare(last[a]));
+    $('medVorschlaege').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+    medChipNames=names.slice(0,6);
+    renderMedChips();
+  }
+  updateMedSave();
+  sheet.showModal();
+}
+
+// Chips mit zuletzt eingetragenen Medikamenten. Der Chip, der zum Feld passt, ist markiert.
+let medChipNames=[];
+function renderMedChips(){
+  const v=$('medName').value.trim();
+  $('medZuletzt').innerHTML=medChipNames.map(n=>`<button type="button" class="chip" data-name="${esc(n)}" aria-pressed="${n===v}">${esc(n)}</button>`).join('');
+}
+$('medZuletzt').addEventListener('click',e=>{
+  const b=e.target.closest('[data-name]');if(!b)return;
+  // Ein zweiter Tipp auf den gewählten Chip leert das Feld wieder.
+  $('medName').value=$('medName').value.trim()===b.dataset.name?'':b.dataset.name;
+  renderMedChips();updateMedSave();
 });
 
-// ── DATE ──────────────────────────────────────────
-function changeDay(d){today.setDate(today.getDate()+d);updateDate()}
-function updateDate(){const isT=dk(today)===dk(new Date());const dp=today.toLocaleDateString('de-DE',{day:'numeric',month:'short'});const wd=today.toLocaleDateString('de-DE',{weekday:'short'});document.getElementById('dateLbl').textContent=isT?`Heute, ${dp}`:`${wd}, ${dp}`}
+// Speichern geht erst, wenn ein Name da ist (bei anderen Medikamenten).
+function updateMedSave(){$('medSpeichern').disabled=sheetMode==='med'&&!$('medName').value.trim()}
+$('medName').addEventListener('input',()=>{updateMedSave();renderMedChips()});
 
-// ── TABS ──────────────────────────────────────────
-const TABS=['today','history','analysis','notes','report','settings'];
-function go(tab){
-  aTab=tab;
-  document.querySelectorAll('.dtab').forEach((el,i)=>el.classList.toggle('active',TABS[i]===tab));
-  TABS.forEach(n=>{const v=document.getElementById('view-'+n);if(v)v.classList.toggle('active',n===tab);const b=document.getElementById('bn-'+n);if(b)b.classList.toggle('active',n===tab)});
-  if(tab==='history') renderHistory();
-  if(tab==='analysis') renderAnalysis();
-  if(tab==='notes') renderNotes();
-  if(tab==='report') renderReport();
-  if(tab==='settings') initSettings();
+$('medForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const day=getDay(viewKey);
+  const time=$('medZeit').value||null;
+  if(sheetMode==='panto'){
+    findPanto(day).time=time;
+  }else{
+    const name=$('medName').value.trim();
+    if(!name)return;
+    // Pantoprazol immer über den Haken eintragen, sonst stimmt die Auswertung nicht.
+    if(/^pantoprazol/i.test(name)){toast('Pantoprazol bitte mit dem Haken unter Heute eintragen');return}
+    const amount=$('medMenge').value.trim()||null;
+    const m=sheetId?day.meds.find(x=>x.id===sheetId):null;
+    if(m){Object.assign(m,{name,amount,time})}
+    else day.meds.push({id:uid(),name,amount,time,status:'eingenommen',addedAt:new Date().toISOString()});
+  }
+  saveDay(viewKey,day);
+  sheet.close();
+  renderHeute();
+  toast(savedMsg());
+});
+
+$('medLoeschen').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.meds=day.meds.filter(m=>m.id!==sheetId);
+  saveDay(viewKey,day);
+  sheet.close();
+  renderHeute();
+  toast('Gelöscht');
+});
+
+// Schließen: X-Button oder Tippen auf den abgedunkelten Bereich außerhalb
+sheet.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>sheet.close()));
+sheet.addEventListener('click',e=>{
+  if(e.target!==sheet)return;
+  const r=sheet.getBoundingClientRect();
+  if(e.clientY<r.top||e.clientX<r.left||e.clientX>r.right)sheet.close();
+});
+
+$('medPlus').addEventListener('click',()=>openMedSheet('med'));
+$('medListe').addEventListener('click',e=>{const b=e.target.closest('[data-med]');if(b)openMedSheet('med',b.dataset.med)});
+
+// ══════════════════════════════════════════════════════════════════
+// MAHLZEIT
+// Eine Mahlzeit: { id, time, kind, title, ingredients:[…], portion, drink, note, addedAt }
+// Nur der Titel ist Pflicht. Zutaten sind freiwillig.
+// ══════════════════════════════════════════════════════════════════
+const KINDS=[
+  {id:'fruehstueck',label:'Frühstück',icon:'<path d="M3 18h18M7 18a5 5 0 0110 0M12 4v3M4.9 9.9l2 2M19.1 9.9l-2 2"/>'},
+  {id:'mittag',label:'Mittag',icon:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'},
+  {id:'abend',label:'Abend',icon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'},
+  {id:'snack',label:'Snack',icon:'<path d="M12 7c-1-2-3-3-5-2.5C4 5.5 3.5 9 4.5 13c1 4 3.5 7 5.5 7 1 0 1.5-.5 2-.5s1 .5 2 .5c2 0 4.5-3 5.5-7 1-4 .5-7.5-2.5-8.5-2-.5-4 .5-5 2.5z"/><path d="M12 7c0-2 1-3.5 3-4"/>'}
+];
+const PORTIONS=[
+  {id:'klein',label:'Klein',bowl:'M11 12h12a6 6 0 01-12 0z'},
+  {id:'normal',label:'Normal',bowl:'M7 9h20a10 10 0 01-20 0z'},
+  {id:'gross',label:'Groß',bowl:'M3 5h28a14 14 0 01-28 0z'}
+];
+// Art nach Uhrzeit vorschlagen: 4–11 Uhr Frühstück, 11–15 Uhr Mittag, 15–17:30 Uhr Snack, sonst Abend.
+function kindForTime(t){
+  if(!t)return null;
+  const[h,m]=t.split(':').map(Number),x=h*60+m;
+  if(x>=240&&x<660)return 'fruehstueck';
+  if(x>=660&&x<900)return 'mittag';
+  if(x>=900&&x<1050)return 'snack';
+  return 'abend';
 }
 
-// ── ENTRY TYPE ────────────────────────────────────
-function setType(t){
-  aType=t;
-  ['meal','symptom','medication'].forEach(x=>{document.getElementById('btn-'+x).className='tb';document.getElementById(x==='meal'?'mealF':x==='symptom'?'symF':'medF').classList.add('hidden')});
-  document.getElementById('btn-'+t).className='tb '+(t==='meal'?'am':t==='symptom'?'as':'ad');
-  document.getElementById(t==='meal'?'mealF':t==='symptom'?'symF':'medF').classList.remove('hidden');
+// Gerichte-Gedächtnis (K+'f'): pro Titel die bekannten Zutaten, die vom letzten Mal,
+// wie oft gegessen, wann zuletzt und ob angeheftet (Stern).
+// Schlüssel ist der Titel in Kleinbuchstaben, damit „haferbrei“ und „Haferbrei“ dasselbe sind.
+const memKey=t=>t.trim().toLocaleLowerCase('de-DE');
+const loadMem=()=>STORE.load('f',{});
+const findMem=t=>loadMem()[memKey(t)]||null;
+// Alle Zutaten aus allen Gerichten, die häufigsten zuerst. So bleibt die Schreibweise einheitlich.
+function allIngredients(){
+  const n={};
+  Object.values(loadMem()).forEach(e=>e.ingredients.forEach(i=>{n[i]=(n[i]||0)+1}));
+  return Object.keys(n).sort((a,b)=>n[b]-n[a]||a.localeCompare(b,'de'));
 }
-document.addEventListener('click',e=>{const b=e.target.closest('#mdStat button');if(!b)return;document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x===b))});
-document.addEventListener('change',e=>{if(e.target.matches('.sc input[type="checkbox"]'))e.target.closest('.sc').classList.toggle('checked',e.target.checked)});
-
-// ── ADD ENTRY ─────────────────────────────────────
-async function addEntry(){
-  const time=document.getElementById('eTime').value;
-  if(!time){toast('⚠ Bitte Uhrzeit angeben','err');return}
-  const data=DB.d(),key=dk(today);if(!data[key])data[key]=[];
-  let e={id:Date.now(),time,type:aType};
-  if(aType==='meal'){const n=document.getElementById('mName').value.trim();if(!n){toast('⚠ Bitte Gericht eintragen','err');return}e.name=n;e.details=document.getElementById('mDet').value.trim();e.drink=document.getElementById('mDrk').value.trim()}
-  else if(aType==='symptom'){const c=[...document.querySelectorAll('.sc.checked')].map(x=>x.querySelector('input').value);if(!c.length){toast('⚠ Bitte ein Symptom wählen','err');return}e.symptoms=c;e.severity=parseInt(document.getElementById('sevS').value);e.timing=document.getElementById('sTim').value;e.note=document.getElementById('sNot').value.trim()}
-  else{const sel=document.getElementById('mdSel').value;e.name=sel==='other'?(document.getElementById('mdNam').value.trim()||'Medikament'):sel;e.status=document.querySelector('#mdStat .on').dataset.v;e.dose=document.getElementById('mdDos').value;e.timing=document.getElementById('mdTim').value;e.note=document.getElementById('mdNot').value.trim()}
-  data[key].push(e);data[key].sort((a,b)=>a.time.localeCompare(b.time));DB.sd(data);
-  resetForm();
-  toast({meal:'✓ Mahlzeit gespeichert',symptom:'✓ Symptom gespeichert',medication:'✓ Medikament gespeichert'}[aType]);
+// Ein Gericht einmal weniger zählen. Kommt es danach nicht mehr vor und ist nicht angeheftet,
+// verschwindet es aus den Vorschlägen (z. B. ein Tippfehler im Titel).
+function forgetMealOnce(title){
+  const mem=loadMem(),k=memKey(title),e=mem[k];if(!e)return;
+  e.count=Math.max((e.count||0)-1,0);
+  if(e.count===0&&!e.pinned)delete mem[k];
+  STORE.save('f',mem);
 }
-
-function resetForm(){
-  document.querySelectorAll('.sc.checked').forEach(c=>{c.classList.remove('checked');c.querySelector('input').checked=false});
-  ['sNot','mName','mDet','mDrk','mdNot','mdNam'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  document.querySelectorAll('#mdStat button').forEach(x=>x.classList.toggle('on',x.dataset.v==='eingenommen'));document.getElementById('mdSel').value='Pantoprazol';document.getElementById('mdOther').classList.add('hidden');document.getElementById('sevS').value=5;document.getElementById('sevV').textContent='5';
-}
-
-async function delEntry(key,id){
-  const d=DB.d();if(!d[key])return;
-  d[key]=d[key].filter(e=>e.id!==id);DB.sd(d);
-  renderHistory();
-  toast('Eintrag gelöscht','info');
+function rememberMeal(meal,isNew,pinned){
+  const mem=loadMem(),k=memKey(meal.title);
+  const e=mem[k]||{title:meal.title,ingredients:[],lastIngredients:[],count:0,pinned:false,lastUsed:''};
+  e.title=meal.title;
+  e.ingredients=[...new Set([...e.ingredients,...meal.ingredients])];
+  e.lastIngredients=[...meal.ingredients];
+  if(isNew)e.count++;
+  e.pinned=pinned;
+  e.lastUsed=new Date().toISOString();
+  mem[k]=e;STORE.save('f',mem);
 }
 
-// ── CARD HTML ─────────────────────────────────────
-function cardHTML(e,key){
-  const L={meal:'🍽 Mahlzeit',symptom:'⚡ Symptom',medication:'💊 Medikament'};
-  const DC={meal:'dm',symptom:'ds',medication:'dd'};
-  const CC={meal:'ecm',symptom:'ecs',medication:'ecd'};
-  const BC={meal:'bm',symptom:'bs',medication:'bd2'};
-  let body='';
-  if(e.type==='meal')body=`<div class="cm">${esc(e.name)}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
-  else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:5px">Intensität: ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-  else body=`<div class="cm">${esc(e.name||'')}${e.dose&&e.status!=='ausgelassen'?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${e.status?esc(e.status[0].toUpperCase()+e.status.slice(1))+' · ':''}${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-  return`<div class="tle"><div class="tld ${DC[e.type]}"></div><div class="ec ${CC[e.type]}"><button class="db" onclick="delEntry('${esc(key)}',${e.id})">✕</button><div class="ct"><span class="cti">${esc(e.time)} Uhr</span><span class="cb ${BC[e.type]}">${L[e.type]}</span></div>${body}</div></div>`;
+// Zustand des offenen Sheets
+const mealSheet=$('mealSheet');
+let MS={};
+
+function openMealSheet(id=null){
+  const day=getDay(viewKey);
+  const m=id?day.meals.find(x=>x.id===id):null;
+  const time=m?m.time:defaultTime();
+  const mem=m?findMem(m.title):null;
+  MS={
+    id,
+    time,
+    kind:m?m.kind:kindForTime(time),
+    kindManual:!!m,
+    ingredients:m?[...(m.ingredients||[])]:[],
+    known:m?[...new Set([...(mem?mem.ingredients:[]),...(m.ingredients||[])])]:[],
+    portion:m?(m.portion||'normal'):'normal',
+    pinned:mem?mem.pinned:false,
+    adding:false,
+    editIngr:false
+  };
+  $('mealSheetTitel').textContent=m?'Mahlzeit bearbeiten':'Mahlzeit';
+  $('mealTitle').value=m?m.title:'';
+  $('mealTime').value=time||'';
+  $('mealTimeOpt').textContent=isToday()?'':'(freiwillig)';
+  $('mealDrink').value=m?(m.drink||''):'';
+  $('mealNote').value=m?(m.note||''):'';
+  const more=!!(m&&(m.drink||m.note));
+  $('mealMore').hidden=!more;$('mealMoreBtn').hidden=more;
+  $('mealDelete').hidden=!m;
+  $('ingrInput').value='';
+  renderMealSheet();
+  mealSheet.showModal();
 }
 
-// ── HISTORY ───────────────────────────────────────
-function renderHistory(){
-  const data=DB.d(),el=document.getElementById('histC');
-  const keys=Object.keys(data).filter(k=>data[k].length).sort().reverse();
-  if(!keys.length){el.innerHTML='<div class="es"><div class="ei">📅</div><p>Noch keine Einträge.<br>Trage heute deinen ersten Eintrag ein!</p></div>';return}
-  const todayK=dk(new Date());
-  el.innerHTML=keys.map(key=>{
-    const d=new Date(key+'T12:00:00'),isT=key===todayK;
-    const sy=data[key].filter(e=>e.type==='symptom');
-    const nM=data[key].filter(e=>e.type==='meal').length,nMe=data[key].filter(e=>e.type==='medication').length;
-    const mxS=sy.length?Math.max(...sy.map(s=>s.severity)):null;
-    return`<div class="hd"><div class="hdl${isT?' tdy':''}">${esc(isT?'Heute – '+fmt(d):fmt(d))}</div><div class="pills" style="margin-bottom:12px">${nM?`<span class="pill pm">🍽 ${nM}</span>`:''} ${sy.length?`<span class="pill ps">⚡ max. ${mxS}/10</span>`:''} ${nMe?`<span class="pill pd">💊 ${nMe}</span>`:''}</div><div class="tl">${data[key].map(e=>cardHTML(e,key)).join('')}</div></div>`;
-  }).join('')+`<div style="padding:20px;text-align:center;font-size:.78rem;color:var(--mut)">${keys.length} Tag${keys.length!==1?'e':''} erfasst</div>`;
+function renderMealSheet(){
+  const title=$('mealTitle').value.trim();
+
+  // Art
+  $('mealKinds').innerHTML=KINDS.map(k=>`<button type="button" data-kind="${k.id}" aria-pressed="${MS.kind===k.id}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${k.icon}</svg><span>${k.label}</span></button>`).join('');
+
+  // Stern
+  $('mealPin').setAttribute('aria-pressed',String(MS.pinned));
+  $('mealPin').disabled=!title;
+  $('mealPin').querySelector('svg').setAttribute('fill',MS.pinned?'currentColor':'none');
+  $('mealPinHint').hidden=!MS.pinned;
+
+  // Vorschläge: leer = zuletzt gegessen (angeheftete zuerst), beim Tippen = passende Titel
+  const all=Object.values(loadMem());
+  let list;
+  if(!title){
+    list=all.sort((a,b)=>(b.pinned-a.pinned)||b.lastUsed.localeCompare(a.lastUsed)).slice(0,8);
+    $('mealSuggestLabel').textContent='Zuletzt gegessen';
+  }else{
+    const q=memKey(title);
+    list=all.filter(e=>memKey(e.title).includes(q)).sort((a,b)=>(b.pinned-a.pinned)||b.count-a.count).slice(0,8);
+    $('mealSuggestLabel').textContent='Vorschläge';
+  }
+  $('mealSuggestField').hidden=list.length===0;
+  $('mealSuggest').innerHTML=list.map(e=>`<button type="button" class="chip" data-title="${esc(e.title)}" aria-pressed="${memKey(e.title)===memKey(title)}">${e.pinned?'★ ':''}${esc(e.title)}</button>`).join('');
+
+  // Zutaten: erst sichtbar, wenn ein Titel da ist
+  $('mealIngr').hidden=!title;
+  const chips=[...new Set([...MS.known,...MS.ingredients])];
+  if(!chips.length)MS.editIngr=false;
+  // Bearbeiten-Modus: ein Tipp entfernt die Zutat aus der Liste dieses Gerichts (z. B. bei Tippfehlern).
+  $('ingrEdit').hidden=!chips.length;
+  // Stift = bearbeiten, Haken = fertig
+  $('ingrEdit').innerHTML=MS.editIngr
+    ?'<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+    :'<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+  $('ingrEdit').setAttribute('aria-label',MS.editIngr?'Bearbeiten beenden':'Zutaten bearbeiten');
+  $('ingrEdit').setAttribute('aria-pressed',String(MS.editIngr));
+  $('mealIngrChips').innerHTML=MS.editIngr
+    ? chips.map(i=>`<button type="button" class="chip chip--remove" data-remove="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
+    : chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
+      +(MS.adding?'':'<button type="button" class="chip chip--add" id="ingrPlus">+ Zutat</button>');
+  $('ingrAdd').hidden=!MS.adding||MS.editIngr;
+  const q=memKey($('ingrInput').value);
+  const sug=MS.adding&&q?allIngredients().filter(i=>memKey(i).includes(q)&&!chips.includes(i)).slice(0,5):[];
+  $('ingrSuggest').innerHTML=sug.map(i=>`<button type="button" class="chip" data-addingr="${esc(i)}">${esc(i)}</button>`).join('');
+  $('ingrSuggest').hidden=sug.length===0;
+
+  // Portion
+  $('mealPortion').innerHTML=PORTIONS.map(p=>`<button type="button" class="tile" data-portion="${p.id}" aria-pressed="${MS.portion===p.id}"><svg aria-hidden="true" width="28" height="18" viewBox="0 0 34 22"><path d="${p.bowl}" fill="currentColor"/><rect x="2" y="19" width="30" height="2" rx="1" fill="currentColor"/></svg><span>${p.label}</span></button>`).join('');
+
+  $('mealSave').disabled=!title;
 }
 
-// ── ANALYSIS ──────────────────────────────────────
-function renderAnalysis(){
-  const data=DB.d(),el=document.getElementById('analC');
-  const all=Object.values(data).flat();
-  const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
-  const total=Object.keys(data).length;
-  const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
-  const panto=Object.keys(data).filter(k=>data[k].some(e=>e.type==='medication'&&e.status!=='ausgelassen'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
-  const sF={};syms.forEach(e=>(e.symptoms||[]).forEach(s=>{sF[s]=(sF[s]||0)+1}));
-  const sByF=Object.entries(sF).sort((a,b)=>b[1]-a[1]),sMax=sByF[0]?.[1]||1;
-  const trig={};Object.values(data).forEach(day=>{const sorted=[...day].sort((a,b)=>a.time.localeCompare(b.time));sorted.forEach((e,i)=>{if(e.type!=='symptom')return;const[sh,sm]=e.time.split(':').map(Number);sorted.slice(0,i).forEach(p=>{if(p.type!=='meal')return;const[ph,pm]=p.time.split(':').map(Number);if((sh*60+sm)-(ph*60+pm)<=120)trig[p.name]=(trig[p.name]||0)+1})})});
-  const tByF=Object.entries(trig).sort((a,b)=>b[1]-a[1]).slice(0,6),tMax=tByF[0]?.[1]||1;
-  el.innerHTML=`<div class="st">Auswertung</div>
-  <div class="sgrid"><div class="scc"><div class="sn">${total}</div><div class="sl">Protokolltage</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptom&shy;ereignisse</div></div><div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div><div class="scc"><div class="sn">${meals.length}</div><div class="sl">Mahlzeiten</div></div><div class="scc"><div class="sn" style="color:var(--pur)">${panto}</div><div class="sl">Tage mit Pantoprazol</div></div><div class="scc"><div class="sn" style="color:var(--green)">${total-panto}</div><div class="sl">Tage ohne</div></div></div>
-  ${sByF.length?`<div class="cb2"><div class="cbt">Häufigste Symptome</div>${sByF.map(([s,n])=>`<div class="br"><span class="bl">${esc(s)}</span><div class="bbg"><div class="bf bfs" style="width:${(n/sMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}</div>`:''}
-  ${tByF.length?`<div class="cb2"><div class="cbt">Mögliche Trigger <span style="font-weight:400;color:var(--mut)">(Symptome innerhalb 2h)</span></div>${tByF.map(([m,n])=>`<div class="br"><span class="bl">${esc(m)}</span><div class="bbg"><div class="bf bft" style="width:${(n/tMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}<div class="cn">⚠ Rein zeitliche Korrelation.</div></div>`:''}
-  ${!total?'<div class="es"><div class="ei">📊</div><p>Noch zu wenig Daten.</p></div>':''}`;
+// Eine Zutat hinzufügen. Gibt es sie schon (andere Groß-/Kleinschreibung), wird die bekannte Schreibweise genommen.
+function addIngredient(raw){
+  const v=raw.trim();if(!v)return;
+  const known=[...MS.known,...allIngredients()].find(i=>memKey(i)===memKey(v));
+  const name=known||v;
+  if(!MS.ingredients.includes(name))MS.ingredients.push(name);
+  if(!MS.known.includes(name))MS.known.push(name);
+  $('ingrInput').value='';
+  renderMealSheet();
+  $('ingrInput').focus();
 }
 
-// ── NOTES ─────────────────────────────────────────
-function saveNote(){const t=document.getElementById('nIn').value.trim();if(!t)return;const n=DB.n();n.unshift({id:Date.now(),date:new Date().toISOString(),text:t});DB.sn(n);document.getElementById('nIn').value='';renderNotes();toast('Notiz gespeichert')}
-function renderNotes(){const el=document.getElementById('nList'),n=DB.n();el.innerHTML=n.map(x=>`<div class="nc"><div class="nd">${new Date(x.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="nt">${esc(x.text)}</div></div>`).join('')}
+// ── Ereignisse im Sheet ──
+$('mealPlus').addEventListener('click',()=>openMealSheet());
+$('mahlzeitenListe').addEventListener('click',e=>{const b=e.target.closest('[data-meal]');if(b)openMealSheet(b.dataset.meal)});
+
+$('mealKinds').addEventListener('click',e=>{
+  const b=e.target.closest('[data-kind]');if(!b)return;
+  MS.kind=MS.kind===b.dataset.kind?null:b.dataset.kind;MS.kindManual=true;renderMealSheet();
+});
+$('mealTitle').addEventListener('input',()=>{
+  // Passt der getippte Titel zu einem bekannten Gericht, kommen dessen Zutaten als Vorschlag.
+  const mem=findMem($('mealTitle').value);
+  MS.known=mem?[...new Set([...mem.ingredients,...MS.ingredients])]:[...MS.ingredients];
+  if(mem&&MS.ingredients.length===0)MS.ingredients=[...mem.lastIngredients];
+  MS.editIngr=false;
+  MS.pinned=mem?mem.pinned:MS.pinned&&!!$('mealTitle').value.trim();
+  renderMealSheet();
+});
+$('mealTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur()}});
+$('mealSuggest').addEventListener('click',e=>{
+  const b=e.target.closest('[data-title]');if(!b)return;
+  if(b.getAttribute('aria-pressed')==='true'){
+    // Zweiter Tipp: wieder abwählen
+    $('mealTitle').value='';MS.ingredients=[];MS.known=[];MS.pinned=false;
+  }else{
+    const mem=findMem(b.dataset.title);
+    $('mealTitle').value=mem.title;
+    MS.ingredients=[...mem.lastIngredients];
+    MS.known=[...mem.ingredients];
+    MS.pinned=mem.pinned;
+  }
+  MS.adding=false;MS.editIngr=false;
+  renderMealSheet();
+});
+$('mealPin').addEventListener('click',()=>{MS.pinned=!MS.pinned;renderMealSheet()});
+$('ingrEdit').addEventListener('click',()=>{MS.editIngr=!MS.editIngr;MS.adding=false;renderMealSheet()});
+$('mealIngrChips').addEventListener('click',e=>{
+  if(e.target.closest('#ingrPlus')){MS.adding=true;renderMealSheet();$('ingrInput').focus();return}
+  const r=e.target.closest('[data-remove]');
+  if(r){
+    // Zutat entfernen: hier im Sheet und sofort auch im Gerichte-Gedächtnis dieses Titels.
+    const i=r.dataset.remove;
+    MS.known=MS.known.filter(x=>x!==i);
+    MS.ingredients=MS.ingredients.filter(x=>x!==i);
+    const mem=loadMem(),k=memKey($('mealTitle').value);
+    if(mem[k]){
+      mem[k].ingredients=mem[k].ingredients.filter(x=>x!==i);
+      mem[k].lastIngredients=mem[k].lastIngredients.filter(x=>x!==i);
+      STORE.save('f',mem);
+    }
+    renderMealSheet();
+    return;
+  }
+  const b=e.target.closest('[data-ingr]');if(!b)return;
+  const i=b.dataset.ingr;
+  MS.ingredients=MS.ingredients.includes(i)?MS.ingredients.filter(x=>x!==i):[...MS.ingredients,i];
+  renderMealSheet();
+});
+$('ingrOk').addEventListener('click',()=>{
+  if($('ingrInput').value.trim())addIngredient($('ingrInput').value);
+  else{MS.adding=false;renderMealSheet()}
+});
+$('ingrInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addIngredient(e.target.value)}});
+$('ingrInput').addEventListener('input',renderMealSheet);
+$('ingrSuggest').addEventListener('click',e=>{const b=e.target.closest('[data-addingr]');if(b)addIngredient(b.dataset.addingr)});
+$('mealPortion').addEventListener('click',e=>{const b=e.target.closest('[data-portion]');if(b){MS.portion=b.dataset.portion;renderMealSheet()}});
+// iPhone meldet das Uhrzeit-Rad als „input“, nicht zuverlässig als „change“: auf beides hören
+['input','change'].forEach(ev=>$('mealTime').addEventListener(ev,()=>{
+  const t=$('mealTime').value||null;if(t===MS.time)return;
+  MS.time=t;
+  if(!MS.kindManual)MS.kind=kindForTime(MS.time);
+  renderMealSheet();
+}));
+$('mealMoreBtn').addEventListener('click',()=>{$('mealMore').hidden=false;$('mealMoreBtn').hidden=true;$('mealDrink').focus()});
+
+$('mealForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  let title=$('mealTitle').value.trim();if(!title)return;
+  // Kleine Abweichungen in der Schreibweise an das bekannte Gericht angleichen
+  const mem=findMem(title);if(mem)title=mem.title;
+  // Eine halb getippte Zutat nicht verlieren
+  if(MS.adding&&$('ingrInput').value.trim())addIngredient($('ingrInput').value);
+  const day=getDay(viewKey);
+  const data={time:$('mealTime').value||null,kind:MS.kind,title,ingredients:[...MS.ingredients],portion:MS.portion,
+    drink:$('mealDrink').value.trim()||null,note:$('mealNote').value.trim()||null};
+  const existing=MS.id?day.meals.find(x=>x.id===MS.id):null;
+  // Wurde beim Bearbeiten der Titel geändert, zählt das alte Gericht einmal weniger
+  const renamed=existing&&memKey(existing.title)!==memKey(title);
+  if(renamed)forgetMealOnce(existing.title);
+  if(existing)Object.assign(existing,data);
+  else day.meals.push({id:uid(),...data,addedAt:new Date().toISOString()});
+  saveDay(viewKey,day);
+  rememberMeal(data,!existing||renamed,MS.pinned);
+  mealSheet.close();
+  renderHeute();
+  toast(savedMsg());
+});
+$('mealDelete').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.meals=day.meals.filter(m=>m.id!==MS.id);
+  saveDay(viewKey,day);
+  mealSheet.close();
+  renderHeute();
+  toast('Gelöscht');
+});
 
 
-// ── WOCHENBERICHT & TEILEN ────────────────────────
-let rWeek=0;
-function wRange(off){const n=new Date(),m=new Date(n);m.setDate(n.getDate()-((n.getDay()+6)%7)+off*7);m.setHours(0,0,0,0);const s=new Date(m);s.setDate(m.getDate()+6);s.setHours(23,59,59,999);return{m,s}}
-function wLabel(off){if(off===0)return'Diese Woche';if(off===-1)return'Letzte Woche';const{m,s}=wRange(off);return`${m.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}`}
-function wData(off){const{m,s}=wRange(off),data=DB.d(),r={};Object.keys(data).forEach(k=>{const d=new Date(k+'T12:00:00');if(d>=m&&d<=s&&data[k].length)r[k]=data[k]});return r}
-function changeWeek(d){rWeek=Math.min(0,rWeek+d);renderReport()}
+// ══════════════════════════════════════════════════════════════════
+// TAGESABSCHLUSS „Wie war dein Tag?“
+// day.close = { sodbrennen, blaehbauch, blaehungen, stress: 0–3, bewegung: 1–3,
+//               stuhl: {count, kind}, savedAt }   (null = noch nicht beantwortet)
+// Jeder Tipp wird sofort gespeichert. Ein zweiter Tipp auf dieselbe Stufe nimmt sie zurück.
+// ══════════════════════════════════════════════════════════════════
+const QUESTIONS={
+  beschwerden:[
+    {key:'sodbrennen',name:'Sodbrennen',labels:['Keins','Leicht','Mittel','Stark']},
+    {key:'blaehbauch',name:'Blähbauch',labels:['Keiner','Leicht','Mittel','Stark']},
+    {key:'blaehungen',name:'Blähungen',labels:['Keine','Wenig','Oft','Ständig']}
+  ],
+  alltag:[
+    {key:'stress',name:'Stress',labels:['Keiner','Etwas','Viel','Sehr viel']},
+    {key:'bewegung',name:'Bewegung',labels:['Kaum','Etwas','Viel'],from:1}
+  ]
+};
+const STOOL_KINDS=[{id:'hart',label:'Hart'},{id:'normal',label:'Normal'},{id:'breiig',label:'Breiig'},{id:'fluessig',label:'Flüssig'}];
 
-// Baut den Bericht: oben lesbarer Text, unten die Rohdaten für das Auswertungs-Tool
-function buildReport(){
-  const wd=wData(rWeek),keys=Object.keys(wd).sort();
-  const {m,s}=wRange(rWeek);
-  const range=`${m.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} – ${s.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'})}`;
-  const lines=[`GutLog – Wochenbericht`,`Zeitraum: ${range}`,``];
+// Symbol einer Stufe: 0 = Strich, 1–3 = so viele gefüllte Balken
+function levelIcon(level){
+  if(level===0)return '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18"><rect class="on" x="4" y="8" width="10" height="2" rx="1"/></svg>';
+  const c=n=>level>=n?'on':'off';
+  return `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18"><rect class="${c(1)}" x="2" y="10" width="3" height="5" rx="1.5"/><rect class="${c(2)}" x="7.5" y="6" width="3" height="9" rx="1.5"/><rect class="${c(3)}" x="13" y="2" width="3" height="13" rx="1.5"/></svg>`;
+}
+function questionCard(q,c){
+  const v=c?c[q.key]:null, from=q.from||0, set=v!=null;
+  const buttons=q.labels.map((label,i)=>{const value=from+i;
+    return `<button type="button" class="lv" data-q="${q.key}" data-v="${value}" aria-pressed="${v===value}" aria-label="${q.name}: ${label}">${levelIcon(value)}</button>`}).join('');
+  return `<div class="q-card q-row"><div style="min-width:0"><div class="q-name">${q.name}</div><div class="q-val${set?' is-set':''}">${set?q.labels[v-from]:'Offen'}</div></div><div class="levels">${buttons}</div></div>`;
+}
+function stoolCard(c){
+  const st=c?c.stuhl:null;
+  let val='Offen';
+  if(st){val=st.count===0?'Keiner':`${st.count}×`+(st.kind?` · ${lab(STOOL_KINDS,st.kind)}`:' · Wie war er?')}
+  const done=st&&(st.count===0||st.kind);
+  const kinds=st&&st.count>0?`<div class="kinds4" role="group" aria-label="Konsistenz">${STOOL_KINDS.map(k=>`<button type="button" class="chip chip--outline chip--accent" data-stool-kind="${k.id}" aria-pressed="${st.kind===k.id}">${k.label}</button>`).join('')}</div>`:'';
+  return `<div class="q-row"><div><div class="q-name">Stuhlgang</div><div class="q-val${done?' is-set':''}">${val}</div></div>
+    <div class="row"><button type="button" class="btn-round btn-round--outline" data-stool="-1" aria-label="Einmal weniger"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+    <span class="count" aria-live="polite">${st?st.count:0}×</span>
+    <button type="button" class="btn-round btn-round--brand" data-stool="1" aria-label="Einmal mehr"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>${kinds}`;
+}
+
+function renderAbschluss(){
+  const day=getDay(viewKey),c=day.close;
+  $('abschlussDatum').textContent=`${fmtDate(viewKey)} · ${closeFilled(c)} von 6 ausgefüllt`;
+  $('qBeschwerden').innerHTML=QUESTIONS.beschwerden.map(q=>questionCard(q,c)).join('');
+  $('qAlltag').innerHTML=QUESTIONS.alltag.map(q=>questionCard(q,c)).join('');
+  $('qStuhl').innerHTML=stoolCard(c);
+  const evs=[...day.events].sort(byTime);
+  $('ereignisBlock').hidden=evs.length===0;
+  $('ereignisListe').innerHTML=evs.map(e=>{
+    const sub=[lab(LEVELS,e.level),isLate(e,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    return `<li><button class="entry" data-event="${esc(e.id)}"><span class="entry-main">${esc(eventName(e))}<span class="entry-sub">${esc(sub)}</span></span><span class="entry-time">${esc(e.time||'')}</span></button></li>`;
+  }).join('');
+}
+
+// Eine Angabe speichern. Der Tagesabschluss wird beim ersten Tipp angelegt.
+// focusSel: Nach dem Neuzeichnen den angetippten Button wieder fokussieren (wichtig für Vorlese-Programme)
+function setClose(update,focusSel){
+  const day=getDay(viewKey);
+  day.close=Object.assign({sodbrennen:null,blaehbauch:null,blaehungen:null,stuhl:null,stress:null,bewegung:null,addedAt:new Date().toISOString()},day.close||{},update,{savedAt:new Date().toISOString()});
+  // Alles wieder abgewählt: dann gibt es keinen Tagesabschluss (zählt nicht als Tag mit Einträgen)
+  if(CLOSE_FIELDS.every(k=>day.close[k]==null))day.close=null;
+  saveDay(viewKey,day);
+  renderAbschluss();
+  if(focusSel){const el=document.querySelector('#screen-abschluss '+focusSel);if(el)el.focus({preventScroll:true})}
+}
+$('screen-abschluss').addEventListener('click',e=>{
+  const lv=e.target.closest('[data-q]');
+  if(lv){
+    const key=lv.dataset.q,v=Number(lv.dataset.v);
+    const cur=getDay(viewKey).close;
+    setClose({[key]:cur&&cur[key]===v?null:v},`[data-q="${key}"][data-v="${v}"]`);
+    return;
+  }
+  const st=e.target.closest('[data-stool]');
+  if(st){
+    const cur=(getDay(viewKey).close||{}).stuhl;
+    const delta=Number(st.dataset.stool);
+    // Minus bei „Offen“ tut nichts, Minus bei „Keiner“ setzt zurück auf „Offen“
+    if(delta<0&&!cur)return;
+    const fs=`[data-stool="${st.dataset.stool}"]`;
+    if(delta<0&&cur.count===0){setClose({stuhl:null},fs);return}
+    const n=Math.min(Math.max((cur?cur.count:0)+delta,0),20);
+    setClose({stuhl:{count:n,kind:n>0&&cur?cur.kind:null}},fs);
+    return;
+  }
+  const k=e.target.closest('[data-stool-kind]');
+  if(k){
+    const cur=getDay(viewKey).close.stuhl;
+    setClose({stuhl:{count:cur.count,kind:cur.kind===k.dataset.stoolKind?null:k.dataset.stoolKind}},`[data-stool-kind="${k.dataset.stoolKind}"]`);
+    return;
+  }
+  const ev=e.target.closest('[data-event]');
+  if(ev)openEventSheet(ev.dataset.event);
+});
+$('abschlussFertig').addEventListener('click',()=>{const d=getDay(viewKey);if(closeFilled(d.close)||d.events.length)toast(savedMsg())});
+
+// ══════════════════════════════════════════════════════════════════
+// EREIGNIS
+// Ein Ereignis: { id, time, type, other, level: 1–3, note, addedAt }
+// ══════════════════════════════════════════════════════════════════
+const EVENT_TYPES=['Sodbrennen','Bauchschmerzen','Blähbauch','Übelkeit','Anderes'];
+const LEVELS=[{v:1,label:'Leicht'},{v:2,label:'Mittel'},{v:3,label:'Stark'}];
+const eventName=e=>e.type==='Anderes'&&e.other?e.other:e.type;
+const eventSheet=$('eventSheet');
+let ES={};
+
+function openEventSheet(id=null){
+  const day=getDay(viewKey);
+  const e=id?day.events.find(x=>x.id===id):null;
+  ES={id,type:e?e.type:null,level:e?e.level:null};
+  $('eventSheetTitel').textContent=e?'Ereignis bearbeiten':'Ereignis';
+  $('eventOther').value=e?(e.other||''):'';
+  $('eventTime').value=e?(e.time||''):(defaultTime()||'');
+  $('eventTimeOpt').textContent=isToday()?'':'(freiwillig)';
+  $('eventNote').value=e?(e.note||''):'';
+  $('eventDelete').hidden=!e;
+  renderEventSheet();
+  eventSheet.showModal();
+}
+function renderEventSheet(){
+  $('eventTypes').innerHTML=EVENT_TYPES.map(t=>`<button type="button" class="chip chip--accent" data-type="${t}" aria-pressed="${ES.type===t}">${t}</button>`).join('');
+  $('eventOtherFeld').hidden=ES.type!=='Anderes';
+  $('eventLevels').innerHTML=LEVELS.map(l=>`<button type="button" class="tile tile--accent lv-tile" data-level="${l.v}" aria-pressed="${ES.level===l.v}">${levelIcon(l.v)}<span>${l.label}</span></button>`).join('');
+  $('eventSave').disabled=!ES.type||!ES.level||(ES.type==='Anderes'&&!$('eventOther').value.trim());
+}
+$('eventPlus').addEventListener('click',()=>openEventSheet());
+$('eventTypes').addEventListener('click',e=>{const b=e.target.closest('[data-type]');if(b){ES.type=ES.type===b.dataset.type?null:b.dataset.type;renderEventSheet()}});
+$('eventLevels').addEventListener('click',e=>{const b=e.target.closest('[data-level]');if(b){ES.level=Number(b.dataset.level);renderEventSheet()}});
+$('eventOther').addEventListener('input',renderEventSheet);
+$('eventForm').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  if($('eventSave').disabled)return;
+  const day=getDay(viewKey);
+  const data={time:$('eventTime').value||null,type:ES.type,other:ES.type==='Anderes'?$('eventOther').value.trim():null,level:ES.level,note:$('eventNote').value.trim()||null};
+  const existing=ES.id?day.events.find(x=>x.id===ES.id):null;
+  if(existing)Object.assign(existing,data);
+  else day.events.push({id:uid(),...data,addedAt:new Date().toISOString()});
+  saveDay(viewKey,day);
+  eventSheet.close();
+  renderAbschluss();
+  toast(savedMsg());
+});
+$('eventDelete').addEventListener('click',()=>{
+  const day=getDay(viewKey);
+  day.events=day.events.filter(x=>x.id!==ES.id);
+  saveDay(viewKey,day);
+  eventSheet.close();
+  renderAbschluss();
+  toast('Gelöscht');
+});
+
+// ══════════════════════════════════════════════════════════════════
+// VERLAUF
+// Eine Woche (Montag bis Sonntag) als Diagramm. Zusammenhänge („Oft davor“,
+// „Gut vertragen“) zeigt die App Fabienne bewusst nicht: Auslöser können auch
+// vom Vortag kommen, das bewertet Sandra in der Auswertung. Die frühere Berechnung
+// (relations, dayItems) steht in der Git-Geschichte, falls sie später wieder in die App soll. Ausgewertet wird
+// mit Claude im Projekt „GutLog“ nach denselben Regeln (auswertung-anleitung.md).
+// ══════════════════════════════════════════════════════════════════
+const FILTERS=[
+  {id:'sodbrennen',label:'Sodbrennen',title:'Sodbrennen pro Tag',y:['Stark','Mittel','Leicht'],event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
+  {id:'blaehbauch',label:'Blähbauch',title:'Blähbauch pro Tag',y:['Stark','Mittel','Leicht'],event:'Blähbauch',what:'mittlerem oder starkem Blähbauch'},
+  {id:'blaehungen',label:'Blähungen',title:'Blähungen pro Tag',y:['Ständig','Oft','Wenig'],event:null,what:'oft oder ständig Blähungen'},
+  {id:'stuhl',label:'Stuhlgang',title:'Stuhlgang pro Tag',y:['3×+','2×','1×'],event:null,what:'Durchfall (mind. 3× breiig oder flüssig)'}
+];
+let verlaufFilter='sodbrennen';
+let weekKey=null; // Montag der angezeigten Woche
+
+const mondayOf=k=>{const d=keyToDate(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return dk(d)};
+const shortDate=k=>{const d=keyToDate(k);return `${d.getDate()}. ${d.toLocaleDateString('de-DE',{month:'short'}).replace('.','')}`};
+const hasData=day=>!!day&&(day.meals.length||day.meds.length||day.events.length||closeFilled(day.close)>0);
+
+// Durchfall-Tag nach WHO: mindestens 3× Stuhlgang, breiig oder flüssig
+const isDiarrhea=st=>!!st&&st.count>=3&&(st.kind==='breiig'||st.kind==='fluessig');
+
+// Hatte der Tag die Beschwerde deutlich? true/false, oder null wenn nicht beantwortet.
+function symptomOn(day,f){
+  if(f.id==='stuhl'){const st=day.close&&day.close.stuhl;return st?isDiarrhea(st):null}
+  const v=day.close?day.close[f.id]:null;
+  const ev=f.event&&day.events.some(e=>e.type===f.event&&e.level>=2);
+  if(v==null&&!ev)return null;
+  return (v!=null&&v>=2)||!!ev;
+}
+
+function pantoMark(day){
+  if(!hasData(day))return '';
+  const p=findPanto(day);
+  if(!p)return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="ring ring--none" cx="7" cy="7" r="5.25"/></svg>';
+  if(p.status==='reduziert')return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="ring" cx="7" cy="7" r="5.25"/><path class="fill" d="M7 1.75a5.25 5.25 0 010 10.5z"/></svg>';
+  return '<svg width="14" height="14" viewBox="0 0 14 14"><circle class="fill" cx="7" cy="7" r="6"/></svg>';
+}
+
+function renderVerlauf(){
+  const today=todayKey();
+  if(!weekKey)weekKey=mondayOf(today);
+  const thisWeek=mondayOf(today);
+  const end=addDays(weekKey,6);
+  $('wocheText').textContent=weekKey===thisWeek?`Diese Woche · ${shortDate(weekKey)} – ${shortDate(end)}`:weekKey===addDays(thisWeek,-7)?`Letzte Woche · ${shortDate(weekKey)} – ${shortDate(end)}`:`${shortDate(weekKey)} – ${shortDate(end)}`;
+  $('wocheVor').disabled=weekKey>=thisWeek;
+
+  const f=FILTERS.find(x=>x.id===verlaufFilter);
+  $('verlaufFilter').innerHTML=FILTERS.map(x=>`<button type="button" class="chip chip--accent" data-filter="${x.id}" aria-pressed="${x.id===f.id}">${x.label}</button>`).join('');
+  $('chartTitel').textContent=f.title;
+  $('yAchse').innerHTML=f.y.map(t=>`<span>${t}</span>`).join('');
+
+  // Eine Spalte pro Tag
+  const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  $('chartTage').innerHTML=WD.map((wd,i)=>{
+    const k=addDays(weekKey,i),day=DATA.days[k];
+    let v=null,strong=false,text='nicht eingetragen';
+    if(day&&day.close){
+      if(f.id==='stuhl'){const st=day.close.stuhl;if(st){v=Math.min(st.count,3);strong=isDiarrhea(st);text=st.count===0?'kein Stuhlgang':`${st.count}× Stuhlgang${st.kind?', '+lab(STOOL_KINDS,st.kind).toLowerCase():''}${strong?', Durchfall':''}`}}
+      else{const q=[...QUESTIONS.beschwerden].find(x=>x.key===f.id);const x=day.close[f.id];if(x!=null){v=x;strong=x>=3;text=`${f.label}: ${q.labels[x]}`}}
+    }
+    const bar=v==null?'':v===0?'<div class="bar bar--zero"></div>':`<div class="bar${strong?' bar--strong':''}" style="height:${Math.round(v/3*120)}px"></div>`;
+    const p=day?findPanto(day):null;
+    const ptext=!hasData(day)?'':!p?', kein Pantoprazol':p.status==='reduziert'?', Pantoprazol reduziert':', Pantoprazol genommen';
+    return `<div class="day-col" role="img" aria-label="${wd} ${shortDate(k)}: ${text}${ptext}"><div class="track">${bar}</div><div class="day-label${k===today?' is-today':''}">${wd}</div><div class="panto" aria-hidden="true">${pantoMark(day)}</div></div>`;
+  }).join('');
+  $('legende').innerHTML=`<span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="fill" cx="7" cy="7" r="6"/></svg>Pantoprazol</span>
+    <span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="ring" cx="7" cy="7" r="5.25"/><path class="fill" d="M7 1.75a5.25 5.25 0 010 10.5z"/></svg>reduziert</span>
+    <span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="ring ring--none" cx="7" cy="7" r="5.25"/></svg>nicht genommen</span>`
+    +(f.id==='stuhl'?'<span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><rect width="12" height="12" rx="3" style="fill:var(--accent-ink)"/></svg>Durchfall-Tag</span>':'');
+
+}
+$('verlaufFilter').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){verlaufFilter=b.dataset.filter;renderVerlauf()}});
+$('wocheZurueck').addEventListener('click',()=>{weekKey=addDays(weekKey,-7);renderVerlauf()});
+$('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){weekKey=addDays(weekKey,7);renderVerlauf()}});
+
+// ══════════════════════════════════════════════════════════════════
+// BERICHT
+// Format 2.0: eine .txt-Datei, oben lesbarer Text, unten nach der Zeile
+// MARKER die Daten als JSON. Sandra wertet den Bericht mit Claude im Projekt
+// „GutLog“ aus, nach der Anleitung auswertung-anleitung.md (beschreibt dieses Format).
+// Mitgeschickt wird zusätzlich der Tag VOR der Woche (Sonntag davor), damit
+// die Auswertung auch für Montag schauen kann, was am Vortag war.
+// ══════════════════════════════════════════════════════════════════
+const REPORT_MARKER='=== GUTLOG-DATEN (für die Auswertung, bitte nicht ändern) ===';
+const REPORT_VERSION='2.0';
+let reportWeek=null;
+
+const LVL_WORDS={sodbrennen:['keins','leicht','mittel','stark'],blaehbauch:['keiner','leicht','mittel','stark'],blaehungen:['keine','wenig','oft','ständig'],stress:['keiner','etwas','viel','sehr viel'],bewegung:[null,'kaum','etwas','viel']};
+const kindLabel=id=>(KINDS.find(k=>k.id===id)||{}).label||'';
+// Einzahl oder Mehrzahl: plural(1,'Tag','Tagen') → „1 Tag“
+const plural=(n,one,many)=>`${n} ${n===1?one:many}`;
+
+// Statistik einer Woche, für die Kennzahlen im Screen und im Text
+function weekStats(monday){
+  const keys=[...Array(7)].map((_,i)=>addDays(monday,i));
+  const today=todayKey();
+  const s={keys,days:0,closes:0,panto:0,reduced:0,noPanto:0,sod:0,diarrhea:0,meals:0,meds:0,events:0,missing:[]};
   keys.forEach(k=>{
-    const d=new Date(k+'T12:00:00');
-    lines.push(d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'}));
-    wd[k].forEach(e=>{
-      if(e.type==='meal')lines.push(`  ${e.time} Mahlzeit: ${e.name}${e.details?' ('+e.details+')':''}${e.drink?' + '+e.drink:''}`);
-      else if(e.type==='symptom')lines.push(`  ${e.time} Symptom: ${(e.symptoms||[]).join(', ')} – ${e.severity}/10${e.timing?' ('+e.timing+')':''}${e.note?' – '+e.note:''}`);
-      else lines.push(`  ${e.time} Medikament: ${e.name} ${e.status==='ausgelassen'?'AUSGELASSEN':(e.dose||'')+' mg'+(e.status==='reduziert'?' (reduziert)':'')}${e.timing?' – '+e.timing:''}${e.note?' ('+e.note+')':''}`);
-    });
-    lines.push('');
+    const d=DATA.days[k];
+    if(hasData(d)){
+      s.days++;
+      const p=findPanto(d);
+      if(p){s.panto++;if(p.status==='reduziert')s.reduced++}else s.noPanto++;
+      s.meals+=d.meals.length;s.meds+=d.meds.length;s.events+=d.events.length;
+      // Sodbrennen zählt nach derselben Regel wie in der Auswertung: ab Mittel im Tagesabschluss oder Ereignis ab Mittel
+      if(symptomOn(d,FILTERS[0]))s.sod++;
+      if(d.close){s.closes++;if(d.close.stuhl&&isDiarrhea(d.close.stuhl))s.diarrhea++}
+    }
+    // Lücke: vergangener Tag der Woche ohne Tagesabschluss (heute zählt noch nicht)
+    if(k<today&&!(d&&d.close))s.missing.push(k);
   });
-  const payload={app:'GutLog',version:'1.1',range:{from:dk(m),to:dk(s)},exportedAt:new Date().toISOString(),days:wd};
-  lines.push('=== GUTLOG-DATEN (für das Auswertungs-Tool, bitte nicht ändern) ===');
-  lines.push(JSON.stringify(payload));
-  return {text:lines.join('\n'),file:`gutlog-bericht-${dk(m)}.txt`,keys};
+  return s;
 }
 
-function renderReport(){
-  const {keys}=buildReport();
-  const wd=wData(rWeek),all=Object.values(wd).flat(),syms=all.filter(e=>e.type==='symptom');
-  const avgS=syms.length?(syms.reduce((a,e)=>a+e.severity,0)/syms.length).toFixed(1):'–';
-  document.getElementById('repC').innerHTML=`
-    <div class="st">Wochenbericht</div>
-    <div class="wn">
-      <button class="wb" onclick="changeWeek(-1)">‹ Vorherige</button>
-      <span class="wl">${esc(wLabel(rWeek))}</span>
-      <button class="wb" onclick="changeWeek(1)" ${rWeek>=0?'disabled':''}>Nächste ›</button>
-    </div>
-    <div class="sgrid">
-      <div class="scc"><div class="sn">${keys.length}</div><div class="sl">Tage erfasst</div></div>
-      <div class="scc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptome</div></div>
-      <div class="scc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div>
-    </div>
-    ${!keys.length?'<div class="es"><div class="ei">📭</div><p>Keine Einträge für diese Woche.</p></div>':`
-    <div class="rc">
-      <div class="rh"><span class="rp2">📤 Teilen</span><span class="rt">Bericht senden</span></div>
-      <p style="font-size:.85rem;color:var(--mut);line-height:1.7;margin-bottom:16px">Öffnet das Teilen-Menü deines Handys. Wähle WhatsApp, Mail oder AirDrop und dann den Kontakt.</p>
-      <button class="sav" onclick="shareReport()">Bericht teilen</button>
-    </div>`}`;
+// Zeilenumbrüche im lesbaren Text durch „ / “ ersetzen, damit jede Angabe eine Zeile bleibt
+const oneLine=t=>String(t).replace(/\s*\n+\s*/g,' / ');
+// Uhrzeit im Text; vor 4:00 gehört sie zur Nacht nach diesem Tag
+const rtime=t=>!t?'--:--':t<'04:00'?`${t} (nachts)`:t;
+function buildReport(monday){
+  const sunday=addDays(monday,6);
+  const st=weekStats(monday);
+  const L=[];
+  const late=(e,k)=>isLate(e,k)?' (nachgetragen)':'';
+  L.push('GutLog Wochenbericht');
+  L.push(`Woche: ${fmtDate(monday)} – ${fmtDate(sunday)} ${keyToDate(sunday).getFullYear()}`);
+  L.push(`Erstellt: ${new Date().toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})}`);
+  L.push('');
+  L.push('ÜBERSICHT');
+  L.push(`Tage mit Einträgen: ${st.days} von 7`);
+  L.push(`Tagesabschluss ausgefüllt: ${plural(st.closes,'Tag','Tage')}`);
+  L.push(`Pantoprazol: an ${plural(st.panto,'Tag','Tagen')} genommen${st.reduced?` (davon ${st.reduced} reduziert)`:''}, an ${plural(st.noPanto,'Tag','Tagen')} nicht (eingestellte Dosis ${pantoDose()} mg, volle Dosis ${PANTO_FULL} mg)`);
+  L.push(`Tage mit Sodbrennen ab mittel (Tagesabschluss oder Ereignis): ${st.sod}`);
+  L.push(`Durchfall-Tage (mind. 3× breiig oder flüssig): ${st.diarrhea}`);
+  L.push('');
+  L.push('TAGE');
+  st.keys.forEach(k=>{
+    const d=DATA.days[k];
+    if(!hasData(d))return;
+    L.push('');
+    L.push(fmtDate(k));
+    if(d.meals.length){
+      L.push('  Mahlzeiten:');
+      [...d.meals].sort(byTime).forEach(m=>{
+        const parts=[(m.ingredients||[]).length?`(${m.ingredients.join(', ')})`:'',m.portion&&m.portion!=='normal'?`Portion ${lab(PORTIONS,m.portion).toLowerCase()}`:'',m.drink?`Getränk: ${oneLine(m.drink)}`:'',m.note?`Notiz: ${oneLine(m.note)}`:''].filter(Boolean).join(' · ');
+        L.push(`    ${rtime(m.time)} ${kindLabel(m.kind)?kindLabel(m.kind)+': ':''}${m.title}${parts?' '+parts:''}${late(m,k)}`);
+      });
+    }
+    L.push('  Medikamente:');
+    const p=findPanto(d);
+    if(!p)L.push('    Pantoprazol nicht genommen');
+    [...d.meds].sort(byTime).forEach(m=>{
+      if(m.name===PANTO)L.push(`    ${rtime(m.time)} Pantoprazol ${m.dose} mg${m.status==='reduziert'?' (reduziert)':''}${late(m,k)}`);
+      else L.push(`    ${rtime(m.time)} ${m.name}${m.amount?' '+m.amount:''}${late(m,k)}`);
+    });
+    if(d.events.length){
+      L.push('  Ereignisse:');
+      [...d.events].sort(byTime).forEach(e=>L.push(`    ${rtime(e.time)} ${eventName(e)}, ${lab(LEVELS,e.level).toLowerCase()}${e.note?' – '+oneLine(e.note):''}${late(e,k)}`));
+    }
+    const c=d.close;
+    if(c){
+      const w=(f)=>c[f]==null?'offen':LVL_WORDS[f][c[f]];
+      const stl=c.stuhl?(c.stuhl.count===0?'keiner':`${c.stuhl.count}×${c.stuhl.kind?' '+lab(STOOL_KINDS,c.stuhl.kind).toLowerCase():''}${isDiarrhea(c.stuhl)?' (Durchfall)':''}`):'offen';
+      L.push(`  Tagesabschluss${late(c,k)}: Sodbrennen ${w('sodbrennen')} · Blähbauch ${w('blaehbauch')} · Blähungen ${w('blaehungen')} · Stuhlgang ${stl} · Stress ${w('stress')} · Bewegung ${w('bewegung')}`);
+    }else L.push('  Tagesabschluss: nicht ausgefüllt');
+  });
+  // Daten-Teil: die Woche plus der Tag davor als Kontext
+  const days={};
+  [addDays(monday,-1),...st.keys].forEach(k=>{if(hasData(DATA.days[k]))days[k]=DATA.days[k]});
+  const payload={app:'GutLog',version:REPORT_VERSION,stage:STAGE,range:{from:monday,to:sunday},contextFrom:addDays(monday,-1),
+    exportedAt:new Date().toISOString(),settings:{pantoDose:pantoDose()},days};
+  L.push('');
+  L.push(REPORT_MARKER);
+  L.push(JSON.stringify(payload));
+  return {text:L.join('\n'),file:`GutLog_${monday}_bis_${sunday}${STAGE==='test'?'_TEST':''}.txt`};
 }
 
+function renderBericht(){
+  const thisWeek=mondayOf(todayKey());
+  if(!reportWeek)reportWeek=thisWeek;
+  const sunday=addDays(reportWeek,6);
+  $('berichtWoche').textContent=`${shortDate(reportWeek)} – ${shortDate(sunday)}`;
+  $('berichtWocheName').textContent=reportWeek===thisWeek?'Diese Woche':reportWeek===addDays(thisWeek,-7)?'Letzte Woche':'';
+  $('berichtVor').disabled=reportWeek>=thisWeek;
+  const st=weekStats(reportWeek);
+  $('kpiTage').innerHTML=`${st.days}<small>/7</small>`;
+  $('kpiPanto').innerHTML=`${st.panto}<small>/${st.days||7}</small>`;
+  $('kpiSod').innerHTML=`${st.sod}<small>/${st.days||7}</small>`;
+  const icon=(d,color)=>`<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" style="stroke:var(--${color})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  $('berichtInhalt').innerHTML=[
+    [icon('<path d="M4 7h16M4 12h16M4 17h10"/>','brand'),plural(st.meals,'Mahlzeit','Mahlzeiten')],
+    [icon('<path d="M3 12h4l3-7 4 14 3-7h4"/>','accent-ink'),`${plural(st.closes,'Tagesabschluss','Tagesabschlüsse')} und ${plural(st.events,'Ereignis','Ereignisse')}`],
+    [icon('<rect x="3" y="9" width="18" height="6" rx="3"/><path d="M12 9v6"/>','brand'),`Pantoprazol und ${plural(st.meds-st.panto,'weiteres Medikament','weitere Medikamente')}`]
+  ].map(([i,t])=>`<li>${i}<span>${t}</span></li>`).join('');
+  const gaps=st.missing.filter(k=>k>=(Object.keys(DATA.days).sort()[0]||k));
+  $('berichtLuecken').hidden=!gaps.length;
+  if(gaps.length)$('berichtLuecken').textContent=`Ohne Tagesabschluss: ${gaps.map(k=>fmtDate(k).split(',')[0]).join(', ')}. Du kannst ihn auf „Heute“ über die Pfeile nachtragen.`;
+  $('berichtTeilen').disabled=st.days===0;
+  $('berichtKopieren').hidden=st.days===0;
+}
+
+// Läuft gerade ein Teilen-Vorgang, wird ein zweiter Tipp ignoriert
+let sharing=false;
 async function shareReport(){
-  const {text,file}=buildReport();
-  // 1. Versuch: als Datei teilen (iOS 15+, Android Chrome)
+  if(sharing)return;sharing=true;
+  try{await shareReportNow()}finally{sharing=false}
+}
+async function shareReportNow(){
+  const {text,file}=buildReport(reportWeek);
   try{
+    // 1. Versuch: als Datei teilen (Android Chrome, iOS 15+)
     const f=new File([text],file,{type:'text/plain'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){
       await navigator.share({files:[f],title:'GutLog Wochenbericht'});
-      toast('✓ Bericht geteilt');return;
+      markReportSent(reportWeek);toast('Bericht geteilt');return;
     }
     // 2. Versuch: als Text teilen
     if(navigator.share){
       await navigator.share({title:'GutLog Wochenbericht',text});
-      toast('✓ Bericht geteilt');return;
+      markReportSent(reportWeek);toast('Bericht geteilt');return;
     }
   }catch(err){
-    if(err&&err.name==='AbortError')return; // Nutzerin hat abgebrochen
+    if(err&&err.name==='AbortError')return; // Teilen abgebrochen
   }
   // 3. Rückfall: in die Zwischenablage kopieren
-  try{await navigator.clipboard.writeText(text);toast('Kopiert – jetzt in WhatsApp einfügen','info')}
-  catch{toast('Teilen wird hier nicht unterstützt','err')}
+  copyReport();
+}
+async function copyReport(){
+  const {text}=buildReport(reportWeek);
+  try{await navigator.clipboard.writeText(text);toast('Kopiert. Jetzt z. B. in WhatsApp einfügen.')}
+  catch{toast('Kopieren wird hier nicht unterstützt')}
+}
+$('berichtTeilen').addEventListener('click',shareReport);
+$('berichtKopieren').addEventListener('click',copyReport);
+$('berichtZurueck').addEventListener('click',()=>{reportWeek=addDays(reportWeek,-7);renderBericht()});
+$('berichtVor').addEventListener('click',()=>{if(reportWeek<mondayOf(todayKey())){reportWeek=addDays(reportWeek,7);renderBericht()}});
+
+// ══════════════════════════════════════════════════════════════════
+// EINSTELLUNGEN
+// Gespeichert unter K+'c': pantoDose (mg); Abend-Erinnerung reminder/reminderTime/reminderLast;
+// Bericht-Erinnerung reportReminder/reportReminderTime/reportReminderLast; reportSentWeeks
+// (Montage der Wochen, deren Bericht geteilt wurde). „…Last“ = Tag der letzten Erinnerung.
+// ══════════════════════════════════════════════════════════════════
+const settings=()=>STORE.load('c',{});
+function saveSetting(name,value){const c=settings();c[name]=value;STORE.save('c',c)}
+const CHEVRON='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+function renderEinstellungen(){
+  renderReminder();
+  // Pantoprazol: drei Dosen zur Auswahl, gewählt ist die gespeicherte (Standard 40 mg)
+  const d=pantoDose();
+  $('pantoDosen').innerHTML=PANTO_DOSES.map(x=>`<button type="button" class="chip" data-dose="${x}" aria-pressed="${x===d}">${x} mg</button>`).join('');
+  $('pantoDosisHinweis').textContent=`Ein Tipp auf den Haken unter Heute trägt ${d} mg ein.`+
+    (d<PANTO_FULL?` Weniger als ${PANTO_FULL} mg wird als reduziert gespeichert.`:' Wird es beim Absetzen weniger, hier ändern.');
+  // Gerichte
+  const n=Object.keys(loadMem()).length;
+  $('gerichteAnzahl').textContent=n?`${plural(n,'Gericht','Gerichte')} gemerkt`:'Noch keine gemerkt';
 }
 
-// ── SETTINGS ──────────────────────────────────────
-function initSettings(){
-  const c=DB.c(),tog=document.getElementById('nTog');if(!tog)return;
-  tog.checked=!!c.notifEnabled;
-  const ts=document.getElementById('tSec');if(ts)ts.style.display=c.notifEnabled?'block':'none';
-  renderChips();refreshNS();
+// ── Pantoprazol-Dosis ──
+// Gilt ab dem nächsten Haken. Bisherige Einträge behalten ihre Dosis.
+$('pantoDosen').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dose]');if(!b)return;
+  saveSetting('pantoDose',Number(b.dataset.dose));renderEinstellungen();toast('Gespeichert');
+});
+
+// ── Erinnerungen ──
+// Zwei Erinnerungen mit denselben Regeln, beschrieben in REMINDERS:
+//   abend:   jeden Abend an den Tagesabschluss, nur wenn er noch nicht fertig ist
+//   bericht: sonntags an den Wochenbericht, nur wenn der Bericht dieser Woche noch nicht geteilt wurde
+// on/time/last sind die Namen der Einstellungen in K+'c'. weekday: 0 = Sonntag, null = jeden Tag.
+// Grenze von Web-Apps: Sie dürfen nur benachrichtigen, solange sie noch laufen (offen oder
+// kurz im Hintergrund). Android und iOS legen Apps im Hintergrund nach einigen Minuten schlafen,
+// dann kommt nichts. Zuverlässig ginge das nur mit einem Server („Push“), den wir bewusst nicht haben.
+const REMINDERS={
+  abend:{on:'reminder',time:'reminderTime',last:'reminderLast',def:'19:00',weekday:null,
+    body:'Wie war dein Tag? Kurz eintragen.',hash:'#abschluss',
+    due:k=>closeFilled(getDay(k).close)<CLOSE_FIELDS.length},
+  bericht:{on:'reportReminder',time:'reportReminderTime',last:'reportReminderLast',def:'20:00',weekday:0,
+    body:'Sonntag: Bitte den Wochenbericht an Sandra schicken.',hash:'#bericht',
+    due:k=>!(settings().reportSentWeeks||[]).includes(mondayOf(k))}
+};
+const canNotify=()=>'Notification' in window&&'serviceWorker' in navigator;
+const remBox=id=>document.querySelector(`[data-rem="${id}"]`);
+
+function renderReminder(){
+  const c=settings();
+  Object.entries(REMINDERS).forEach(([id,r])=>{
+    const box=remBox(id),on=!!c[r.on];
+    box.querySelector('[data-rem-toggle]').setAttribute('aria-checked',String(on));
+    box.querySelector('[data-rem-timefield]').hidden=!on;
+    box.querySelector('[data-rem-time]').value=c[r.time]||r.def;
+    box.querySelector('[data-rem-test]').hidden=!on;
+  });
+  let h;
+  if(!canNotify())h='Hier sind keine Benachrichtigungen möglich. Auf dem iPhone gehen sie nur, wenn GutLog auf dem Home-Bildschirm liegt. Verlässlich ist ein Wecker im Handy.';
+  else if(Notification.permission==='denied')h='Benachrichtigungen sind für GutLog blockiert. Du kannst sie in den Einstellungen des Handys erlauben.';
+  else h='Kommen nur, wenn GutLog kurz vorher noch offen war. Ist die App länger zu, bleibt die Erinnerung aus. Verlässlich ist ein Wecker im Handy.';
+  $('erinnHinweis').textContent=h;
 }
-function renderChips(){const el=document.getElementById('tChps');if(!el)return;const times=(DB.c().reminderTimes)||['08:00','13:00','20:00'];el.innerHTML=times.map(t=>`<div class="tch"><span>${esc(t)} Uhr</span><button class="tcd" onclick="removeTime('${esc(t)}')">✕</button></div>`).join('')}
-function addTime(){const t=document.getElementById('nTi').value;if(!t)return;const c=DB.c(),times=c.reminderTimes||['08:00','13:00','20:00'];if(!times.includes(t)){times.push(t);times.sort()}c.reminderTimes=times;DB.sc(c);renderChips();scheduleAll();toast('Erinnerungszeit hinzugefügt')}
-function removeTime(t){const c=DB.c();c.reminderTimes=(c.reminderTimes||[]).filter(x=>x!==t);DB.sc(c);renderChips();scheduleAll()}
-async function toggleNotif(on){const c=DB.c();if(on){if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');document.getElementById('nTog').checked=false;return}const p=await Notification.requestPermission();if(p!=='granted'){setNS('w','⚠ Berechtigung verweigert.');document.getElementById('nTog').checked=false;c.notifEnabled=false;DB.sc(c);return}c.notifEnabled=true;if(!c.reminderTimes)c.reminderTimes=['08:00','13:00','20:00'];DB.sc(c);setNS('o','✓ Erinnerungen aktiv.');const ts=document.getElementById('tSec');if(ts)ts.style.display='block';renderChips();scheduleAll()}else{c.notifEnabled=false;DB.sc(c);setNS('','');const ts=document.getElementById('tSec');if(ts)ts.style.display='none';timers.forEach(t=>clearTimeout(t));timers.length=0}}
-function refreshNS(){const c=DB.c();if(!c.notifEnabled)return;if(!('Notification'in window)){setNS('e','❌ Browser unterstützt keine Benachrichtigungen.');return}Notification.permission==='granted'?setNS('o','✓ Erinnerungen aktiv.'):setNS('w','⚠ Berechtigung fehlt.')}
-function setNS(t,m){const el=document.getElementById('nStat');if(!el)return;el.className='ns'+(t?t==='o'?' nso':t==='w'?' nsw':' nse':'');el.textContent=m}
-function scheduleAll(){
-  timers.forEach(t=>clearTimeout(t));timers.length=0;
-  const c=DB.c();
-  if(!c.notifEnabled||!('Notification'in window)||Notification.permission!=='granted')return;
-  (c.reminderTimes||['08:00','13:00','20:00']).forEach(scheduleOne);
-  document.removeEventListener('visibilitychange',onVisible);
-  document.addEventListener('visibilitychange',onVisible);
+Object.entries(REMINDERS).forEach(([id,r])=>{
+  const box=remBox(id);
+  box.querySelector('[data-rem-toggle]').addEventListener('click',async()=>{
+    // Ausschalten setzt auch die Uhrzeit zurück: Beim nächsten Einschalten gilt wieder die Standardzeit.
+    if(settings()[r.on]){saveSetting(r.on,false);saveSetting(r.time,r.def);saveSetting(r.last,null);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
+    if(!canNotify()){renderReminder();toast('Geht hier leider nicht');return}
+    // Beim ersten Einschalten fragt das Handy, ob GutLog Benachrichtigungen schicken darf.
+    let perm=Notification.permission;
+    if(perm==='default'){try{perm=await Notification.requestPermission()}catch{perm='denied'}}
+    if(perm!=='granted'){renderReminder();toast('Benachrichtigungen nicht erlaubt');return}
+    saveSetting(r.on,true);saveSetting(r.time,r.def);
+    scheduleReminder();renderReminder();toast('Erinnerung an');
+  });
+  // Uhrzeit sofort speichern. Das iPhone meldet Änderungen am Uhrzeit-Rad nur als „input“,
+  // nicht zuverlässig als „change“. Darum auf beides hören (und beim Verlassen des Felds).
+  // Die Meldung „Gespeichert“ kommt erst, wenn eine Sekunde lang nichts mehr gedreht wurde.
+  const timeInput=box.querySelector('[data-rem-time]');
+  let toastTimer=null;
+  const saveTime=()=>{
+    const v=timeInput.value;
+    if(!v||v===(settings()[r.time]||r.def))return;
+    saveSetting(r.time,v);saveSetting(r.last,null);scheduleReminder();
+    clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast('Gespeichert'),1000);
+  };
+  ['input','change','blur'].forEach(ev=>timeInput.addEventListener(ev,saveTime));
+  box.querySelector('[data-rem-test]').addEventListener('click',async()=>toast(await showReminder(id)?'Benachrichtigung geschickt':'Hat nicht geklappt'));
+});
+
+// Zeigt die Benachrichtigung. Auf Android geht das nur über den Service Worker.
+async function showReminder(id){
+  const r=REMINDERS[id];
+  const opts={body:r.body,icon:drawIcon(192),tag:'gutlog-'+id,data:{url:new URL('./'+r.hash,location.href).href}};
+  const title=STAGE==='test'?'GutLog Test':'GutLog';
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg){await reg.showNotification(title,opts);return true}
+    new Notification(title,opts);return true;
+  }catch{return false}
 }
-function onVisible(){if(!document.hidden)checkAndFire()}
-function checkAndFire(){
-  const c=DB.c();if(!c.notifEnabled||Notification.permission!=='granted')return;
-  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-  (c.reminderTimes||[]).forEach(ts=>{
-    const[h,m]=ts.split(':').map(Number),diff=nowMins-(h*60+m);
-    if(diff>=0&&diff<5){const lk='gl_n_'+dk(now)+'_'+ts;if(!sessionStorage.getItem(lk)){sessionStorage.setItem(lk,'1');fireNotif()}}
+
+// Wecker innerhalb der App: wartet bis zur nächsten eingestellten Uhrzeit (beim Bericht: nächster Sonntag).
+const reminderTimers={};
+function reminderToday(r){
+  const [h,m]=(settings()[r.time]||r.def).split(':').map(Number);
+  const at=new Date();at.setHours(h,m,0,0);return at;
+}
+function nextReminder(r){
+  const now=new Date(),at=reminderToday(r);
+  while(at<=now||(r.weekday!=null&&at.getDay()!==r.weekday))at.setDate(at.getDate()+1);
+  return at;
+}
+function scheduleReminder(){
+  const c=settings(),allowed=canNotify()&&Notification.permission==='granted';
+  Object.entries(REMINDERS).forEach(([id,r])=>{
+    clearTimeout(reminderTimers[id]);
+    if(!c[r.on]||!allowed)return;
+    reminderTimers[id]=setTimeout(()=>{checkReminder(id);scheduleReminder()},nextReminder(r)-new Date());
   });
 }
-function scheduleOne(ts){
-  const[h,m]=ts.split(':').map(Number),f=new Date();f.setHours(h,m,0,0);
-  if(f<=new Date())f.setDate(f.getDate()+1);
-  timers.push(setTimeout(()=>{fireNotif();setTimeout(()=>scheduleOne(ts),60000)},f-new Date()));
+// Erinnert nur, wenn es noch etwas zu tun gibt (due), höchstens einmal am Tag und nur bis
+// 2 Stunden nach der Uhrzeit (ein schlafendes Handy weckt den Wecker oft zu spät).
+function checkReminder(id){
+  const r=REMINDERS[id],c=settings(),k=todayKey(),at=reminderToday(r),late=new Date()-at;
+  if(!c[r.on]||c[r.last]===k||late<0||late>=2*36e5)return;
+  if(r.weekday!=null&&at.getDay()!==r.weekday)return;
+  if(!r.due(k))return;
+  saveSetting(r.last,k);showReminder(id);
 }
-function fireNotif(){
-  if(Notification.permission!=='granted')return;
-  const d=DB.d(),k=dk(new Date());if(d[k]?.length)return;
-  new Notification('GutLog – Erinnerung 📖',{body:'Noch kein Eintrag für heute!',tag:'gl-r',renotify:true});
-}
-function testNotif(){if(!('Notification'in window)||Notification.permission!=='granted'){toast('⚠ Erst Erinnerungen aktivieren','err');return}new Notification('GutLog – Test ✓',{body:'Benachrichtigungen funktionieren! 🎉',tag:'gl-t'});toast('Test-Benachrichtigung gesendet')}
-function deleteAll(){if(!confirm('Alle lokalen GutLog-Daten löschen?'))return;['gl_d','gl_n'].forEach(k=>localStorage.removeItem(k));toast('Alle Daten gelöscht','info')}
+// Kommt die App wieder nach vorne, die Wecker neu stellen (im Hintergrund können sie stehen geblieben sein).
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)return;
+  scheduleReminder();
+  if(checkDayChange())showScreen(); // neuer Tag: aktuellen Screen neu zeichnen
+});
+// Falls die App über 4 Uhr hinweg offen bleibt
+setInterval(()=>{if(!document.hidden&&checkDayChange())showScreen()},60000);
 
-// ── PWA ───────────────────────────────────────────
-function pwaBoot(){
-  if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath()}}
-  function drawIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const ctx=c.getContext('2d'),s=size;const bg=ctx.createLinearGradient(0,0,s,s);bg.addColorStop(0,'#56886A');bg.addColorStop(1,'#2C5F3F');ctx.fillStyle=bg;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();const glow=ctx.createRadialGradient(s*.5,s*.44,0,s*.5,s*.5,s*.58);glow.addColorStop(0,'rgba(255,255,255,.13)');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.roundRect(0,0,s,s,s*.22);ctx.fill();ctx.save();ctx.translate(s*.5,s*.48);ctx.beginPath();ctx.moveTo(0,-s*.31);ctx.bezierCurveTo(s*.26,-s*.31,s*.31,s*.05,0,s*.31);ctx.bezierCurveTo(-s*.31,s*.05,-s*.26,-s*.31,0,-s*.31);ctx.fillStyle='rgba(255,255,255,.93)';ctx.fill();ctx.beginPath();ctx.moveTo(-s*.21,s*.02);ctx.lineTo(-s*.09,s*.02);ctx.lineTo(-s*.04,-s*.13);ctx.lineTo(s*.04,s*.15);ctx.lineTo(s*.09,s*.02);ctx.lineTo(s*.21,s*.02);ctx.strokeStyle='#2C5F3F';ctx.lineWidth=s*.048;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();ctx.restore();return c.toDataURL('image/png')}
-  const i192=drawIcon(192),i512=drawIcon(512);
-  document.getElementById('appleTouchIcon').href=i192;
-  const manifest={name:'GutLog',short_name:'GutLog',description:'Ernährungs- und Symptomtagebuch',start_url:'.',display:'standalone',lang:'de',background_color:'#2C5F3F',theme_color:'#2C5F3F',orientation:'portrait-primary',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
-  document.getElementById('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
-  const sw=`const C='gl-v5';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||e.request.url.includes('supabase'))return;e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).catch(()=>h)))});`;
-  if('serviceWorker'in navigator)navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
-  window.addEventListener('appinstalled',()=>toast('✓ GutLog installiert!'));
+// Geteilte Wochen merken (Montag der Woche), damit die Sonntags-Erinnerung danach still bleibt.
+function markReportSent(week){
+  const sent=(settings().reportSentWeeks||[]).filter(w=>w!==week);
+  saveSetting('reportSentWeeks',[...sent,week].slice(-12));
 }
+
+// ── Gerichte verwalten ──
+// Liste aller gemerkten Gerichte. Antippen öffnet die Bearbeiten-Ansicht im selben Sheet.
+const dishSheet=$('dishSheet');
+let DS={key:null,pinned:false,ingredients:[]};
+
+function showDishList(){
+  DS={key:null,pinned:false,ingredients:[]};
+  $('dishSheetTitel').textContent='Gerichte';
+  $('dishZurueck').hidden=true;$('dishListeAnsicht').hidden=false;$('dishEditAnsicht').hidden=true;
+  const all=Object.entries(loadMem()).sort(([,a],[,b])=>(b.pinned-a.pinned)||a.title.localeCompare(b.title,'de'));
+  $('dishListe').innerHTML=all.length?all.map(([k,e])=>{
+    const sub=[`${e.count||0}× eingetragen`,e.ingredients.length?plural(e.ingredients.length,'Zutat','Zutaten'):'',e.pinned?'angeheftet':''].filter(Boolean).join(' · ');
+    return `<button type="button" class="list-row" data-dish="${esc(k)}"><span class="entry-main"><span style="font-weight:800">${esc(e.title)}</span><span class="entry-sub">${esc(sub)}</span></span>${CHEVRON}</button>`;
+  }).join(''):'<p class="hint" style="padding:12px 0">Noch keine Gerichte. Sie kommen dazu, sobald du eine Mahlzeit einträgst.</p>';
+}
+function showDishEdit(key){
+  const e=loadMem()[key];if(!e)return showDishList();
+  DS={key,pinned:!!e.pinned,ingredients:[...e.ingredients]};
+  $('dishSheetTitel').textContent='Gericht';
+  $('dishZurueck').hidden=false;$('dishListeAnsicht').hidden=true;$('dishEditAnsicht').hidden=false;
+  $('dishTitel').value=e.title;
+  $('dishZutatenFeld').hidden=!e.ingredients.length;
+  renderDishEdit();
+  $('dishSheetTitel').focus();
+}
+function renderDishEdit(){
+  $('dishPin').setAttribute('aria-pressed',String(DS.pinned));
+  $('dishPin').querySelector('svg').setAttribute('fill',DS.pinned?'currentColor':'none');
+  $('dishZutaten').innerHTML=DS.ingredients.map(i=>`<button type="button" class="chip chip--remove" data-ingr="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
+    ||'<span class="hint">Keine Zutaten mehr gemerkt.</span>';
+  $('dishSpeichern').disabled=!$('dishTitel').value.trim();
+}
+$('gerichteOeffnen').addEventListener('click',()=>{showDishList();dishSheet.showModal()});
+$('dishListe').addEventListener('click',e=>{const b=e.target.closest('[data-dish]');if(b)showDishEdit(b.dataset.dish)});
+$('dishZurueck').addEventListener('click',showDishList);
+$('dishPin').addEventListener('click',()=>{DS.pinned=!DS.pinned;renderDishEdit()});
+$('dishZutaten').addEventListener('click',e=>{
+  const b=e.target.closest('[data-ingr]');if(!b)return;
+  DS.ingredients=DS.ingredients.filter(i=>i!==b.dataset.ingr);renderDishEdit();
+});
+$('dishTitel').addEventListener('input',renderDishEdit);
+
+// Speichern: Name, Stern und Zutaten. Ein neuer Name gilt auch für alle bisherigen Einträge.
+// Gibt es den neuen Namen schon als Gericht, werden beide zusammengelegt.
+$('dishForm').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  const title=$('dishTitel').value.trim();if(!title||!DS.key)return;
+  const mem=loadMem(),old=mem[DS.key],nk=memKey(title);
+  const dish={...old,title,pinned:DS.pinned,ingredients:[...DS.ingredients],
+    lastIngredients:(old.lastIngredients||[]).filter(i=>DS.ingredients.includes(i))};
+  delete mem[DS.key];
+  const other=mem[nk];
+  if(other){
+    dish.ingredients=[...new Set([...other.ingredients,...dish.ingredients])];
+    dish.count=(other.count||0)+(dish.count||0);
+    dish.pinned=dish.pinned||!!other.pinned;
+    if((other.lastUsed||'')>(dish.lastUsed||'')){dish.lastUsed=other.lastUsed;dish.lastIngredients=other.lastIngredients||[]}
+  }
+  mem[nk]=dish;STORE.save('f',mem);
+  let renamed=0;
+  if(title!==old.title){
+    Object.values(DATA.days).forEach(d=>d.meals.forEach(m=>{const mk=memKey(m.title);if((mk===DS.key||mk===nk)&&m.title!==title){m.title=title;renamed++}}));
+    if(renamed)STORE.save('d',DATA);
+  }
+  toast(renamed?`Gespeichert, ${plural(renamed,'Eintrag','Einträge')} umbenannt`:'Gespeichert');
+  showDishList();
+});
+// Löschen nimmt das Gericht nur aus den Vorschlägen; Einträge in den Tagen bleiben.
+$('dishLoeschen').addEventListener('click',()=>{
+  const mem=loadMem();delete mem[DS.key];STORE.save('f',mem);
+  toast('Gericht gelöscht');showDishList();
+});
+dishSheet.addEventListener('close',()=>{if(location.hash==='#einstellungen')renderEinstellungen()});
+
+// ── Alle Daten löschen ──
+// Erst ein Popup mit Rückfrage, dann werden Tage und Gerichte gelöscht. Einstellungen bleiben.
+const loeschenPopup=$('loeschenPopup');
+$('datenLoeschen').addEventListener('click',()=>loeschenPopup.showModal());
+$('loeschenNein').addEventListener('click',()=>loeschenPopup.close());
+// Tippen neben das Popup schließt es (wie Abbrechen)
+loeschenPopup.addEventListener('click',e=>{
+  if(e.target!==loeschenPopup)return;
+  const r=loeschenPopup.getBoundingClientRect();
+  if(e.clientY<r.top||e.clientY>r.bottom||e.clientX<r.left||e.clientX>r.right)loeschenPopup.close();
+});
+$('loeschenJa').addEventListener('click',()=>{
+  ['d','f','d_v1'].forEach(n=>localStorage.removeItem(K+n));
+  DATA=loadData();viewKey=todayKey();weekKey=null;reportWeek=null;
+  loeschenPopup.close();renderEinstellungen();toast('Alle Daten gelöscht');
+});
+
+// ══════════════════════════════════════════════════════════════════
+// TESTDATEN (nur Testversion)
+// Zwei Wochen ausgedachte Daten bis heute, immer gleich (kein Zufall), damit man
+// Verlauf und später den Bericht ausprobieren kann. Eingebaute Muster:
+// Honig → Sodbrennen, Pizza am Abend → Sodbrennen, Kaffee → Blähbauch,
+// Linsensuppe → Blähungen, Reis mit Gemüse und Brot gut vertragen.
+// ══════════════════════════════════════════════════════════════════
+function makeTestData(){
+  if(STAGE!=='test')return;
+  const days={},mem={};
+  let ts;  // Erfassungszeit, wird pro Tag gesetzt
+  const meal=(id,time,kind,title,ingredients,extra={})=>({id,time,kind,title,ingredients,portion:'normal',drink:null,note:null,addedAt:ts,...extra});
+  for(let n=0;n<14;n++){
+    const k=addDays(todayKey(),n-13);
+    // Erfasst am selben Abend um 21 Uhr (sonst wäre alles „nachgetragen“)
+    ts=new Date(keyToDate(k).getTime()+21*36e5).toISOString();
+    const honey=n%3===1, pizza=n===4||n===9, coffee=n%4===0, lentils=n===2||n===6||n===11;
+    const meals=[];
+    if(n%2===0)meals.push(meal('f'+n,'07:45','fruehstueck','Haferbrei',['Haferflocken','Hafermilch','Banane'].concat(honey?['Honig']:[]),{drink:coffee?'Kaffee':null}));
+    else meals.push(meal('f'+n,'07:45','fruehstueck','Brot',['Vollkornbrot','Butter','Käse'].concat(honey?['Honig']:[]),{drink:coffee?'Kaffee':null}));
+    meals.push(lentils?meal('m'+n,'12:30','mittag','Linsensuppe',['Linsen','Karotte','Zwiebel']):meal('m'+n,'12:30','mittag','Reis mit Gemüse',['Reis','Karotte','Zucchini']));
+    meals.push(pizza?meal('a'+n,'20:30','abend','Pizza',['Teig','Tomatensoße','Käse','Salami'],{portion:'gross'}):meal('a'+n,'18:30','abend','Nudeln mit Tomatensoße',['Nudeln','Tomatensoße']));
+    const meds=[];
+    if(n!==5&&n!==9)meds.push({id:'p'+n,name:'Pantoprazol',status:n===3||n===12?'reduziert':'eingenommen',dose:n===3||n===12?20:40,time:'07:30',addedAt:ts});
+    if(pizza)meds.push({id:'g'+n,name:'Gaviscon',amount:'10 ml',time:'22:00',status:'eingenommen',addedAt:ts});
+    const events=pizza?[{id:'e'+n,time:'21:30',type:'Sodbrennen',other:null,level:3,note:'nach dem Hinlegen',addedAt:ts}]:[];
+    const sod=pizza?3:honey?2:(n%5===0?1:0);
+    // Der heutige Tag bleibt ohne Tagesabschluss, damit man ihn selbst ausfüllen kann.
+    const close=n===13?null:{sodbrennen:sod,blaehbauch:coffee?2:1,blaehungen:lentils?2:1,
+      stuhl:n===6?{count:4,kind:'fluessig'}:{count:n%3===0?2:1,kind:'normal'},stress:n===9?3:1,bewegung:n%6===0?1:2,addedAt:ts,savedAt:ts};
+    days[k]={meals,meds,events,close};
+    meals.forEach(m=>{const mk=memKey(m.title);const e=mem[mk]||{title:m.title,ingredients:[],lastIngredients:[],count:0,pinned:m.title==='Haferbrei',lastUsed:''};
+      e.ingredients=[...new Set([...e.ingredients,...m.ingredients])];e.lastIngredients=[...m.ingredients];e.count++;e.lastUsed=new Date(keyToDate(k).getTime()+n).toISOString();mem[mk]=e});
+  }
+  DATA={v:2,days};STORE.save('d',DATA);STORE.save('f',mem);
+}
+$('testdatenEinspielen').addEventListener('click',()=>{
+  if(!confirm('Alle Einträge in der Testversion werden durch Beispieldaten ersetzt. Fortfahren?'))return;
+  makeTestData();viewKey=todayKey();weekKey=null;reportWeek=null;toast('Testdaten eingespielt');renderEinstellungen();
+});
+$('testdatenLoeschen').addEventListener('click',()=>{
+  if(STAGE!=='test'||!confirm('Alle Einträge in der Testversion löschen?'))return;
+  DATA={v:2,days:{}};STORE.save('d',DATA);STORE.save('f',{});viewKey=todayKey();weekKey=null;reportWeek=null;renderEinstellungen();toast('Testdaten gelöscht');
+});
+
+// Doppeltipp-Schutz: Nach dem Schließen eines Sheets oder Popups werden Tipps eine kurze
+// Zeit ignoriert. Sonst trifft der zweite Tipp eines Doppeltipps auf „Speichern“ den Screen darunter.
+// Die Sperre wird direkt beim Schließen gesetzt (das „close“-Signal käme zu spät).
+// Tipps in einem gerade offenen Sheet sind nie gesperrt.
+let tapBlockUntil=0;
+const dialogClose=HTMLDialogElement.prototype.close;
+HTMLDialogElement.prototype.close=function(...args){
+  if(this.open)tapBlockUntil=Date.now()+350;
+  return dialogClose.apply(this,args);
+};
+document.addEventListener('click',e=>{
+  if(Date.now()<tapBlockUntil&&!e.target.closest('dialog[open]')){e.preventDefault();e.stopPropagation()}
+},true);
+
+// Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
+[mealSheet,eventSheet,dishSheet].forEach(d=>{
+  d.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));
+  d.addEventListener('click',e=>{
+    if(e.target!==d)return;
+    const r=d.getBoundingClientRect();
+    if(e.clientY<r.top||e.clientX<r.left||e.clientX>r.right)d.close();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+// APP-ICON, MANIFEST, OFFLINE
+// Das Icon wird per Code gezeichnet (Design System: „Schwung mit Sonne“).
+// ══════════════════════════════════════════════════════════════════
+function drawIcon(size){
+  const c=document.createElement('canvas');c.width=c.height=size;
+  const x=c.getContext('2d');x.scale(size/120,size/120);
+  // Grüne Fläche, randlos: Android und iOS runden die Ecken selbst ab.
+  x.fillStyle='#3F6B55';x.fillRect(0,0,120,120);
+  // Helle, gewundene Linie (Darm)
+  x.beginPath();x.moveTo(36,40);x.lineTo(80,40);x.arc(80,50,10,-Math.PI/2,Math.PI/2,false);
+  x.lineTo(40,60);x.arc(40,70,10,-Math.PI/2,Math.PI/2,true);x.lineTo(70,80);
+  x.strokeStyle='#F7F3EE';x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.stroke();
+  // Kleine Apricot-Sonne
+  x.beginPath();x.arc(84,80,8,0,Math.PI*2);x.fillStyle='#F0AE8C';x.fill();
+  // Nur in der Testversion: Schild „TEST“, liegt im inneren Kreis (bleibt bei runden Icons sichtbar).
+  if(STAGE==='test'){
+    x.fillStyle='#A3522F';x.beginPath();x.moveTo(46,17);x.arcTo(82,17,82,33,8);x.arcTo(82,33,38,33,8);x.arcTo(38,33,38,17,8);x.arcTo(38,17,82,17,8);x.closePath();x.fill();
+    x.fillStyle='#FFFFFF';x.font='800 11px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('TEST',60,25.5);
+  }
+  return c.toDataURL('image/png');
+}
+function pwaBoot(){
+  const i192=drawIcon(192),i512=drawIcon(512);
+  $('appleTouchIcon').href=i192;
+  // Absolute Adressen, damit Live (/gutlog/) und Test (/gutlog/test/) zwei getrennte Apps sind.
+  const base=new URL('./',location.href).href;
+  const name=STAGE==='test'?'GutLog Test':'GutLog';
+  const manifest={id:base,name,short_name:name,description:'Ernährungs- und Symptomtagebuch',start_url:base,scope:base,display:'standalone',lang:'de',
+    background_color:'#F7F3EE',theme_color:'#F7F3EE',orientation:'portrait',
+    icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  $('manifestLink').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  // Offline-Betrieb über die Datei sw.js (früher eine Blob-Adresse, die Browser nicht zulassen).
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════════════════
+if(STAGE==='test'){document.title='GutLog Test';$('stageBand').hidden=false;$('testdatenKarte').hidden=false}
+$('versionInfo').textContent=`GutLog · Version ${APP_VERSION}${STAGE==='test'?' · Testversion':''}`;
+showScreen();
+pwaBoot();
+scheduleReminder();
 </script>
 </body>
 </html>
