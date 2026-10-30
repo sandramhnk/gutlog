@@ -179,6 +179,23 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 .chip[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
 .btn-wide:disabled{background:var(--surface-sunken);color:var(--ink-muted);cursor:default}
 .btn-danger-text{display:block;margin:var(--space-3) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--danger);cursor:pointer}
+/* Leiser Textbutton, z. B. „Abbrechen“ */
+.btn-quiet-text{display:block;margin:var(--space-2) auto 0;height:44px;padding:0 var(--space-3);border:none;background:none;font:700 16px var(--font-sans);color:var(--ink-muted);cursor:pointer}
+/* Breiter Button in Rot: nur für endgültiges Löschen */
+.btn-wide--danger{background:var(--danger)}
+/* Chips auf einer weißen Karte brauchen einen sichtbaren Rahmen */
+.card .chip{border-color:var(--border-control)}
+.card .chip[aria-pressed="true"]{border-color:var(--brand)}
+/* Ein/Aus-Schalter (Einstellungen) */
+.switch{width:56px;height:34px;flex-shrink:0;padding:3px;border-radius:17px;border:1.5px solid var(--border-control);background:var(--surface-raised);display:flex;align-items:center;justify-content:flex-start;cursor:pointer}
+.switch span{display:block;width:24px;height:24px;border-radius:12px;background:var(--ink-muted)}
+.switch[aria-checked="true"]{border-color:var(--brand);background:var(--brand);justify-content:flex-end}
+.switch[aria-checked="true"] span{width:26px;height:26px;border-radius:13px;background:var(--on-brand)}
+/* Zeile in einer Liste zum Antippen (Gerichte) mit Pfeil rechts */
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);width:100%;min-height:56px;padding:8px 0;border:0;border-top:1px solid var(--border);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.list-row:first-child{border-top:0}
+.list-row svg{flex-shrink:0;color:var(--ink-muted)}
+.dish-list{margin-top:var(--space-2);padding:4px 18px;border-radius:var(--radius-lg);background:var(--surface-raised)}
 
 /* Mahlzeit: Art (Frühstück, Mittag, Abend, Snack) als Leiste mit vier Feldern */
 .segmented{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:18px;padding:6px;border-radius:var(--radius-lg);background:var(--surface-raised)}
@@ -412,7 +429,49 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
   <section class="screen" id="screen-einstellungen" aria-labelledby="einstTitel" hidden>
     <div class="screen-head"><div><h1 id="einstTitel">Einstellungen</h1></div></div>
     <div class="stack">
-      <div class="card"><h2>Kommt in Etappe 6</h2><p class="hint">Erinnerung, Pantoprazol-Dosis, Favoriten, Daten löschen.</p></div>
+      <!-- Erinnerung am Abend. Ehrlich: Web-Apps können nur erinnern, solange sie noch im Hintergrund laufen. -->
+      <section class="card" aria-labelledby="erinnTitel">
+        <div class="card-row">
+          <div><h2 id="erinnTitel">Erinnerung</h2><p class="hint" style="margin-top:2px">Abends an „Wie war dein Tag?“ erinnern</p></div>
+          <button type="button" class="switch" id="erinnSchalter" role="switch" aria-checked="false" aria-labelledby="erinnTitel"><span></span></button>
+        </div>
+        <div class="field" id="erinnZeitFeld" style="margin:var(--space-4) 0 0" hidden>
+          <label class="label" for="erinnZeit">Uhrzeit</label>
+          <input class="input" id="erinnZeit" type="time" value="20:30">
+        </div>
+        <p class="hint" id="erinnHinweis"></p>
+        <button type="button" class="inline-link" id="erinnTest" hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
+      </section>
+
+      <!-- Pantoprazol-Dosis: wird mit dem Haken unter Heute eingetragen -->
+      <section class="card" aria-labelledby="pantoEinstTitel">
+        <h2 id="pantoEinstTitel">Pantoprazol</h2>
+        <div class="field" style="margin:var(--space-3) 0 0">
+          <div class="label" id="pantoDosisLabel">Dosis</div>
+          <div class="chips" role="group" aria-labelledby="pantoDosisLabel" id="pantoDosen"></div>
+        </div>
+        <p class="hint" id="pantoDosisHinweis"></p>
+      </section>
+
+      <!-- Gerichte-Gedächtnis verwalten: umbenennen, anheften, löschen -->
+      <section class="card" aria-labelledby="gerichteTitel">
+        <button type="button" class="card-row card-button" id="gerichteOeffnen" style="background:none;padding:0;color:inherit">
+          <span><span class="card-title" id="gerichteTitel">Gerichte</span><span class="hint" id="gerichteAnzahl" style="display:block;margin-top:2px"></span></span>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-muted)"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </section>
+
+      <!-- Alle Daten löschen, mit Rückfrage -->
+      <section class="card" aria-labelledby="datenTitel">
+        <h2 id="datenTitel">Deine Daten</h2>
+        <p class="hint">Alles bleibt nur auf diesem Handy. Nur ein Bericht, den du selbst teilst, verlässt es.</p>
+        <button type="button" class="btn-danger-text" id="datenLoeschen">Alle Daten löschen</button>
+        <div id="loeschenFrage" hidden style="margin-top:var(--space-3)">
+          <p class="hint" style="color:var(--danger)">Alle Einträge und Gerichte werden gelöscht. Das lässt sich nicht rückgängig machen. Teile vorher den Bericht, wenn Sandra ihn noch braucht.</p>
+          <button type="button" class="btn-wide btn-wide--danger" id="loeschenJa" style="margin-top:var(--space-4)">Endgültig löschen</button>
+          <button type="button" class="btn-quiet-text" id="loeschenNein">Abbrechen</button>
+        </div>
+      </section>
       <!-- Nur in der Testversion sichtbar: Beispieldaten zum Ausprobieren -->
       <section class="card" id="testdatenKarte" aria-labelledby="testdatenTitel" hidden>
         <h2 id="testdatenTitel">Testdaten</h2>
@@ -453,11 +512,8 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
       <div class="chips" id="medZuletzt" role="group" aria-label="Zuletzt eingetragen"></div>
     </div>
 
-    <div class="field" id="pantoDosisFeld">
-      <div class="label" id="pantoDosisLabel">Dosis</div>
-      <div class="chips" role="group" aria-labelledby="pantoDosisLabel" id="pantoDosen"></div>
-      <p class="hint" id="pantoDosisHinweis"></p>
-    </div>
+    <!-- Bei Pantoprazol nur Hinweis zur Dosis; geändert wird sie in den Einstellungen -->
+    <p class="hint" id="pantoDosisInfo" style="margin:-6px 0 18px"></p>
 
     <div class="field" id="medMengeFeld">
       <label class="label" for="medMenge">Menge <span class="opt">(freiwillig)</span></label>
@@ -471,6 +527,46 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 
     <button class="btn-wide" id="medSpeichern" type="submit">Speichern</button>
     <button class="btn-danger-text" id="medLoeschen" type="button" hidden>Löschen</button>
+  </form>
+</dialog>
+
+<!-- ══ SHEET: GERICHTE ═══════════════════════════════════════════════
+     Zwei Ansichten in einem Sheet: Liste aller gemerkten Gerichte und
+     Bearbeiten eines Gerichts (umbenennen, anheften, Zutaten entfernen, löschen). -->
+<dialog class="sheet" id="dishSheet" aria-labelledby="dishSheetTitel">
+  <form id="dishForm" novalidate>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <button type="button" class="btn-round" id="dishZurueck" aria-label="Zurück zur Liste" hidden><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <h2 class="sheet-title" id="dishSheetTitel" tabindex="-1" autofocus style="flex:1">Gerichte</h2>
+      <button type="button" class="btn-round" data-close aria-label="Schließen"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <!-- Ansicht 1: Liste -->
+    <div id="dishListeAnsicht">
+      <p class="hint">Die App schlägt diese Gerichte beim Eintragen vor. Tippe ein Gericht an, um es zu ändern.</p>
+      <div class="dish-list" id="dishListe"></div>
+    </div>
+
+    <!-- Ansicht 2: ein Gericht bearbeiten -->
+    <div id="dishEditAnsicht" hidden>
+      <div class="field">
+        <label class="label" for="dishTitel">Name</label>
+        <div class="input-row">
+          <input class="input" id="dishTitel" autocomplete="off" enterkeyhint="done">
+          <button type="button" class="btn-round btn-round--lg" id="dishPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+        </div>
+        <p class="hint" id="dishTitelHinweis">Ein neuer Name gilt auch für alle bisherigen Einträge, z. B. um einen Tippfehler zu korrigieren.</p>
+      </div>
+      <div class="field" id="dishZutatenFeld">
+        <div class="label">Gemerkte Zutaten</div>
+        <div class="chips" id="dishZutaten" role="group" aria-label="Zutaten, antippen zum Entfernen"></div>
+        <p class="hint">Antippen zum Entfernen. Bisherige Einträge bleiben, wie sie sind.</p>
+      </div>
+      <button class="btn-wide" id="dishSpeichern" type="submit">Speichern</button>
+      <button class="btn-danger-text" id="dishLoeschen" type="button">Gericht löschen</button>
+      <p class="hint" style="text-align:center">Löschen nimmt es nur aus den Vorschlägen. Bisherige Einträge bleiben.</p>
+    </div>
   </form>
 </dialog>
 
@@ -668,6 +764,7 @@ function showScreen(){
   if(current==='heute')renderHeute();
   if(current==='verlauf')renderVerlauf();
   if(current==='bericht')renderBericht();
+  if(current==='einstellungen')renderEinstellungen();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',showScreen);
@@ -741,10 +838,15 @@ $('tagVor').addEventListener('click',()=>{if(viewKey<todayKey()){viewKey=addDays
 // Eingetragen wird nur, wenn Pantoprazol genommen wurde: ein Tipp auf den Haken.
 // Ein zweiter Tipp nimmt es wieder zurück (falls man sich vertippt hat).
 // Für die Auswertung gilt: An einem Tag mit Einträgen, aber ohne Pantoprazol, wurde es nicht genommen.
-// Die übliche Dosis kommt aus den Einstellungen (ab Etappe 6 änderbar, bis dahin 20 mg).
+// Die Dosis wird nicht jedes Mal gewählt: Der Haken trägt die Dosis aus den Einstellungen ein
+// (Standard 40 mg). Weniger als die volle Dosis (40 mg) wird als „reduziert“ gespeichert,
+// z. B. wenn beim Absetzen in den Einstellungen 20 mg eingestellt sind.
 // ══════════════════════════════════════════════════════════════════
 const PANTO='Pantoprazol';
-const pantoDose=()=>STORE.load('c',{}).pantoDose||20;
+const PANTO_FULL=40;
+const PANTO_DOSES=[10,20,40];
+const pantoDose=()=>STORE.load('c',{}).pantoDose||PANTO_FULL;
+const pantoStatus=dose=>dose<PANTO_FULL?'reduziert':'eingenommen';
 const findPanto=day=>day.meds.find(m=>m.name===PANTO);
 
 function togglePanto(){
@@ -754,7 +856,8 @@ function togglePanto(){
     day.meds=day.meds.filter(m=>m!==cur);
     toast('Zurückgenommen');
   }else{
-    day.meds.push({id:uid(),name:PANTO,status:'eingenommen',dose:pantoDose(),time:defaultTime(),addedAt:new Date().toISOString()});
+    const dose=pantoDose();
+    day.meds.push({id:uid(),name:PANTO,status:pantoStatus(dose),dose,time:defaultTime(),addedAt:new Date().toISOString()});
     toast(savedMsg());
   }
   saveDay(viewKey,day);
@@ -764,11 +867,11 @@ $('pantoJa').addEventListener('click',togglePanto);
 
 // ══════════════════════════════════════════════════════════════════
 // SHEET: MEDIKAMENT
-// mode 'panto' = Dosis und Uhrzeit von Pantoprazol ändern
+// mode 'panto' = Uhrzeit von Pantoprazol ändern (die Dosis kommt aus den Einstellungen)
 // mode 'med'   = anderes Medikament neu eintragen (id leer) oder bearbeiten (mit id)
 // ══════════════════════════════════════════════════════════════════
 const sheet=$('medSheet');
-let sheetMode='med',sheetId=null,sheetDose=null;
+let sheetMode='med',sheetId=null;
 
 function openMedSheet(mode,id=null){
   sheetMode=mode;sheetId=id;
@@ -776,16 +879,15 @@ function openMedSheet(mode,id=null){
   const isPanto=mode==='panto';
   $('medNameFeld').hidden=isPanto;
   $('medMengeFeld').hidden=isPanto;
-  $('pantoDosisFeld').hidden=!isPanto;
+  $('pantoDosisInfo').hidden=!isPanto;
   $('medLoeschen').hidden=isPanto||!id;
   $('medZeitOpt').textContent=isToday()?'':'(freiwillig)';
 
   if(isPanto){
     const p=findPanto(day);
     $('medSheetTitel').textContent=PANTO;
-    sheetDose=p.dose||pantoDose();
     $('medZeit').value=p.time||'';
-    renderDoseChips();
+    $('pantoDosisInfo').textContent=`${p.dose||pantoDose()} mg${p.status==='reduziert'?', reduziert':''}. Die Dosis stellst du in den Einstellungen ein.`;
   }else{
     const m=id?day.meds.find(x=>x.id===id):null;
     $('medSheetTitel').textContent=m?'Medikament':'Anderes Medikament';
@@ -804,18 +906,6 @@ function openMedSheet(mode,id=null){
   updateMedSave();
   sheet.showModal();
 }
-
-// Dosis-Chips für Pantoprazol. Weniger als die übliche Dosis zählt automatisch als „reduziert“.
-function renderDoseChips(){
-  const normal=pantoDose();
-  const doses=[...new Set([10,20,40,normal])].sort((a,b)=>a-b);
-  $('pantoDosen').innerHTML=doses.map(d=>`<button type="button" class="chip" data-dose="${d}" aria-pressed="${d===sheetDose}">${d} mg</button>`).join('');
-  $('pantoDosisHinweis').textContent=sheetDose<normal?`Weniger als deine übliche Dosis (${normal} mg): wird als reduziert gespeichert.`:`Deine übliche Dosis ist ${normal} mg.`;
-}
-$('pantoDosen').addEventListener('click',e=>{
-  const b=e.target.closest('[data-dose]');if(!b)return;
-  sheetDose=Number(b.dataset.dose);renderDoseChips();
-});
 
 // Chips mit zuletzt eingetragenen Medikamenten. Der Chip, der zum Feld passt, ist markiert.
 let medChipNames=[];
@@ -839,10 +929,7 @@ $('medForm').addEventListener('submit',e=>{
   const day=getDay(viewKey);
   const time=$('medZeit').value||null;
   if(sheetMode==='panto'){
-    const p=findPanto(day);
-    p.dose=sheetDose;
-    p.status=sheetDose<pantoDose()?'reduziert':'eingenommen';
-    p.time=time;
+    findPanto(day).time=time;
   }else{
     const name=$('medName').value.trim();
     if(!name)return;
@@ -876,8 +963,6 @@ sheet.addEventListener('click',e=>{
 
 $('medPlus').addEventListener('click',()=>openMedSheet('med'));
 $('medListe').addEventListener('click',e=>{const b=e.target.closest('[data-med]');if(b)openMedSheet('med',b.dataset.med)});
-
-// Platzhalter: Buttons, die erst in einer späteren Etappe funktionieren.
 
 // ══════════════════════════════════════════════════════════════════
 // MAHLZEIT
@@ -1444,7 +1529,7 @@ function buildReport(monday){
   L.push('ÜBERSICHT');
   L.push(`Tage mit Einträgen: ${st.days} von 7`);
   L.push(`Tagesabschluss ausgefüllt: ${plural(st.closes,'Tag','Tage')}`);
-  L.push(`Pantoprazol: an ${plural(st.panto,'Tag','Tagen')} genommen${st.reduced?` (davon ${st.reduced} reduziert)`:''}, an ${plural(st.noPanto,'Tag','Tagen')} nicht (übliche Dosis ${pantoDose()} mg)`);
+  L.push(`Pantoprazol: an ${plural(st.panto,'Tag','Tagen')} genommen${st.reduced?` (davon ${st.reduced} reduziert)`:''}, an ${plural(st.noPanto,'Tag','Tagen')} nicht (eingestellte Dosis ${pantoDose()} mg, volle Dosis ${PANTO_FULL} mg)`);
   L.push(`Tage mit Sodbrennen: ${st.sod}`);
   L.push(`Durchfall-Tage (mind. 3× breiig oder flüssig): ${st.diarrhea}`);
   L.push('');
@@ -1545,6 +1630,192 @@ $('berichtZurueck').addEventListener('click',()=>{reportWeek=addDays(reportWeek,
 $('berichtVor').addEventListener('click',()=>{if(reportWeek<mondayOf(todayKey())){reportWeek=addDays(reportWeek,7);renderBericht()}});
 
 // ══════════════════════════════════════════════════════════════════
+// EINSTELLUNGEN
+// Gespeichert unter K+'c': pantoDose (mg), reminder (an/aus), reminderTime ('20:30'),
+// reminderLast (Tag, an dem zuletzt erinnert wurde, damit es nur einmal am Tag kommt).
+// ══════════════════════════════════════════════════════════════════
+const settings=()=>STORE.load('c',{});
+function saveSetting(name,value){const c=settings();c[name]=value;STORE.save('c',c)}
+const CHEVRON='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+function renderEinstellungen(){
+  renderReminder();
+  // Pantoprazol: drei Dosen zur Auswahl, gewählt ist die gespeicherte (Standard 40 mg)
+  const d=pantoDose();
+  $('pantoDosen').innerHTML=PANTO_DOSES.map(x=>`<button type="button" class="chip" data-dose="${x}" aria-pressed="${x===d}">${x} mg</button>`).join('');
+  $('pantoDosisHinweis').textContent=`Ein Tipp auf den Haken unter Heute trägt ${d} mg ein.`+
+    (d<PANTO_FULL?` Weniger als ${PANTO_FULL} mg wird als reduziert gespeichert.`:' Wird es beim Absetzen weniger, hier ändern.');
+  // Gerichte
+  const n=Object.keys(loadMem()).length;
+  $('gerichteAnzahl').textContent=n?`${plural(n,'Gericht','Gerichte')} gemerkt`:'Noch keine gemerkt';
+  // Löschen-Rückfrage wieder zuklappen
+  $('loeschenFrage').hidden=true;$('datenLoeschen').hidden=false;
+}
+
+// ── Pantoprazol-Dosis ──
+// Gilt ab dem nächsten Haken. Bisherige Einträge behalten ihre Dosis.
+$('pantoDosen').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dose]');if(!b)return;
+  saveSetting('pantoDose',Number(b.dataset.dose));renderEinstellungen();toast('Gespeichert');
+});
+
+// ── Erinnerung am Abend ──
+// Grenze von Web-Apps: Sie dürfen nur benachrichtigen, solange sie noch laufen (offen oder
+// kurz im Hintergrund). Android und iOS legen Apps im Hintergrund nach einigen Minuten schlafen,
+// dann kommt nichts. Zuverlässig ginge das nur mit einem Server („Push“), den wir bewusst nicht haben.
+const canNotify=()=>'Notification' in window&&'serviceWorker' in navigator;
+function renderReminder(){
+  const c=settings(),on=!!c.reminder;
+  $('erinnSchalter').setAttribute('aria-checked',String(on));
+  $('erinnZeitFeld').hidden=!on;
+  $('erinnZeit').value=c.reminderTime||'20:30';
+  $('erinnTest').hidden=!on;
+  let h;
+  if(!canNotify())h='Hier sind keine Benachrichtigungen möglich. Auf dem iPhone gehen sie nur, wenn GutLog auf dem Home-Bildschirm liegt. Verlässlich ist ein täglicher Wecker im Handy.';
+  else if(Notification.permission==='denied')h='Benachrichtigungen sind für GutLog blockiert. Du kannst sie in den Einstellungen des Handys erlauben.';
+  else h='Kommt nur, wenn GutLog kurz vorher noch offen war. Ist die App länger zu, bleibt die Erinnerung aus. Verlässlich ist ein täglicher Wecker im Handy.';
+  $('erinnHinweis').textContent=h;
+}
+$('erinnSchalter').addEventListener('click',async()=>{
+  if(settings().reminder){saveSetting('reminder',false);scheduleReminder();renderReminder();toast('Erinnerung aus');return}
+  if(!canNotify()){renderReminder();toast('Geht hier leider nicht');return}
+  // Beim ersten Einschalten fragt das Handy, ob GutLog Benachrichtigungen schicken darf.
+  let perm=Notification.permission;
+  if(perm==='default'){try{perm=await Notification.requestPermission()}catch{perm='denied'}}
+  if(perm!=='granted'){renderReminder();toast('Benachrichtigungen nicht erlaubt');return}
+  saveSetting('reminder',true);
+  if(!settings().reminderTime)saveSetting('reminderTime','20:30');
+  scheduleReminder();renderReminder();toast('Erinnerung an');
+});
+$('erinnZeit').addEventListener('change',()=>{
+  if(!$('erinnZeit').value)return;
+  saveSetting('reminderTime',$('erinnZeit').value);saveSetting('reminderLast',null);
+  scheduleReminder();toast('Gespeichert');
+});
+$('erinnTest').addEventListener('click',async()=>toast(await showReminder()?'Benachrichtigung geschickt':'Hat nicht geklappt'));
+
+// Zeigt die Benachrichtigung. Auf Android geht das nur über den Service Worker.
+async function showReminder(){
+  const opts={body:'Wie war dein Tag? Kurz eintragen.',icon:drawIcon(192),tag:'gutlog-abend',
+    data:{url:new URL('./#abschluss',location.href).href}};
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg){await reg.showNotification(STAGE==='test'?'GutLog Test':'GutLog',opts);return true}
+    new Notification('GutLog',opts);return true;
+  }catch{return false}
+}
+
+// Wecker innerhalb der App: wartet bis zur eingestellten Uhrzeit.
+let reminderTimer=null;
+function reminderAt(){
+  const [h,m]=(settings().reminderTime||'20:30').split(':').map(Number);
+  const at=new Date();at.setHours(h,m,0,0);return at;
+}
+function scheduleReminder(){
+  clearTimeout(reminderTimer);
+  const c=settings();
+  if(!c.reminder||!canNotify()||Notification.permission!=='granted')return;
+  const now=new Date(),at=reminderAt();
+  if(at<=now)at.setDate(at.getDate()+1);
+  reminderTimer=setTimeout(checkReminder,at-now);
+}
+// Erinnert nur, wenn der Tagesabschluss noch nicht fertig ist, höchstens einmal am Tag
+// und nur bis 2 Stunden nach der Uhrzeit (ein schlafendes Handy weckt den Wecker oft zu spät).
+function checkReminder(){
+  const c=settings(),k=todayKey(),late=new Date()-reminderAt();
+  if(c.reminder&&late>=0&&late<2*36e5&&c.reminderLast!==k&&closeFilled(getDay(k).close)<CLOSE_FIELDS.length){
+    saveSetting('reminderLast',k);showReminder();
+  }
+  scheduleReminder();
+}
+// Kommt die App wieder nach vorne, den Wecker neu stellen (im Hintergrund kann er stehen geblieben sein).
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleReminder()});
+
+// ── Gerichte verwalten ──
+// Liste aller gemerkten Gerichte. Antippen öffnet die Bearbeiten-Ansicht im selben Sheet.
+const dishSheet=$('dishSheet');
+let DS={key:null,pinned:false,ingredients:[]};
+
+function showDishList(){
+  DS={key:null,pinned:false,ingredients:[]};
+  $('dishSheetTitel').textContent='Gerichte';
+  $('dishZurueck').hidden=true;$('dishListeAnsicht').hidden=false;$('dishEditAnsicht').hidden=true;
+  const all=Object.entries(loadMem()).sort(([,a],[,b])=>(b.pinned-a.pinned)||a.title.localeCompare(b.title,'de'));
+  $('dishListe').innerHTML=all.length?all.map(([k,e])=>{
+    const sub=[`${e.count||0}× eingetragen`,e.ingredients.length?plural(e.ingredients.length,'Zutat','Zutaten'):'',e.pinned?'angeheftet':''].filter(Boolean).join(' · ');
+    return `<button type="button" class="list-row" data-dish="${esc(k)}"><span class="entry-main"><span style="font-weight:800">${esc(e.title)}</span><span class="entry-sub">${esc(sub)}</span></span>${CHEVRON}</button>`;
+  }).join(''):'<p class="hint" style="padding:12px 0">Noch keine Gerichte. Sie kommen dazu, sobald du eine Mahlzeit einträgst.</p>';
+}
+function showDishEdit(key){
+  const e=loadMem()[key];if(!e)return showDishList();
+  DS={key,pinned:!!e.pinned,ingredients:[...e.ingredients]};
+  $('dishSheetTitel').textContent='Gericht';
+  $('dishZurueck').hidden=false;$('dishListeAnsicht').hidden=true;$('dishEditAnsicht').hidden=false;
+  $('dishTitel').value=e.title;
+  $('dishZutatenFeld').hidden=!e.ingredients.length;
+  renderDishEdit();
+  $('dishSheetTitel').focus();
+}
+function renderDishEdit(){
+  $('dishPin').setAttribute('aria-pressed',String(DS.pinned));
+  $('dishPin').querySelector('svg').setAttribute('fill',DS.pinned?'currentColor':'none');
+  $('dishZutaten').innerHTML=DS.ingredients.map(i=>`<button type="button" class="chip chip--remove" data-ingr="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
+    ||'<span class="hint">Keine Zutaten mehr gemerkt.</span>';
+  $('dishSpeichern').disabled=!$('dishTitel').value.trim();
+}
+$('gerichteOeffnen').addEventListener('click',()=>{showDishList();dishSheet.showModal()});
+$('dishListe').addEventListener('click',e=>{const b=e.target.closest('[data-dish]');if(b)showDishEdit(b.dataset.dish)});
+$('dishZurueck').addEventListener('click',showDishList);
+$('dishPin').addEventListener('click',()=>{DS.pinned=!DS.pinned;renderDishEdit()});
+$('dishZutaten').addEventListener('click',e=>{
+  const b=e.target.closest('[data-ingr]');if(!b)return;
+  DS.ingredients=DS.ingredients.filter(i=>i!==b.dataset.ingr);renderDishEdit();
+});
+$('dishTitel').addEventListener('input',renderDishEdit);
+
+// Speichern: Name, Stern und Zutaten. Ein neuer Name gilt auch für alle bisherigen Einträge.
+// Gibt es den neuen Namen schon als Gericht, werden beide zusammengelegt.
+$('dishForm').addEventListener('submit',ev=>{
+  ev.preventDefault();
+  const title=$('dishTitel').value.trim();if(!title||!DS.key)return;
+  const mem=loadMem(),old=mem[DS.key],nk=memKey(title);
+  const dish={...old,title,pinned:DS.pinned,ingredients:[...DS.ingredients],
+    lastIngredients:(old.lastIngredients||[]).filter(i=>DS.ingredients.includes(i))};
+  delete mem[DS.key];
+  const other=mem[nk];
+  if(other){
+    dish.ingredients=[...new Set([...other.ingredients,...dish.ingredients])];
+    dish.count=(other.count||0)+(dish.count||0);
+    dish.pinned=dish.pinned||!!other.pinned;
+    if((other.lastUsed||'')>(dish.lastUsed||'')){dish.lastUsed=other.lastUsed;dish.lastIngredients=other.lastIngredients||[]}
+  }
+  mem[nk]=dish;STORE.save('f',mem);
+  let renamed=0;
+  if(title!==old.title){
+    Object.values(DATA.days).forEach(d=>d.meals.forEach(m=>{if(memKey(m.title)===DS.key&&m.title!==title){m.title=title;renamed++}}));
+    if(renamed)STORE.save('d',DATA);
+  }
+  toast(renamed?`Gespeichert, ${plural(renamed,'Eintrag','Einträge')} umbenannt`:'Gespeichert');
+  showDishList();
+});
+// Löschen nimmt das Gericht nur aus den Vorschlägen; Einträge in den Tagen bleiben.
+$('dishLoeschen').addEventListener('click',()=>{
+  const mem=loadMem();delete mem[DS.key];STORE.save('f',mem);
+  toast('Gericht gelöscht');showDishList();
+});
+dishSheet.addEventListener('close',()=>{if(location.hash==='#einstellungen')renderEinstellungen()});
+
+// ── Alle Daten löschen ──
+// Erst eine Rückfrage, dann werden Tage und Gerichte gelöscht. Einstellungen bleiben.
+$('datenLoeschen').addEventListener('click',()=>{$('datenLoeschen').hidden=true;$('loeschenFrage').hidden=false});
+$('loeschenNein').addEventListener('click',()=>{$('datenLoeschen').hidden=false;$('loeschenFrage').hidden=true});
+$('loeschenJa').addEventListener('click',()=>{
+  ['d','f','d_v1'].forEach(n=>localStorage.removeItem(K+n));
+  DATA=loadData();viewKey=todayKey();weekKey=null;reportWeek=null;
+  renderEinstellungen();toast('Alle Daten gelöscht');
+});
+
+// ══════════════════════════════════════════════════════════════════
 // TESTDATEN (nur Testversion)
 // Zwei Wochen ausgedachte Daten bis heute, immer gleich (kein Zufall), damit man
 // Verlauf und später den Bericht ausprobieren kann. Eingebaute Muster:
@@ -1567,7 +1838,7 @@ function makeTestData(){
     meals.push(lentils?meal('m'+n,'12:30','mittag','Linsensuppe',['Linsen','Karotte','Zwiebel']):meal('m'+n,'12:30','mittag','Reis mit Gemüse',['Reis','Karotte','Zucchini']));
     meals.push(pizza?meal('a'+n,'20:30','abend','Pizza',['Teig','Tomatensoße','Käse','Salami'],{portion:'gross'}):meal('a'+n,'18:30','abend','Nudeln mit Tomatensoße',['Nudeln','Tomatensoße']));
     const meds=[];
-    if(n!==5&&n!==9)meds.push({id:'p'+n,name:'Pantoprazol',status:n===3||n===12?'reduziert':'eingenommen',dose:n===3||n===12?10:20,time:'07:30',addedAt:ts});
+    if(n!==5&&n!==9)meds.push({id:'p'+n,name:'Pantoprazol',status:n===3||n===12?'reduziert':'eingenommen',dose:n===3||n===12?20:40,time:'07:30',addedAt:ts});
     if(pizza)meds.push({id:'g'+n,name:'Gaviscon',amount:'10 ml',time:'22:00',status:'eingenommen',addedAt:ts});
     const events=pizza?[{id:'e'+n,time:'21:30',type:'Sodbrennen',other:null,level:3,note:'nach dem Hinlegen',addedAt:ts}]:[];
     const sod=pizza?3:honey?2:(n%5===0?1:0);
@@ -1590,7 +1861,7 @@ $('testdatenLoeschen').addEventListener('click',()=>{
 });
 
 // Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
-[mealSheet,eventSheet].forEach(d=>{
+[mealSheet,eventSheet,dishSheet].forEach(d=>{
   d.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));
   d.addEventListener('click',e=>{
     if(e.target!==d)return;
@@ -1643,6 +1914,7 @@ $('versionInfo').textContent=`GutLog · Version ${APP_VERSION}${STAGE==='test'?'
 showScreen();
 renderHeute();
 pwaBoot();
+scheduleReminder();
 </script>
 </body>
 </html>

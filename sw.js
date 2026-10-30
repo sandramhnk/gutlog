@@ -3,7 +3,7 @@
 // gleichzeitig gespeichert. Ohne Internet liefert er die zuletzt gespeicherte Version.
 // Live und Test haben getrennte Speicher, damit sie sich nicht vermischen.
 const STAGE = self.location.pathname.includes('/test/') ? 'test' : 'live';
-const CACHE = `gutlog-${STAGE}-v1`;
+const CACHE = `gutlog-${STAGE}-v2`;
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -36,5 +36,17 @@ self.addEventListener('fetch', event => {
       const hit = await cache.match(req);
       return hit || Response.error();
     }
+  })());
+});
+
+// Tipp auf die Abend-Erinnerung: GutLog öffnen (oder nach vorne holen) und zum Tagesabschluss gehen.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || self.registration.scope;
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const own = wins.find(w => w.url.startsWith(self.registration.scope));
+    if (own) { await own.focus(); return own.navigate(url).catch(() => {}); }
+    return self.clients.openWindow(url);
   })());
 });
