@@ -154,6 +154,12 @@ dialog.sheet::backdrop{background:var(--ink);opacity:.45}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:18px}
 .sheet-title{margin:0;font:600 26px/32px var(--font-display)}
 
+/* Popup: kleines Fenster in der Mitte, z. B. für Rückfragen vor dem Löschen */
+dialog.popup{width:calc(100% - 2*var(--space-6));max-width:360px;margin:auto;padding:var(--space-6) var(--space-5) var(--space-3);border:none;border-radius:var(--radius-lg);background:var(--surface);color:var(--ink);text-align:center}
+dialog.popup::backdrop{background:var(--ink);opacity:.45}
+dialog.popup h2{font:600 24px/30px var(--font-display)}
+dialog.popup h2:focus{outline:none}
+dialog.popup .hint{margin:var(--space-3) 0 var(--space-5)}
 /* Formularfelder */
 .field{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:18px}
 .label{font-size:16px;font-weight:800}
@@ -466,11 +472,6 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
         <h2 id="datenTitel">Deine Daten</h2>
         <p class="hint">Alles bleibt nur auf diesem Handy. Nur ein Bericht, den du selbst teilst, verlässt es.</p>
         <button type="button" class="btn-danger-text" id="datenLoeschen">Alle Daten löschen</button>
-        <div id="loeschenFrage" hidden style="margin-top:var(--space-3)">
-          <p class="hint" style="color:var(--danger)">Alle Einträge und Gerichte werden gelöscht. Das lässt sich nicht rückgängig machen. Teile vorher den Bericht, wenn Sandra ihn noch braucht.</p>
-          <button type="button" class="btn-wide btn-wide--danger" id="loeschenJa" style="margin-top:var(--space-4)">Endgültig löschen</button>
-          <button type="button" class="btn-quiet-text" id="loeschenNein">Abbrechen</button>
-        </div>
       </section>
       <!-- Nur in der Testversion sichtbar: Beispieldaten zum Ausprobieren -->
       <section class="card" id="testdatenKarte" aria-labelledby="testdatenTitel" hidden>
@@ -568,6 +569,15 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
       <p class="hint" style="text-align:center">Löschen nimmt es nur aus den Vorschlägen. Bisherige Einträge bleiben.</p>
     </div>
   </form>
+</dialog>
+
+<!-- ══ POPUP: ALLE DATEN LÖSCHEN ═════════════════════════════════════
+     Kleines Fenster in der Mitte mit Rückfrage. Erst „Endgültig löschen“ löscht wirklich. -->
+<dialog class="popup" id="loeschenPopup" aria-labelledby="loeschenTitel" aria-describedby="loeschenText">
+  <h2 id="loeschenTitel" tabindex="-1" autofocus>Wirklich alles löschen?</h2>
+  <p class="hint" id="loeschenText">Alle Einträge und Gerichte auf diesem Handy werden gelöscht. Das lässt sich nicht rückgängig machen. Teile vorher den Bericht, wenn Sandra ihn noch braucht.</p>
+  <button type="button" class="btn-wide btn-wide--danger" id="loeschenJa">Endgültig löschen</button>
+  <button type="button" class="btn-quiet-text" id="loeschenNein">Abbrechen</button>
 </dialog>
 
 <!-- ══ SHEET: MAHLZEIT ═══════════════════════════════════════════════
@@ -1648,8 +1658,6 @@ function renderEinstellungen(){
   // Gerichte
   const n=Object.keys(loadMem()).length;
   $('gerichteAnzahl').textContent=n?`${plural(n,'Gericht','Gerichte')} gemerkt`:'Noch keine gemerkt';
-  // Löschen-Rückfrage wieder zuklappen
-  $('loeschenFrage').hidden=true;$('datenLoeschen').hidden=false;
 }
 
 // ── Pantoprazol-Dosis ──
@@ -1806,13 +1814,20 @@ $('dishLoeschen').addEventListener('click',()=>{
 dishSheet.addEventListener('close',()=>{if(location.hash==='#einstellungen')renderEinstellungen()});
 
 // ── Alle Daten löschen ──
-// Erst eine Rückfrage, dann werden Tage und Gerichte gelöscht. Einstellungen bleiben.
-$('datenLoeschen').addEventListener('click',()=>{$('datenLoeschen').hidden=true;$('loeschenFrage').hidden=false});
-$('loeschenNein').addEventListener('click',()=>{$('datenLoeschen').hidden=false;$('loeschenFrage').hidden=true});
+// Erst ein Popup mit Rückfrage, dann werden Tage und Gerichte gelöscht. Einstellungen bleiben.
+const loeschenPopup=$('loeschenPopup');
+$('datenLoeschen').addEventListener('click',()=>loeschenPopup.showModal());
+$('loeschenNein').addEventListener('click',()=>loeschenPopup.close());
+// Tippen neben das Popup schließt es (wie Abbrechen)
+loeschenPopup.addEventListener('click',e=>{
+  if(e.target!==loeschenPopup)return;
+  const r=loeschenPopup.getBoundingClientRect();
+  if(e.clientY<r.top||e.clientY>r.bottom||e.clientX<r.left||e.clientX>r.right)loeschenPopup.close();
+});
 $('loeschenJa').addEventListener('click',()=>{
   ['d','f','d_v1'].forEach(n=>localStorage.removeItem(K+n));
   DATA=loadData();viewKey=todayKey();weekKey=null;reportWeek=null;
-  renderEinstellungen();toast('Alle Daten gelöscht');
+  loeschenPopup.close();renderEinstellungen();toast('Alle Daten gelöscht');
 });
 
 // ══════════════════════════════════════════════════════════════════
