@@ -125,7 +125,7 @@ p{margin:0}
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-/* Gewählter runder Button (z. B. Ja bei Pantoprazol): gefüllt in Salbeigrün */
+/* Gewählter runder Button (z. B. Haken bei Pantoprazol): gefüllt in Salbeigrün */
 .btn-round[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
 
 /* Einträge in einer Karte: eine Zeile pro Mahlzeit oder Medikament */
@@ -200,6 +200,12 @@ dialog.popup .hint{margin:var(--space-3) 0 var(--space-5)}
 /* Eine Erinnerung in der Karte, mit Trennlinie zur nächsten */
 .reminder{margin-top:var(--space-3)}
 .reminder+.reminder{padding-top:var(--space-3);border-top:1px solid var(--border)}
+/* Lange Wörter ohne Leerzeichen umbrechen, statt die Seite breiter zu machen */
+.entry-main,.chip,.list-row,.q-name,.hint,.sheet-title{overflow-wrap:anywhere}
+.chip{height:auto;min-height:44px;max-width:100%;text-align:left}
+/* Unsichtbar größere Tippfläche für kleine Textlinks und Schalter (mindestens 44 px hoch) */
+.inline-link,.link-plus,.switch{position:relative}
+.inline-link::after,.link-plus::after,.switch::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:44px;transform:translateY(-50%)}
 /* Zeile in einer Liste zum Antippen (Gerichte) mit Pfeil rechts */
 .list-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);width:100%;min-height:56px;padding:8px 0;border:0;border-top:1px solid var(--border);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .list-row:first-child{border-top:0}
@@ -299,7 +305,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 .note-box{margin-top:var(--space-2);padding:10px 14px;border-radius:var(--radius-md);background:var(--surface);font-size:14px;font-weight:600;color:var(--ink-muted)}
 
 /* Testband (nur in der Testversion sichtbar) */
-.stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
+.stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:var(--on-brand);font:700 12px/22px var(--font-sans);text-align:center}
 </style>
 </head>
 <body>
@@ -513,7 +519,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 </nav>
 
 <!-- ══ SHEET: MEDIKAMENT ═════════════════════════════════════════════
-     Ein Sheet für zwei Fälle: Pantoprazol-Dosis ändern und andere Medikamente
+     Ein Sheet für zwei Fälle: Uhrzeit von Pantoprazol ändern und andere Medikamente
      eintragen oder bearbeiten. Je nach Fall werden Felder ein- oder ausgeblendet. -->
 <dialog class="sheet" id="medSheet" aria-labelledby="medSheetTitel">
   <form id="medForm" novalidate>
@@ -525,7 +531,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 
     <div class="field" id="medNameFeld">
       <label class="label" for="medName">Welches Medikament?</label>
-      <input class="input" id="medName" list="medVorschlaege" autocomplete="off" placeholder="z. B. Gaviscon">
+      <input class="input" id="medName" maxlength="60" list="medVorschlaege" autocomplete="off" placeholder="z. B. Gaviscon">
       <datalist id="medVorschlaege"></datalist>
       <div class="chips" id="medZuletzt" role="group" aria-label="Zuletzt eingetragen"></div>
     </div>
@@ -535,7 +541,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 
     <div class="field" id="medMengeFeld">
       <label class="label" for="medMenge">Menge <span class="opt">(freiwillig)</span></label>
-      <input class="input" id="medMenge" autocomplete="off" placeholder="z. B. 1 Tablette, 10 ml">
+      <input class="input" id="medMenge" maxlength="40" autocomplete="off" placeholder="z. B. 1 Tablette, 10 ml">
     </div>
 
     <div class="field">
@@ -571,7 +577,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
       <div class="field">
         <label class="label" for="dishTitel">Name</label>
         <div class="input-row">
-          <input class="input" id="dishTitel" autocomplete="off" enterkeyhint="done">
+          <input class="input" id="dishTitel" maxlength="80" autocomplete="off" enterkeyhint="done">
           <button type="button" class="btn-round btn-round--lg" id="dishPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
         </div>
         <p class="hint" id="dishTitelHinweis">Ein neuer Name gilt auch für alle bisherigen Einträge, z. B. um einen Tippfehler zu korrigieren.</p>
@@ -613,7 +619,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
     <div class="field">
       <label class="label" for="mealTitle">Was hast du gegessen?</label>
       <div class="input-row">
-        <input class="input" id="mealTitle" autocomplete="off" enterkeyhint="done" placeholder="z. B. Haferbrei">
+        <input class="input" id="mealTitle" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Haferbrei">
         <button type="button" class="btn-round btn-round--lg" id="mealPin" aria-pressed="false" aria-label="Oben bei den Vorschlägen anheften"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
       </div>
       <p class="hint" id="mealPinHint" hidden style="color:var(--brand)">Bleibt bei den Vorschlägen ganz vorne</p>
@@ -628,7 +634,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
       <div class="ingredients-head"><span>Zutaten</span><button type="button" class="btn-round btn-round--ghost" id="ingrEdit" aria-label="Zutaten bearbeiten" aria-pressed="false"></button></div>
       <div class="chips" id="mealIngrChips"></div>
       <div class="input-row" id="ingrAdd" hidden>
-        <input class="input" id="ingrInput" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
+        <input class="input" id="ingrInput" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="z. B. Hafermilch" aria-label="Neue Zutat">
         <button type="button" class="btn-round btn-round--lg btn-round--brand" id="ingrOk" aria-label="Zutat hinzufügen"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
       </div>
       <div class="chips" id="ingrSuggest"></div>
@@ -648,11 +654,11 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
     <div id="mealMore" hidden>
       <div class="field">
         <label class="label" for="mealDrink">Getränk</label>
-        <input class="input" id="mealDrink" autocomplete="off" placeholder="z. B. Kaffee mit Milch">
+        <input class="input" id="mealDrink" maxlength="60" autocomplete="off" placeholder="z. B. Kaffee mit Milch">
       </div>
       <div class="field">
         <label class="label" for="mealNote">Notiz</label>
-        <textarea class="input" id="mealNote" rows="2" placeholder="z. B. sehr schnell gegessen, unterwegs"></textarea>
+        <textarea class="input" id="mealNote" maxlength="500" rows="2" placeholder="z. B. sehr schnell gegessen, unterwegs"></textarea>
       </div>
     </div>
 
@@ -679,7 +685,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
     </div>
     <div class="field" id="eventOtherFeld" hidden>
       <label class="label" for="eventOther">Was genau?</label>
-      <input class="input" id="eventOther" autocomplete="off" placeholder="z. B. Kopfschmerzen">
+      <input class="input" id="eventOther" maxlength="60" autocomplete="off" placeholder="z. B. Kopfschmerzen">
     </div>
     <div class="field">
       <div class="label" id="eventLevelLabel">Wie stark?</div>
@@ -691,7 +697,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
     </div>
     <div class="field">
       <label class="label" for="eventNote">Notiz <span class="opt">(freiwillig)</span></label>
-      <textarea class="input" id="eventNote" rows="2" placeholder="z. B. nach dem Hinlegen schlimmer"></textarea>
+      <textarea class="input" id="eventNote" maxlength="500" rows="2" placeholder="z. B. nach dem Hinlegen schlimmer"></textarea>
     </div>
     <button class="btn-wide" id="eventSave" type="submit">Speichern</button>
     <button class="btn-danger-text" id="eventDelete" type="button" hidden>Löschen</button>
@@ -730,17 +736,31 @@ const STORE={
 // Felder der einzelnen Einträge: siehe Umsetzungsplan „Neues Datenmodell“.
 // Liegen noch Daten im alten Format (Version 1) vor, werden sie zur Sicherheit
 // unter K+'d_v1' abgelegt und die App startet mit leeren Daten.
+// Ist der gespeicherte Text kaputt (kein gültiges JSON), wird er vor dem Neustart unter
+// K+'d_broken' gesichert, damit nichts unbemerkt verloren geht.
+// Jeder Tag wird beim Laden vervollständigt (fehlende Listen werden leer ergänzt),
+// damit unvollständige Daten die App nicht zum Absturz bringen.
+const emptyDay=()=>({meals:[],meds:[],events:[],close:null});
+function fixDay(day){
+  const d={...emptyDay(),...(day&&typeof day==='object'?day:{})};
+  ['meals','meds','events'].forEach(n=>{if(!Array.isArray(d[n]))d[n]=[]});
+  if(d.close&&typeof d.close!=='object')d.close=null;
+  return d;
+}
 function loadData(){
+  const raw=localStorage.getItem(K+'d');
   let d=STORE.load('d',null);
+  if(raw&&d===null)localStorage.setItem(K+'d_broken',raw);
   if(!d||d.v!==2){
     if(d) STORE.save('d_v1',d);
     d={v:2,days:{}};
     STORE.save('d',d);
   }
+  if(!d.days||typeof d.days!=='object')d.days={};
+  Object.keys(d.days).forEach(k=>{d.days[k]=fixDay(d.days[k])});
   return d;
 }
 let DATA=loadData();
-const emptyDay=()=>({meals:[],meds:[],events:[],close:null});
 const getDay=key=>DATA.days[key]||emptyDay();
 function saveDay(key,dayObj){DATA.days[key]=dayObj;STORE.save('d',DATA)}
 
@@ -765,6 +785,8 @@ const savedMsg=()=>isToday()?'Gespeichert':`Für ${dayWord(viewKey)} gespeichert
 // KLEINE HELFER
 // ══════════════════════════════════════════════════════════════════
 const $=id=>document.getElementById(id);
+// Beschriftung aus einer Liste holen (z. B. Portion „Groß“). Unbekannte Werte zeigen sich selbst, statt abzustürzen.
+const lab=(list,id)=>{const x=list.find(e=>(e.id!==undefined?e.id:e.v)===id);return x?x.label:String(id??'?')};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const nowHM=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -778,6 +800,9 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 // „abschluss“ ist ein Unterbereich von Heute: eigener Screen, aber ohne eigenen Navigationspunkt.
 const SCREENS=['heute','abschluss','verlauf','bericht','einstellungen'];
 function showScreen(){
+  checkDayChange();
+  // Offene Sheets schließen, wenn sich der Screen ändert (z. B. Zurück-Taste)
+  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
   const wanted=location.hash.slice(1);
   const current=SCREENS.includes(wanted)?wanted:'heute';
   const navName=current==='abschluss'?'heute':current;
@@ -803,13 +828,24 @@ window.addEventListener('hashchange',showScreen);
 // ══════════════════════════════════════════════════════════════════
 let viewKey=todayKey();
 const isToday=()=>viewKey===todayKey();
+// Tageswechsel bei offener App: Bleibt GutLog über Nacht im Hintergrund, zeigt sie morgens
+// wieder „Heute“ an (sonst würden neue Einträge beim Vortag landen).
+let lastToday=todayKey();
+function checkDayChange(){
+  const t=todayKey();
+  if(t===lastToday)return false;
+  lastToday=t;viewKey=t;weekKey=null;reportWeek=null;
+  return true;
+}
 // Neue Einträge bekommen heute die aktuelle Uhrzeit, an früheren Tagen erst mal keine.
 const defaultTime=()=>isToday()?nowHM():null;
 // Ein Eintrag gilt als nachgetragen, wenn er an einem späteren Tag erfasst wurde als dem, zu dem er gehört.
 const isLate=(entry,key)=>!!entry.addedAt&&dayKeyFor(entry.addedAt)>key;
-const byTime=(a,b)=>(a.time||'99').localeCompare(b.time||'99');
+// Sortieren nach Uhrzeit. Zeiten vor 4:00 gehören zur Nacht danach und kommen ans Ende des Tages.
+const timeOrder=t=>!t?'3':t<'04:00'?'2'+t:'1'+t;
+const byTime=(a,b)=>timeOrder(a.time).localeCompare(timeOrder(b.time));
 
-// Die sechs Angaben des Tagesabschlusses (Etappe 3)
+// Die sechs Angaben des Tagesabschlusses
 const CLOSE_FIELDS=['sodbrennen','blaehbauch','blaehungen','stuhl','stress','bewegung'];
 // Stuhlgang zählt als ausgefüllt, wenn „keiner“ (0×) gewählt ist oder Anzahl und Konsistenz da sind.
 function closeFilled(c){
@@ -829,7 +865,7 @@ function renderHeute(){
   $('mahlzeitenHinweis').hidden=meals.length>0;
   $('mahlzeitenListe').innerHTML=meals.map(m=>{
     const kind=KINDS.find(k=>k.id===m.kind);
-    const sub=[kind?kind.label:'',(m.ingredients||[]).join(', '),m.portion&&m.portion!=='normal'?`Portion ${PORTIONS.find(x=>x.id===m.portion).label.toLowerCase()}`:'',isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    const sub=[kind?kind.label:'',(m.ingredients||[]).join(', '),m.portion&&m.portion!=='normal'?`Portion ${lab(PORTIONS,m.portion).toLowerCase()}`:'',isLate(m,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
     return `<li><button class="entry" data-meal="${esc(m.id)}"><span class="entry-main">${esc(m.title)}${sub?`<span class="entry-sub">${esc(sub)}</span>`:''}</span><span class="entry-time">${esc(m.time||'')}</span></button></li>`;
   }).join('');
 
@@ -874,9 +910,13 @@ const PANTO_FULL=40;
 const PANTO_DOSES=[10,20,40];
 const pantoDose=()=>STORE.load('c',{}).pantoDose||PANTO_FULL;
 const pantoStatus=dose=>dose<PANTO_FULL?'reduziert':'eingenommen';
-const findPanto=day=>day.meds.find(m=>m.name===PANTO);
+const findPanto=day=>day.meds.find(m=>m.name===PANTO&&m.dose);
 
+let lastPantoTap=0;
 function togglePanto(){
+  // Doppeltipp-Schutz: ein zweiter Tipp innerhalb einer halben Sekunde zählt nicht
+  if(Date.now()-lastPantoTap<500)return;
+  lastPantoTap=Date.now();
   const day=getDay(viewKey);
   const cur=findPanto(day);
   if(cur){
@@ -960,6 +1000,8 @@ $('medForm').addEventListener('submit',e=>{
   }else{
     const name=$('medName').value.trim();
     if(!name)return;
+    // Pantoprazol immer über den Haken eintragen, sonst stimmt die Auswertung nicht.
+    if(/^pantoprazol/i.test(name)){toast('Pantoprazol bitte mit dem Haken unter Heute eintragen');return}
     const amount=$('medMenge').value.trim()||null;
     const m=sheetId?day.meds.find(x=>x.id===sheetId):null;
     if(m){Object.assign(m,{name,amount,time})}
@@ -1028,6 +1070,14 @@ function allIngredients(){
   const n={};
   Object.values(loadMem()).forEach(e=>e.ingredients.forEach(i=>{n[i]=(n[i]||0)+1}));
   return Object.keys(n).sort((a,b)=>n[b]-n[a]||a.localeCompare(b,'de'));
+}
+// Ein Gericht einmal weniger zählen. Kommt es danach nicht mehr vor und ist nicht angeheftet,
+// verschwindet es aus den Vorschlägen (z. B. ein Tippfehler im Titel).
+function forgetMealOnce(title){
+  const mem=loadMem(),k=memKey(title),e=mem[k];if(!e)return;
+  e.count=Math.max((e.count||0)-1,0);
+  if(e.count===0&&!e.pinned)delete mem[k];
+  STORE.save('f',mem);
 }
 function rememberMeal(meal,isNew,pinned){
   const mem=loadMem(),k=memKey(meal.title);
@@ -1113,6 +1163,7 @@ function renderMealSheet(){
     ?'<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
     :'<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
   $('ingrEdit').setAttribute('aria-label',MS.editIngr?'Bearbeiten beenden':'Zutaten bearbeiten');
+  $('ingrEdit').setAttribute('aria-pressed',String(MS.editIngr));
   $('mealIngrChips').innerHTML=MS.editIngr
     ? chips.map(i=>`<button type="button" class="chip chip--remove" data-remove="${esc(i)}" aria-label="${esc(i)} entfernen">${esc(i)}<span aria-hidden="true">×</span></button>`).join('')
     : chips.map(i=>`<button type="button" class="chip chip--solid" data-ingr="${esc(i)}" aria-pressed="${MS.ingredients.includes(i)}">${esc(i)}</button>`).join('')
@@ -1206,11 +1257,13 @@ $('ingrInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefau
 $('ingrInput').addEventListener('input',renderMealSheet);
 $('ingrSuggest').addEventListener('click',e=>{const b=e.target.closest('[data-addingr]');if(b)addIngredient(b.dataset.addingr)});
 $('mealPortion').addEventListener('click',e=>{const b=e.target.closest('[data-portion]');if(b){MS.portion=b.dataset.portion;renderMealSheet()}});
-$('mealTime').addEventListener('change',()=>{
-  MS.time=$('mealTime').value||null;
+// iPhone meldet das Uhrzeit-Rad als „input“, nicht zuverlässig als „change“: auf beides hören
+['input','change'].forEach(ev=>$('mealTime').addEventListener(ev,()=>{
+  const t=$('mealTime').value||null;if(t===MS.time)return;
+  MS.time=t;
   if(!MS.kindManual)MS.kind=kindForTime(MS.time);
   renderMealSheet();
-});
+}));
 $('mealMoreBtn').addEventListener('click',()=>{$('mealMore').hidden=false;$('mealMoreBtn').hidden=true;$('mealDrink').focus()});
 
 $('mealForm').addEventListener('submit',e=>{
@@ -1224,10 +1277,13 @@ $('mealForm').addEventListener('submit',e=>{
   const data={time:$('mealTime').value||null,kind:MS.kind,title,ingredients:[...MS.ingredients],portion:MS.portion,
     drink:$('mealDrink').value.trim()||null,note:$('mealNote').value.trim()||null};
   const existing=MS.id?day.meals.find(x=>x.id===MS.id):null;
+  // Wurde beim Bearbeiten der Titel geändert, zählt das alte Gericht einmal weniger
+  const renamed=existing&&memKey(existing.title)!==memKey(title);
+  if(renamed)forgetMealOnce(existing.title);
   if(existing)Object.assign(existing,data);
   else day.meals.push({id:uid(),...data,addedAt:new Date().toISOString()});
   saveDay(viewKey,day);
-  rememberMeal(data,!existing,MS.pinned);
+  rememberMeal(data,!existing||renamed,MS.pinned);
   mealSheet.close();
   renderHeute();
   toast(savedMsg());
@@ -1276,7 +1332,7 @@ function questionCard(q,c){
 function stoolCard(c){
   const st=c?c.stuhl:null;
   let val='Offen';
-  if(st){val=st.count===0?'Keiner':`${st.count}×`+(st.kind?` · ${STOOL_KINDS.find(k=>k.id===st.kind).label}`:' · Wie war er?')}
+  if(st){val=st.count===0?'Keiner':`${st.count}×`+(st.kind?` · ${lab(STOOL_KINDS,st.kind)}`:' · Wie war er?')}
   const done=st&&(st.count===0||st.kind);
   const kinds=st&&st.count>0?`<div class="kinds4" role="group" aria-label="Konsistenz">${STOOL_KINDS.map(k=>`<button type="button" class="chip chip--outline chip--accent" data-stool-kind="${k.id}" aria-pressed="${st.kind===k.id}">${k.label}</button>`).join('')}</div>`:'';
   return `<div class="q-row"><div><div class="q-name">Stuhlgang</div><div class="q-val${done?' is-set':''}">${val}</div></div>
@@ -1294,43 +1350,52 @@ function renderAbschluss(){
   const evs=[...day.events].sort(byTime);
   $('ereignisBlock').hidden=evs.length===0;
   $('ereignisListe').innerHTML=evs.map(e=>{
-    const sub=[LEVELS.find(l=>l.v===e.level).label,isLate(e,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
+    const sub=[lab(LEVELS,e.level),isLate(e,viewKey)?'nachgetragen':''].filter(Boolean).join(' · ');
     return `<li><button class="entry" data-event="${esc(e.id)}"><span class="entry-main">${esc(eventName(e))}<span class="entry-sub">${esc(sub)}</span></span><span class="entry-time">${esc(e.time||'')}</span></button></li>`;
   }).join('');
 }
 
 // Eine Angabe speichern. Der Tagesabschluss wird beim ersten Tipp angelegt.
-function setClose(update){
+// focusSel: Nach dem Neuzeichnen den angetippten Button wieder fokussieren (wichtig für Vorlese-Programme)
+function setClose(update,focusSel){
   const day=getDay(viewKey);
   day.close=Object.assign({sodbrennen:null,blaehbauch:null,blaehungen:null,stuhl:null,stress:null,bewegung:null,addedAt:new Date().toISOString()},day.close||{},update,{savedAt:new Date().toISOString()});
+  // Alles wieder abgewählt: dann gibt es keinen Tagesabschluss (zählt nicht als Tag mit Einträgen)
+  if(CLOSE_FIELDS.every(k=>day.close[k]==null))day.close=null;
   saveDay(viewKey,day);
   renderAbschluss();
+  if(focusSel){const el=document.querySelector('#screen-abschluss '+focusSel);if(el)el.focus({preventScroll:true})}
 }
 $('screen-abschluss').addEventListener('click',e=>{
   const lv=e.target.closest('[data-q]');
   if(lv){
     const key=lv.dataset.q,v=Number(lv.dataset.v);
     const cur=getDay(viewKey).close;
-    setClose({[key]:cur&&cur[key]===v?null:v});
+    setClose({[key]:cur&&cur[key]===v?null:v},`[data-q="${key}"][data-v="${v}"]`);
     return;
   }
   const st=e.target.closest('[data-stool]');
   if(st){
     const cur=(getDay(viewKey).close||{}).stuhl;
-    const n=Math.min(Math.max((cur?cur.count:0)+Number(st.dataset.stool),0),20);
-    setClose({stuhl:{count:n,kind:n>0&&cur?cur.kind:null}});
+    const delta=Number(st.dataset.stool);
+    // Minus bei „Offen“ tut nichts, Minus bei „Keiner“ setzt zurück auf „Offen“
+    if(delta<0&&!cur)return;
+    const fs=`[data-stool="${st.dataset.stool}"]`;
+    if(delta<0&&cur.count===0){setClose({stuhl:null},fs);return}
+    const n=Math.min(Math.max((cur?cur.count:0)+delta,0),20);
+    setClose({stuhl:{count:n,kind:n>0&&cur?cur.kind:null}},fs);
     return;
   }
   const k=e.target.closest('[data-stool-kind]');
   if(k){
     const cur=getDay(viewKey).close.stuhl;
-    setClose({stuhl:{count:cur.count,kind:cur.kind===k.dataset.stoolKind?null:k.dataset.stoolKind}});
+    setClose({stuhl:{count:cur.count,kind:cur.kind===k.dataset.stoolKind?null:k.dataset.stoolKind}},`[data-stool-kind="${k.dataset.stoolKind}"]`);
     return;
   }
   const ev=e.target.closest('[data-event]');
   if(ev)openEventSheet(ev.dataset.event);
 });
-$('abschlussFertig').addEventListener('click',()=>toast(savedMsg()));
+$('abschlussFertig').addEventListener('click',()=>{const d=getDay(viewKey);if(closeFilled(d.close)||d.events.length)toast(savedMsg())});
 
 // ══════════════════════════════════════════════════════════════════
 // EREIGNIS
@@ -1391,8 +1456,8 @@ $('eventDelete').addEventListener('click',()=>{
 // VERLAUF
 // Eine Woche (Montag bis Sonntag) als Diagramm. Zusammenhänge („Oft davor“,
 // „Gut vertragen“) zeigt die App Fabienne bewusst nicht: Auslöser können auch
-// vom Vortag kommen, das bewertet Sandra in der Auswertung. relations() bleibt
-// im Code, falls „Gut vertragen“ später wieder in die App kommt. Ausgewertet wird
+// vom Vortag kommen, das bewertet Sandra in der Auswertung. Die frühere Berechnung
+// (relations, dayItems) steht in der Git-Geschichte, falls sie später wieder in die App soll. Ausgewertet wird
 // mit Claude im Projekt „GutLog“ nach denselben Regeln (auswertung-anleitung.md).
 // ══════════════════════════════════════════════════════════════════
 const FILTERS=[
@@ -1406,7 +1471,7 @@ let weekKey=null; // Montag der angezeigten Woche
 
 const mondayOf=k=>{const d=keyToDate(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return dk(d)};
 const shortDate=k=>{const d=keyToDate(k);return `${d.getDate()}. ${d.toLocaleDateString('de-DE',{month:'short'}).replace('.','')}`};
-const hasData=day=>!!day&&(day.meals.length||day.meds.length||day.events.length||!!day.close);
+const hasData=day=>!!day&&(day.meals.length||day.meds.length||day.events.length||closeFilled(day.close)>0);
 
 // Durchfall-Tag nach WHO: mindestens 3× Stuhlgang, breiig oder flüssig
 const isDiarrhea=st=>!!st&&st.count>=3&&(st.kind==='breiig'||st.kind==='fluessig');
@@ -1418,48 +1483,6 @@ function symptomOn(day,f){
   const ev=f.event&&day.events.some(e=>e.type===f.event&&e.level>=2);
   if(v==null&&!ev)return null;
   return (v!=null&&v>=2)||!!ev;
-}
-
-// Alles, was an einem Tag „dabei“ war: Gerichte, Zutaten, Getränke, Alltag, Pantoprazol
-function dayItems(day){
-  const items=new Map();
-  const add=(tag,label)=>items.set(tag+'|'+label.toLocaleLowerCase('de-DE'),{tag,label});
-  day.meals.forEach(m=>{
-    add('Gericht',m.title);
-    (m.ingredients||[]).forEach(i=>add('Zutat',i));
-    if(m.drink)add('Getränk',m.drink);
-    if(m.portion==='gross')add('Alltag','Große Portion');
-    if(m.time&&m.time>='20:00')add('Alltag','Essen nach 20 Uhr');
-  });
-  const c=day.close;
-  if(c&&c.stress!=null&&c.stress>=2)add('Alltag','Viel Stress');
-  if(c&&c.bewegung===1)add('Alltag','Kaum Bewegung');
-  const p=findPanto(day);
-  if(!p)add('Medikament','Kein Pantoprazol');
-  else if(p.status==='reduziert')add('Medikament','Pantoprazol reduziert');
-  return [...items.values()];
-}
-
-// Zählt über alle Tage, an denen die Beschwerde beantwortet ist.
-function relations(f){
-  const stats=new Map();let known=0,hits=0;
-  Object.values(DATA.days).forEach(day=>{
-    if(!hasData(day))return;
-    const on=symptomOn(day,f);if(on==null)return;
-    known++;if(on)hits++;
-    dayItems(day).forEach(it=>{
-      const k=it.tag+'|'+it.label.toLocaleLowerCase('de-DE');
-      const s=stats.get(k)||{...it,days:0,hits:0};
-      s.days++;if(on)s.hits++;stats.set(k,s);
-    });
-  });
-  const base=known?hits/known:0;
-  const all=[...stats.values()];
-  const often=all.filter(s=>s.days>=2&&s.hits>=2&&s.hits/s.days>=0.5&&s.hits/s.days>base)
-    .sort((a,b)=>b.hits/b.days-a.hits/a.days||b.hits-a.hits).slice(0,5);
-  const good=all.filter(s=>s.days>=3&&s.hits===0&&(s.tag==='Gericht'||s.tag==='Zutat'))
-    .sort((a,b)=>b.days-a.days).slice(0,4);
-  return {known,hits,often,good};
 }
 
 function pantoMark(day){
@@ -1489,7 +1512,7 @@ function renderVerlauf(){
     const k=addDays(weekKey,i),day=DATA.days[k];
     let v=null,strong=false,text='nicht eingetragen';
     if(day&&day.close){
-      if(f.id==='stuhl'){const st=day.close.stuhl;if(st){v=Math.min(st.count,3);strong=isDiarrhea(st);text=st.count===0?'kein Stuhlgang':`${st.count}× Stuhlgang${st.kind?', '+STOOL_KINDS.find(x=>x.id===st.kind).label.toLowerCase():''}${strong?', Durchfall':''}`}}
+      if(f.id==='stuhl'){const st=day.close.stuhl;if(st){v=Math.min(st.count,3);strong=isDiarrhea(st);text=st.count===0?'kein Stuhlgang':`${st.count}× Stuhlgang${st.kind?', '+lab(STOOL_KINDS,st.kind).toLowerCase():''}${strong?', Durchfall':''}`}}
       else{const q=[...QUESTIONS.beschwerden].find(x=>x.key===f.id);const x=day.close[f.id];if(x!=null){v=x;strong=x>=3;text=`${f.label}: ${q.labels[x]}`}}
     }
     const bar=v==null?'':v===0?'<div class="bar bar--zero"></div>':`<div class="bar${strong?' bar--strong':''}" style="height:${Math.round(v/3*120)}px"></div>`;
@@ -1536,7 +1559,9 @@ function weekStats(monday){
       const p=findPanto(d);
       if(p){s.panto++;if(p.status==='reduziert')s.reduced++}else s.noPanto++;
       s.meals+=d.meals.length;s.meds+=d.meds.length;s.events+=d.events.length;
-      if(d.close){s.closes++;if(d.close.sodbrennen>=1)s.sod++;if(d.close.stuhl&&isDiarrhea(d.close.stuhl))s.diarrhea++}
+      // Sodbrennen zählt nach derselben Regel wie in der Auswertung: ab Mittel im Tagesabschluss oder Ereignis ab Mittel
+      if(symptomOn(d,FILTERS[0]))s.sod++;
+      if(d.close){s.closes++;if(d.close.stuhl&&isDiarrhea(d.close.stuhl))s.diarrhea++}
     }
     // Lücke: vergangener Tag der Woche ohne Tagesabschluss (heute zählt noch nicht)
     if(k<today&&!(d&&d.close))s.missing.push(k);
@@ -1544,6 +1569,10 @@ function weekStats(monday){
   return s;
 }
 
+// Zeilenumbrüche im lesbaren Text durch „ / “ ersetzen, damit jede Angabe eine Zeile bleibt
+const oneLine=t=>String(t).replace(/\s*\n+\s*/g,' / ');
+// Uhrzeit im Text; vor 4:00 gehört sie zur Nacht nach diesem Tag
+const rtime=t=>!t?'--:--':t<'04:00'?`${t} (nachts)`:t;
 function buildReport(monday){
   const sunday=addDays(monday,6);
   const st=weekStats(monday);
@@ -1557,7 +1586,7 @@ function buildReport(monday){
   L.push(`Tage mit Einträgen: ${st.days} von 7`);
   L.push(`Tagesabschluss ausgefüllt: ${plural(st.closes,'Tag','Tage')}`);
   L.push(`Pantoprazol: an ${plural(st.panto,'Tag','Tagen')} genommen${st.reduced?` (davon ${st.reduced} reduziert)`:''}, an ${plural(st.noPanto,'Tag','Tagen')} nicht (eingestellte Dosis ${pantoDose()} mg, volle Dosis ${PANTO_FULL} mg)`);
-  L.push(`Tage mit Sodbrennen: ${st.sod}`);
+  L.push(`Tage mit Sodbrennen ab mittel (Tagesabschluss oder Ereignis): ${st.sod}`);
   L.push(`Durchfall-Tage (mind. 3× breiig oder flüssig): ${st.diarrhea}`);
   L.push('');
   L.push('TAGE');
@@ -1569,25 +1598,25 @@ function buildReport(monday){
     if(d.meals.length){
       L.push('  Mahlzeiten:');
       [...d.meals].sort(byTime).forEach(m=>{
-        const parts=[(m.ingredients||[]).length?`(${m.ingredients.join(', ')})`:'',m.portion&&m.portion!=='normal'?`Portion ${PORTIONS.find(x=>x.id===m.portion).label.toLowerCase()}`:'',m.drink?`Getränk: ${m.drink}`:'',m.note?`Notiz: ${m.note}`:''].filter(Boolean).join(' · ');
-        L.push(`    ${m.time||'--:--'} ${kindLabel(m.kind)?kindLabel(m.kind)+': ':''}${m.title}${parts?' '+parts:''}${late(m,k)}`);
+        const parts=[(m.ingredients||[]).length?`(${m.ingredients.join(', ')})`:'',m.portion&&m.portion!=='normal'?`Portion ${lab(PORTIONS,m.portion).toLowerCase()}`:'',m.drink?`Getränk: ${oneLine(m.drink)}`:'',m.note?`Notiz: ${oneLine(m.note)}`:''].filter(Boolean).join(' · ');
+        L.push(`    ${rtime(m.time)} ${kindLabel(m.kind)?kindLabel(m.kind)+': ':''}${m.title}${parts?' '+parts:''}${late(m,k)}`);
       });
     }
     L.push('  Medikamente:');
     const p=findPanto(d);
     if(!p)L.push('    Pantoprazol nicht genommen');
     [...d.meds].sort(byTime).forEach(m=>{
-      if(m.name===PANTO)L.push(`    ${m.time||'--:--'} Pantoprazol ${m.dose} mg${m.status==='reduziert'?' (reduziert)':''}${late(m,k)}`);
-      else L.push(`    ${m.time||'--:--'} ${m.name}${m.amount?' '+m.amount:''}${late(m,k)}`);
+      if(m.name===PANTO)L.push(`    ${rtime(m.time)} Pantoprazol ${m.dose} mg${m.status==='reduziert'?' (reduziert)':''}${late(m,k)}`);
+      else L.push(`    ${rtime(m.time)} ${m.name}${m.amount?' '+m.amount:''}${late(m,k)}`);
     });
     if(d.events.length){
       L.push('  Ereignisse:');
-      [...d.events].sort(byTime).forEach(e=>L.push(`    ${e.time||'--:--'} ${eventName(e)}, ${LEVELS.find(l=>l.v===e.level).label.toLowerCase()}${e.note?' – '+e.note:''}${late(e,k)}`));
+      [...d.events].sort(byTime).forEach(e=>L.push(`    ${rtime(e.time)} ${eventName(e)}, ${lab(LEVELS,e.level).toLowerCase()}${e.note?' – '+oneLine(e.note):''}${late(e,k)}`));
     }
     const c=d.close;
     if(c){
       const w=(f)=>c[f]==null?'offen':LVL_WORDS[f][c[f]];
-      const stl=c.stuhl?(c.stuhl.count===0?'keiner':`${c.stuhl.count}×${c.stuhl.kind?' '+STOOL_KINDS.find(x=>x.id===c.stuhl.kind).label.toLowerCase():''}${isDiarrhea(c.stuhl)?' (Durchfall)':''}`):'offen';
+      const stl=c.stuhl?(c.stuhl.count===0?'keiner':`${c.stuhl.count}×${c.stuhl.kind?' '+lab(STOOL_KINDS,c.stuhl.kind).toLowerCase():''}${isDiarrhea(c.stuhl)?' (Durchfall)':''}`):'offen';
       L.push(`  Tagesabschluss${late(c,k)}: Sodbrennen ${w('sodbrennen')} · Blähbauch ${w('blaehbauch')} · Blähungen ${w('blaehungen')} · Stuhlgang ${stl} · Stress ${w('stress')} · Bewegung ${w('bewegung')}`);
     }else L.push('  Tagesabschluss: nicht ausgefüllt');
   });
@@ -1612,7 +1641,7 @@ function renderBericht(){
   const st=weekStats(reportWeek);
   $('kpiTage').innerHTML=`${st.days}<small>/7</small>`;
   $('kpiPanto').innerHTML=`${st.panto}<small>/${st.days||7}</small>`;
-  $('kpiSod').innerHTML=`${st.sod}<small>/${st.closes||st.days||7}</small>`;
+  $('kpiSod').innerHTML=`${st.sod}<small>/${st.days||7}</small>`;
   const icon=(d,color)=>`<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" style="stroke:var(--${color})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   $('berichtInhalt').innerHTML=[
     [icon('<path d="M4 7h16M4 12h16M4 17h10"/>','brand'),plural(st.meals,'Mahlzeit','Mahlzeiten')],
@@ -1626,7 +1655,13 @@ function renderBericht(){
   $('berichtKopieren').hidden=st.days===0;
 }
 
+// Läuft gerade ein Teilen-Vorgang, wird ein zweiter Tipp ignoriert
+let sharing=false;
 async function shareReport(){
+  if(sharing)return;sharing=true;
+  try{await shareReportNow()}finally{sharing=false}
+}
+async function shareReportNow(){
   const {text,file}=buildReport(reportWeek);
   try{
     // 1. Versuch: als Datei teilen (Android Chrome, iOS 15+)
@@ -1788,7 +1823,13 @@ function checkReminder(id){
   saveSetting(r.last,k);showReminder(id);
 }
 // Kommt die App wieder nach vorne, die Wecker neu stellen (im Hintergrund können sie stehen geblieben sein).
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleReminder()});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)return;
+  scheduleReminder();
+  if(checkDayChange())showScreen(); // neuer Tag: aktuellen Screen neu zeichnen
+});
+// Falls die App über 4 Uhr hinweg offen bleibt
+setInterval(()=>{if(!document.hidden&&checkDayChange())showScreen()},60000);
 
 // Geteilte Wochen merken (Montag der Woche), damit die Sonntags-Erinnerung danach still bleibt.
 function markReportSent(week){
@@ -1857,7 +1898,7 @@ $('dishForm').addEventListener('submit',ev=>{
   mem[nk]=dish;STORE.save('f',mem);
   let renamed=0;
   if(title!==old.title){
-    Object.values(DATA.days).forEach(d=>d.meals.forEach(m=>{if(memKey(m.title)===DS.key&&m.title!==title){m.title=title;renamed++}}));
+    Object.values(DATA.days).forEach(d=>d.meals.forEach(m=>{const mk=memKey(m.title);if((mk===DS.key||mk===nk)&&m.title!==title){m.title=title;renamed++}}));
     if(renamed)STORE.save('d',DATA);
   }
   toast(renamed?`Gespeichert, ${plural(renamed,'Eintrag','Einträge')} umbenannt`:'Gespeichert');
@@ -1925,12 +1966,26 @@ function makeTestData(){
 }
 $('testdatenEinspielen').addEventListener('click',()=>{
   if(!confirm('Alle Einträge in der Testversion werden durch Beispieldaten ersetzt. Fortfahren?'))return;
-  makeTestData();viewKey=todayKey();weekKey=null;reportWeek=null;toast('Testdaten eingespielt');
+  makeTestData();viewKey=todayKey();weekKey=null;reportWeek=null;toast('Testdaten eingespielt');renderEinstellungen();
 });
 $('testdatenLoeschen').addEventListener('click',()=>{
   if(STAGE!=='test'||!confirm('Alle Einträge in der Testversion löschen?'))return;
-  DATA={v:2,days:{}};STORE.save('d',DATA);STORE.save('f',{});viewKey=todayKey();weekKey=null;toast('Testdaten gelöscht');
+  DATA={v:2,days:{}};STORE.save('d',DATA);STORE.save('f',{});viewKey=todayKey();weekKey=null;reportWeek=null;renderEinstellungen();toast('Testdaten gelöscht');
 });
+
+// Doppeltipp-Schutz: Nach dem Schließen eines Sheets oder Popups werden Tipps eine kurze
+// Zeit ignoriert. Sonst trifft der zweite Tipp eines Doppeltipps auf „Speichern“ den Screen darunter.
+// Die Sperre wird direkt beim Schließen gesetzt (das „close“-Signal käme zu spät).
+// Tipps in einem gerade offenen Sheet sind nie gesperrt.
+let tapBlockUntil=0;
+const dialogClose=HTMLDialogElement.prototype.close;
+HTMLDialogElement.prototype.close=function(...args){
+  if(this.open)tapBlockUntil=Date.now()+350;
+  return dialogClose.apply(this,args);
+};
+document.addEventListener('click',e=>{
+  if(Date.now()<tapBlockUntil&&!e.target.closest('dialog[open]')){e.preventDefault();e.stopPropagation()}
+},true);
 
 // Schließen für alle Sheets: X-Button oder Tippen auf den abgedunkelten Bereich
 [mealSheet,eventSheet,dishSheet].forEach(d=>{
@@ -1984,7 +2039,6 @@ function pwaBoot(){
 if(STAGE==='test'){document.title='GutLog Test';$('stageBand').hidden=false;$('testdatenKarte').hidden=false}
 $('versionInfo').textContent=`GutLog · Version ${APP_VERSION}${STAGE==='test'?' · Testversion':''}`;
 showScreen();
-renderHeute();
 pwaBoot();
 scheduleReminder();
 </script>

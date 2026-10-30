@@ -3,7 +3,7 @@
 // gleichzeitig gespeichert. Ohne Internet liefert er die zuletzt gespeicherte Version.
 // Live und Test haben getrennte Speicher, damit sie sich nicht vermischen.
 const STAGE = self.location.pathname.includes('/test/') ? 'test' : 'live';
-const CACHE = `gutlog-${STAGE}-v2`;
+const CACHE = `gutlog-${STAGE}-v3`;
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -25,6 +25,9 @@ self.addEventListener('fetch', event => {
   const isOwn = url.origin === self.location.origin;
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!isOwn && !isFont) return;
+  // Der Live-Bereich (/gutlog/) umfasst auch /gutlog/test/. Die Testversion hat ihren eigenen
+  // Service Worker, darum kümmert sich der Live-Worker nicht um sie.
+  if (STAGE === 'live' && isOwn && url.pathname.includes('/test/')) return;
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
@@ -45,8 +48,13 @@ self.addEventListener('notificationclick', event => {
   const url = (event.notification.data && event.notification.data.url) || self.registration.scope;
   event.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const own = wins.find(w => w.url.startsWith(self.registration.scope));
-    if (own) { await own.focus(); return own.navigate(url).catch(() => {}); }
+    // Nur Fenster der eigenen Stufe (Live öffnet nie das Testfenster und umgekehrt)
+    const own = wins.find(w => w.url.startsWith(self.registration.scope) &&
+      (STAGE === 'test' || !new URL(w.url).pathname.includes('/test/')));
+    if (own) {
+      await own.focus();
+      try { return await own.navigate(url); } catch { return self.clients.openWindow(url); }
+    }
     return self.clients.openWindow(url);
   })());
 });
