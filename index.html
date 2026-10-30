@@ -1732,11 +1732,18 @@ Object.entries(REMINDERS).forEach(([id,r])=>{
     if(!settings()[r.time])saveSetting(r.time,r.def);
     scheduleReminder();renderReminder();toast('Erinnerung an');
   });
-  box.querySelector('[data-rem-time]').addEventListener('change',e=>{
-    if(!e.target.value)return;
-    saveSetting(r.time,e.target.value);saveSetting(r.last,null);
-    scheduleReminder();toast('Gespeichert');
-  });
+  // Uhrzeit sofort speichern. Das iPhone meldet Änderungen am Uhrzeit-Rad nur als „input“,
+  // nicht zuverlässig als „change“. Darum auf beides hören (und beim Verlassen des Felds).
+  // Die Meldung „Gespeichert“ kommt erst, wenn eine Sekunde lang nichts mehr gedreht wurde.
+  const timeInput=box.querySelector('[data-rem-time]');
+  let toastTimer=null;
+  const saveTime=()=>{
+    const v=timeInput.value;
+    if(!v||v===(settings()[r.time]||r.def))return;
+    saveSetting(r.time,v);saveSetting(r.last,null);scheduleReminder();
+    clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast('Gespeichert'),1000);
+  };
+  ['input','change','blur'].forEach(ev=>timeInput.addEventListener(ev,saveTime));
   box.querySelector('[data-rem-test]').addEventListener('click',async()=>toast(await showReminder(id)?'Benachrichtigung geschickt':'Hat nicht geklappt'));
 });
 
