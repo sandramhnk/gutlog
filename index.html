@@ -257,6 +257,21 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 .legend{display:flex;flex-wrap:wrap;gap:var(--space-1) 14px;margin-top:var(--space-3);font-size:13px;font-weight:700;color:var(--ink-muted)}
 .legend span{display:flex;align-items:center;gap:6px}
 
+/* Bericht: Woche wählen und drei Kennzahlen */
+.week-pick{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:6px;border-radius:var(--radius-lg);background:var(--surface-raised)}
+.week-pick-text{display:flex;flex-direction:column;align-items:center;text-align:center}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
+.kpi{border-radius:20px;padding:14px 12px;background:var(--surface-raised);display:flex;flex-direction:column;gap:2px}
+.kpi b{font:600 28px/32px var(--font-display)}
+.kpi b small{font-size:16px;color:var(--ink-muted)}
+.kpi span{font-size:13px;line-height:17px;font-weight:700;color:var(--ink-muted)}
+.kpi--brand b{color:var(--brand)}
+.kpi--accent{background:var(--accent-soft)}
+.kpi--accent b,.kpi--accent b small,.kpi--accent span{color:var(--accent-ink)}
+.share-list{list-style:none;margin:var(--space-2) 0 0;padding:0}
+.share-list li{display:flex;align-items:center;gap:var(--space-3);padding:10px 0;border-top:1px solid var(--border)}
+.note-box{margin-top:var(--space-2);padding:10px 14px;border-radius:var(--radius-md);background:var(--surface);font-size:14px;font-weight:600;color:var(--ink-muted)}
+
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
 </style>
@@ -368,7 +383,29 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
   <!-- ══ BERICHT ════════════════════════════════════════════════════ -->
   <section class="screen" id="screen-bericht" aria-labelledby="berichtTitel" hidden>
     <div class="screen-head"><div><div class="eyebrow">Für Sandra</div><h1 id="berichtTitel">Bericht</h1></div></div>
-    <div class="stack"><div class="card"><h2>Kommt in Etappe 5</h2><p class="hint">Woche wählen, Kennzahlen prüfen, Bericht teilen.</p></div></div>
+    <div class="stack">
+      <div class="week-pick">
+        <button class="btn-round" id="berichtZurueck" aria-label="Vorherige Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="week-pick-text"><b id="berichtWoche" style="font-size:16px"></b><span class="hint" id="berichtWocheName" style="font-size:13px"></span></div>
+        <button class="btn-round" id="berichtVor" aria-label="Nächste Woche"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><b id="kpiTage"></b><span>Tage erfasst</span></div>
+        <div class="kpi kpi--brand"><b id="kpiPanto"></b><span>Pantoprazol</span></div>
+        <div class="kpi kpi--accent"><b id="kpiSod"></b><span>mit Sodbrennen</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="geteiltTitel">
+        <h2 id="geteiltTitel">Das wird geteilt</h2>
+        <ul class="share-list" id="berichtInhalt"></ul>
+        <p class="note-box" id="berichtLuecken" hidden></p>
+      </section>
+
+      <p class="hint" style="text-align:center;padding:0 12px">Geht als Datei über dein Handy raus, z. B. per WhatsApp oder E-Mail. Sandra öffnet sie im Auswertungs-Tool.</p>
+      <button class="btn-wide" id="berichtTeilen">Bericht teilen</button>
+      <button class="link-plus" id="berichtKopieren" style="align-self:center;height:44px;color:var(--brand);text-decoration:underline;font-size:14px">Als Text kopieren</button>
+    </div>
   </section>
 
   <!-- ══ EINSTELLUNGEN ══════════════════════════════════════════════ -->
@@ -630,6 +667,7 @@ function showScreen(){
   if(current==='abschluss')renderAbschluss();
   if(current==='heute')renderHeute();
   if(current==='verlauf')renderVerlauf();
+  if(current==='bericht')renderBericht();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',showScreen);
@@ -1357,6 +1395,154 @@ $('wocheZurueck').addEventListener('click',()=>{weekKey=addDays(weekKey,-7);rend
 $('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){weekKey=addDays(weekKey,7);renderVerlauf()}});
 
 // ══════════════════════════════════════════════════════════════════
+// BERICHT
+// Format 2.0: eine .txt-Datei, oben lesbarer Text, unten nach der Zeile
+// MARKER die Daten als JSON. auswertung.html liest genau dieses Format.
+// Mitgeschickt wird zusätzlich der Tag VOR der Woche (Sonntag davor), damit
+// die Auswertung auch für Montag schauen kann, was am Vortag war.
+// ══════════════════════════════════════════════════════════════════
+const REPORT_MARKER='=== GUTLOG-DATEN (für das Auswertungs-Tool, bitte nicht ändern) ===';
+const REPORT_VERSION='2.0';
+let reportWeek=null;
+
+const LVL_WORDS={sodbrennen:['keins','leicht','mittel','stark'],blaehbauch:['keiner','leicht','mittel','stark'],blaehungen:['keine','wenig','oft','ständig'],stress:['keiner','etwas','viel','sehr viel'],bewegung:[null,'kaum','etwas','viel']};
+const kindLabel=id=>(KINDS.find(k=>k.id===id)||{}).label||'';
+// Einzahl oder Mehrzahl: plural(1,'Tag','Tagen') → „1 Tag“
+const plural=(n,one,many)=>`${n} ${n===1?one:many}`;
+
+// Statistik einer Woche, für die Kennzahlen im Screen und im Text
+function weekStats(monday){
+  const keys=[...Array(7)].map((_,i)=>addDays(monday,i));
+  const today=todayKey();
+  const s={keys,days:0,closes:0,panto:0,reduced:0,noPanto:0,sod:0,diarrhea:0,meals:0,meds:0,events:0,missing:[]};
+  keys.forEach(k=>{
+    const d=DATA.days[k];
+    if(hasData(d)){
+      s.days++;
+      const p=findPanto(d);
+      if(p){s.panto++;if(p.status==='reduziert')s.reduced++}else s.noPanto++;
+      s.meals+=d.meals.length;s.meds+=d.meds.length;s.events+=d.events.length;
+      if(d.close){s.closes++;if(d.close.sodbrennen>=1)s.sod++;if(d.close.stuhl&&isDiarrhea(d.close.stuhl))s.diarrhea++}
+    }
+    // Lücke: vergangener Tag der Woche ohne Tagesabschluss (heute zählt noch nicht)
+    if(k<today&&!(d&&d.close))s.missing.push(k);
+  });
+  return s;
+}
+
+function buildReport(monday){
+  const sunday=addDays(monday,6);
+  const st=weekStats(monday);
+  const L=[];
+  const late=(e,k)=>isLate(e,k)?' (nachgetragen)':'';
+  L.push('GutLog Wochenbericht');
+  L.push(`Woche: ${fmtDate(monday)} – ${fmtDate(sunday)} ${keyToDate(sunday).getFullYear()}`);
+  L.push(`Erstellt: ${new Date().toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})}`);
+  L.push('');
+  L.push('ÜBERSICHT');
+  L.push(`Tage mit Einträgen: ${st.days} von 7`);
+  L.push(`Tagesabschluss ausgefüllt: ${plural(st.closes,'Tag','Tage')}`);
+  L.push(`Pantoprazol: an ${plural(st.panto,'Tag','Tagen')} genommen${st.reduced?` (davon ${st.reduced} reduziert)`:''}, an ${plural(st.noPanto,'Tag','Tagen')} nicht (übliche Dosis ${pantoDose()} mg)`);
+  L.push(`Tage mit Sodbrennen: ${st.sod}`);
+  L.push(`Durchfall-Tage (mind. 3× breiig oder flüssig): ${st.diarrhea}`);
+  L.push('');
+  L.push('TAGE');
+  st.keys.forEach(k=>{
+    const d=DATA.days[k];
+    if(!hasData(d))return;
+    L.push('');
+    L.push(fmtDate(k));
+    if(d.meals.length){
+      L.push('  Mahlzeiten:');
+      [...d.meals].sort(byTime).forEach(m=>{
+        const parts=[(m.ingredients||[]).length?`(${m.ingredients.join(', ')})`:'',m.portion&&m.portion!=='normal'?`Portion ${PORTIONS.find(x=>x.id===m.portion).label.toLowerCase()}`:'',m.drink?`Getränk: ${m.drink}`:'',m.note?`Notiz: ${m.note}`:''].filter(Boolean).join(' · ');
+        L.push(`    ${m.time||'--:--'} ${kindLabel(m.kind)?kindLabel(m.kind)+': ':''}${m.title}${parts?' '+parts:''}${late(m,k)}`);
+      });
+    }
+    L.push('  Medikamente:');
+    const p=findPanto(d);
+    if(!p)L.push('    Pantoprazol nicht genommen');
+    [...d.meds].sort(byTime).forEach(m=>{
+      if(m.name===PANTO)L.push(`    ${m.time||'--:--'} Pantoprazol ${m.dose} mg${m.status==='reduziert'?' (reduziert)':''}${late(m,k)}`);
+      else L.push(`    ${m.time||'--:--'} ${m.name}${m.amount?' '+m.amount:''}${late(m,k)}`);
+    });
+    if(d.events.length){
+      L.push('  Ereignisse:');
+      [...d.events].sort(byTime).forEach(e=>L.push(`    ${e.time||'--:--'} ${eventName(e)}, ${LEVELS.find(l=>l.v===e.level).label.toLowerCase()}${e.note?' – '+e.note:''}${late(e,k)}`));
+    }
+    const c=d.close;
+    if(c){
+      const w=(f)=>c[f]==null?'offen':LVL_WORDS[f][c[f]];
+      const stl=c.stuhl?(c.stuhl.count===0?'keiner':`${c.stuhl.count}×${c.stuhl.kind?' '+STOOL_KINDS.find(x=>x.id===c.stuhl.kind).label.toLowerCase():''}${isDiarrhea(c.stuhl)?' (Durchfall)':''}`):'offen';
+      L.push(`  Tagesabschluss${late(c,k)}: Sodbrennen ${w('sodbrennen')} · Blähbauch ${w('blaehbauch')} · Blähungen ${w('blaehungen')} · Stuhlgang ${stl} · Stress ${w('stress')} · Bewegung ${w('bewegung')}`);
+    }else L.push('  Tagesabschluss: nicht ausgefüllt');
+  });
+  // Daten-Teil: die Woche plus der Tag davor als Kontext
+  const days={};
+  [addDays(monday,-1),...st.keys].forEach(k=>{if(hasData(DATA.days[k]))days[k]=DATA.days[k]});
+  const payload={app:'GutLog',version:REPORT_VERSION,stage:STAGE,range:{from:monday,to:sunday},contextFrom:addDays(monday,-1),
+    exportedAt:new Date().toISOString(),settings:{pantoDose:pantoDose()},days};
+  L.push('');
+  L.push(REPORT_MARKER);
+  L.push(JSON.stringify(payload));
+  return {text:L.join('\n'),file:`GutLog_${monday}_bis_${sunday}${STAGE==='test'?'_TEST':''}.txt`};
+}
+
+function renderBericht(){
+  const thisWeek=mondayOf(todayKey());
+  if(!reportWeek)reportWeek=thisWeek;
+  const sunday=addDays(reportWeek,6);
+  $('berichtWoche').textContent=`${shortDate(reportWeek)} – ${shortDate(sunday)}`;
+  $('berichtWocheName').textContent=reportWeek===thisWeek?'Diese Woche':reportWeek===addDays(thisWeek,-7)?'Letzte Woche':'';
+  $('berichtVor').disabled=reportWeek>=thisWeek;
+  const st=weekStats(reportWeek);
+  $('kpiTage').innerHTML=`${st.days}<small>/7</small>`;
+  $('kpiPanto').innerHTML=`${st.panto}<small>/${st.days||7}</small>`;
+  $('kpiSod').innerHTML=`${st.sod}<small>/${st.closes||st.days||7}</small>`;
+  const icon=(d,color)=>`<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" style="stroke:var(--${color})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  $('berichtInhalt').innerHTML=[
+    [icon('<path d="M4 7h16M4 12h16M4 17h10"/>','brand'),plural(st.meals,'Mahlzeit','Mahlzeiten')],
+    [icon('<path d="M3 12h4l3-7 4 14 3-7h4"/>','accent-ink'),`${plural(st.closes,'Tagesabschluss','Tagesabschlüsse')} und ${plural(st.events,'Ereignis','Ereignisse')}`],
+    [icon('<rect x="3" y="9" width="18" height="6" rx="3"/><path d="M12 9v6"/>','brand'),`Pantoprazol und ${plural(st.meds-st.panto,'weiteres Medikament','weitere Medikamente')}`]
+  ].map(([i,t])=>`<li>${i}<span>${t}</span></li>`).join('');
+  const gaps=st.missing.filter(k=>k>=(Object.keys(DATA.days).sort()[0]||k));
+  $('berichtLuecken').hidden=!gaps.length;
+  if(gaps.length)$('berichtLuecken').textContent=`Ohne Tagesabschluss: ${gaps.map(k=>fmtDate(k).split(',')[0]).join(', ')}. Du kannst ihn auf „Heute“ über die Pfeile nachtragen.`;
+  $('berichtTeilen').disabled=st.days===0;
+  $('berichtKopieren').hidden=st.days===0;
+}
+
+async function shareReport(){
+  const {text,file}=buildReport(reportWeek);
+  try{
+    // 1. Versuch: als Datei teilen (Android Chrome, iOS 15+)
+    const f=new File([text],file,{type:'text/plain'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      await navigator.share({files:[f],title:'GutLog Wochenbericht'});
+      toast('Bericht geteilt');return;
+    }
+    // 2. Versuch: als Text teilen
+    if(navigator.share){
+      await navigator.share({title:'GutLog Wochenbericht',text});
+      toast('Bericht geteilt');return;
+    }
+  }catch(err){
+    if(err&&err.name==='AbortError')return; // Teilen abgebrochen
+  }
+  // 3. Rückfall: in die Zwischenablage kopieren
+  copyReport();
+}
+async function copyReport(){
+  const {text}=buildReport(reportWeek);
+  try{await navigator.clipboard.writeText(text);toast('Kopiert. Jetzt z. B. in WhatsApp einfügen.')}
+  catch{toast('Kopieren wird hier nicht unterstützt')}
+}
+$('berichtTeilen').addEventListener('click',shareReport);
+$('berichtKopieren').addEventListener('click',copyReport);
+$('berichtZurueck').addEventListener('click',()=>{reportWeek=addDays(reportWeek,-7);renderBericht()});
+$('berichtVor').addEventListener('click',()=>{if(reportWeek<mondayOf(todayKey())){reportWeek=addDays(reportWeek,7);renderBericht()}});
+
+// ══════════════════════════════════════════════════════════════════
 // TESTDATEN (nur Testversion)
 // Zwei Wochen ausgedachte Daten bis heute, immer gleich (kein Zufall), damit man
 // Verlauf und später den Bericht ausprobieren kann. Eingebaute Muster:
@@ -1366,10 +1552,12 @@ $('wocheVor').addEventListener('click',()=>{if(weekKey<mondayOf(todayKey())){wee
 function makeTestData(){
   if(STAGE!=='test')return;
   const days={},mem={};
-  const ts=new Date().toISOString();
+  let ts;  // Erfassungszeit, wird pro Tag gesetzt
   const meal=(id,time,kind,title,ingredients,extra={})=>({id,time,kind,title,ingredients,portion:'normal',drink:null,note:null,addedAt:ts,...extra});
   for(let n=0;n<14;n++){
     const k=addDays(todayKey(),n-13);
+    // Erfasst am selben Abend um 21 Uhr (sonst wäre alles „nachgetragen“)
+    ts=new Date(keyToDate(k).getTime()+21*36e5).toISOString();
     const honey=n%3===1, pizza=n===4||n===9, coffee=n%4===0, lentils=n===2||n===6||n===11;
     const meals=[];
     if(n%2===0)meals.push(meal('f'+n,'07:45','fruehstueck','Haferbrei',['Haferflocken','Hafermilch','Banane'].concat(honey?['Honig']:[]),{drink:coffee?'Kaffee':null}));
@@ -1392,7 +1580,7 @@ function makeTestData(){
 }
 $('testdatenEinspielen').addEventListener('click',()=>{
   if(!confirm('Alle Einträge in der Testversion werden durch Beispieldaten ersetzt. Fortfahren?'))return;
-  makeTestData();viewKey=todayKey();weekKey=null;toast('Testdaten eingespielt');
+  makeTestData();viewKey=todayKey();weekKey=null;reportWeek=null;toast('Testdaten eingespielt');
 });
 $('testdatenLoeschen').addEventListener('click',()=>{
   if(STAGE!=='test'||!confirm('Alle Einträge in der Testversion löschen?'))return;

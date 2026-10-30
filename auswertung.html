@@ -1,263 +1,475 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GutLog – Auswertung</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F3EE">
+<title>GutLog Auswertung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--green:#4A7C59;--gd:#2C5F3F;--gp:#EEF5F0;--gl:#C8E6C9;--bg:#F2F5F2;--text:#1E2E25;--mut:#7A9080;--amb:#E8924A;--ap:#FDF0E6;--red:#C0392B;--rp:#FDECEA;--pur:#7B5EA7;--pp:#f0ebf8;--bd:#D4E4D8;--sh:0 2px 14px rgba(30,46,37,.09);--r:14px}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-header{background:var(--gd);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)}
-.hb h1{font-family:'DM Serif Display',serif;font-size:1.5rem;font-weight:400}
-.hb p{font-size:.75rem;opacity:.65;margin-top:2px}
-.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:.72rem;font-weight:600;padding:5px 12px;border-radius:20px}
-.main{max-width:900px;margin:0 auto;padding:28px 20px 60px}
-
-/* CONFIG */
-.cfg{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:24px;border-left:4px solid var(--green)}
-.cfg h2{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:6px}
-.cfg p{font-size:.82rem;color:var(--mut);margin-bottom:16px;line-height:1.6}
-.cfg-row{display:grid;grid-template-columns:1fr 1fr 160px;gap:10px;align-items:end}
-.cfg-group{display:flex;flex-direction:column;gap:5px}
-.cfg-label{font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.cfg-input{padding:9px 11px;border:1.5px solid var(--bd);border-radius:9px;font-family:'Inter',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none;-webkit-appearance:none;width:100%}
-.cfg-input:focus{border-color:var(--green);background:#fff}
-.cfg-btn{padding:10px 18px;background:var(--gd);color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;white-space:nowrap;transition:background .15s;width:100%}
-.cfg-btn:hover{background:#234d30}
-.cfg-status{margin-top:10px;font-size:.78rem;padding:8px 12px;border-radius:8px;display:none}
-.cs-ok{background:var(--gp);color:var(--green);display:block}
-.cs-err{background:var(--rp);color:var(--red);display:block}
-.cs-info{background:var(--ap);color:#c0621a;display:block}
-
-/* WEEK NAV */
-.week-bar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.wnav{background:#fff;border:1.5px solid var(--bd);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--text);transition:all .15s;box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.wnav:hover:not(:disabled){border-color:var(--green);color:var(--green)}
-.wnav:disabled{opacity:.35;cursor:not-allowed}
-.wlbl{font-weight:600;font-size:.92rem}
-.reload-btn{background:var(--gp);border:1.5px solid var(--gl);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--green);font-weight:600;transition:all .15s}
-.reload-btn:hover{background:var(--gl)}
-
-/* STATS */
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.sc{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 6px rgba(30,46,37,.07);text-align:center}
-.sn{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--green);line-height:1}
-.sl{font-size:.72rem;color:var(--mut);margin-top:5px;line-height:1.3}
-
-/* AI CARD */
-.aic{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:24px;margin-bottom:20px;border-left:4px solid var(--green)}
-.aih{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.aip{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);background:var(--gp);padding:3px 10px;border-radius:10px}
-.ait{font-family:'DM Serif Display',serif;font-size:1.15rem}
-.ai-text{font-size:.9rem;line-height:1.9;white-space:pre-wrap;color:var(--text)}
-.ai-text strong{color:var(--gd)}
-.loading{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:.88rem;padding:12px 0}
-.spinner{width:20px;height:20px;border:2.5px solid var(--bd);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* CHARTS */
-.cb{background:#fff;border-radius:var(--r);padding:18px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:14px}
-.cbt{font-weight:600;font-size:.85rem;margin-bottom:12px}
-.br{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:.82rem}
-.bl{min-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bbg{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
-.bf{height:100%;border-radius:4px}.bfs{background:var(--amb)}.bft{background:linear-gradient(90deg,var(--amb),var(--red))}
-.bc{font-size:.73rem;color:var(--mut);min-width:28px;text-align:right}
-.cn{font-size:.72rem;color:var(--mut);margin-top:10px;line-height:1.5}
-
-/* TIMELINE */
-.tls{background:#fff;border-radius:var(--r);padding:20px;box-shadow:0 1px 6px rgba(30,46,37,.07);margin-bottom:20px}
-.tlst{font-weight:700;font-size:.78rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
-.dblock{margin-bottom:22px}
-.dlbl{font-family:'DM Serif Display',serif;font-size:.95rem;border-bottom:1px solid var(--bd);padding-bottom:5px;margin-bottom:10px}
-.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.pill{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600}
-.pm{background:var(--gp);color:var(--green)}.ps{background:var(--ap);color:#c0621a}.pd{background:var(--pp);color:var(--pur)}
-.tl{position:relative;padding-left:22px}
-.tl::before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,var(--gl),var(--bd));border-radius:2px}
-.tle{position:relative;margin-bottom:10px}
-.tld{position:absolute;left:-18px;top:12px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg)}
-.dm{background:var(--green)}.ds{background:var(--amb)}.dd{background:var(--pur)}
-.ec{border-radius:10px;padding:10px 12px;border-left:3px solid transparent;background:#fff;box-shadow:0 1px 6px rgba(30,46,37,.07)}
-.ecm{border-left-color:var(--green)}.ecs{border-left-color:var(--amb)}.ecd{border-left-color:var(--pur)}
-.ct{display:flex;align-items:center;gap:8px;margin-bottom:3px}
-.cti{font-size:.68rem;font-weight:700;color:var(--mut);text-transform:uppercase}
-.cbadge{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:8px}
-.bm{background:var(--gp);color:var(--green)}.bs{background:var(--ap);color:#c0621a}.bd2{background:var(--pp);color:var(--pur)}
-.cm{font-size:.88rem;font-weight:500}.cd{font-size:.76rem;color:var(--mut)}
-.stgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.stg{font-size:.68rem;padding:2px 7px;background:var(--ap);color:#c0621a;border-radius:8px}
-.sb{height:3px;background:var(--bd);border-radius:2px;margin-top:6px;overflow:hidden}
-.sf{height:100%;border-radius:2px;background:linear-gradient(90deg,#f9c74f,var(--amb),var(--red))}
-
-.empty{text-align:center;padding:48px 20px;color:var(--mut)}
-.empty-icon{font-size:2.6rem;margin-bottom:12px}
-.err-box{background:var(--rp);border:1.5px solid var(--red);border-radius:var(--r);padding:16px 20px;color:var(--red);font-size:.88rem;margin-bottom:20px}
-
-@media(max-width:700px){
-  header{padding:16px}.main{padding:16px 14px 40px}
-  .sgrid{grid-template-columns:1fr 1fr}.sgrid .sc:last-child{grid-column:span 2}
-  .cfg-row{grid-template-columns:1fr}.bl{min-width:90px}
+/* ══════════════════════════════════════════════════════════════════
+   1. DESIGN-TOKENS (wie in der App, aus dem Design System „GutLog“)
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --surface:#F7F3EE; --surface-raised:#FFFFFF; --surface-sunken:#ECE6DD;
+  --ink:#23302A; --ink-muted:#5C6B62; --border:#F0EAE2; --border-control:#7C8C82;
+  --brand:#3F6B55; --on-brand:#FFFFFF; --brand-soft:#E3EDE6;
+  --accent:#C96A42; --accent-ink:#A3522F; --accent-soft:#FBEAE0;
+  --accent-strong:#7E3B1F;   /* nur Auswertung: stärkste Stufe in der Übersicht (weiße Schrift 8:1) */
+  --danger:#B3362A;
+  --font-display:"Fraunces",Georgia,serif; --font-sans:"Nunito",system-ui,sans-serif;
+  --radius-md:16px; --radius-lg:24px; --radius-full:9999px;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   2. GRUNDLAGEN UND BAUSTEINE
+   ══════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--surface);color:var(--ink);font:400 16px/22px var(--font-sans)}
+[hidden]{display:none!important}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1{margin:0;font:600 34px/40px var(--font-display)}
+h2{margin:0;font:500 22px/28px var(--font-display)}
+h3{margin:0;font-size:16px;font-weight:800}
+p{margin:0}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 48px;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.hint{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:10px}
+.card--accent{background:var(--accent-soft)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{height:48px;padding:0 20px;border:none;border-radius:var(--radius-full);background:var(--brand);color:var(--on-brand);font-weight:800;font-size:16px}
+.btn--soft{background:var(--surface-sunken);color:var(--ink)}
+.btn-text{min-height:44px;padding:0 6px;border:none;background:none;font-weight:700;font-size:14px;color:var(--brand);text-decoration:underline}
+.chip{height:40px;padding:0 14px;border-radius:var(--radius-full);border:1.5px solid var(--border-control);background:var(--surface-raised);font-weight:700;font-size:14px;color:var(--ink)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.chip--file{display:inline-flex;align-items:center;gap:8px;border-color:var(--surface-sunken);background:var(--surface-sunken);cursor:default}
+.chip--file button{border:none;background:none;font-size:18px;line-height:1;color:var(--ink);padding:4px}
+textarea{width:100%;min-height:120px;padding:12px 16px;border:1.5px solid var(--border-control);border-radius:var(--radius-md);font:400 14px/20px ui-monospace,monospace;color:var(--ink);resize:vertical}
+.msg{padding:10px 14px;border-radius:var(--radius-md);font-weight:700;font-size:14px}
+.msg--error{background:var(--accent-soft);color:var(--danger)}
+.msg--ok{background:var(--brand-soft);color:var(--brand)}
+ul.bullets{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.warn{background:var(--accent-soft);border-radius:var(--radius-md);padding:12px 14px}
+.warn h3{color:var(--danger)}
+
+/* Kennzahlen */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.kpi{background:var(--surface-raised);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font:600 28px/32px var(--font-display)}
+.kpi b small{font-size:16px;color:var(--ink-muted)}
+.kpi span{font-size:13px;line-height:17px;font-weight:700;color:var(--ink-muted)}
+.kpi--accent{background:var(--accent-soft)} .kpi--accent b,.kpi--accent span{color:var(--accent-ink)}
+.kpi--brand b{color:var(--brand)}
+
+/* Tabellen */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:separate;border-spacing:3px;font-size:13px}
+th{font-weight:800;text-align:left;white-space:nowrap;padding:4px 6px}
+thead th{text-align:center;font-size:12px;color:var(--ink-muted)}
+thead th.is-weekend{color:var(--ink)}
+td.c{min-width:56px;padding:0 4px;height:34px;text-align:center;border-radius:8px;font-weight:800;white-space:nowrap;background:var(--surface)}
+td.l1{background:var(--accent-soft);color:var(--accent-ink)}
+td.l2{background:var(--accent-ink);color:#FFFFFF}
+td.l3{background:var(--accent-strong);color:#FFFFFF}
+td.b1{background:var(--brand-soft);color:var(--brand)}
+td.b2{background:var(--brand);color:var(--on-brand)}
+td.empty{color:var(--ink-muted);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;font-weight:700;color:var(--ink-muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+.data-table{width:100%;border-spacing:0}
+.data-table th,.data-table td{padding:9px 8px;border-top:1px solid var(--border);text-align:left;font-size:14px}
+.data-table thead th{border-top:none;color:var(--ink-muted);font-size:13px}
+.data-table td.num{text-align:right;font-weight:800;white-space:nowrap}
+
+/* Mögliche Auslöser: zwei Spalten (selber Tag, Vortag) */
+.rel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.rel-col{background:var(--surface-raised);border-radius:20px;padding:14px 16px}
+.rel-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border)}
+.rel-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.tag{height:22px;padding:0 8px;border-radius:11px;display:inline-flex;align-items:center;font-size:12px;font-weight:700;background:var(--accent-soft);color:var(--accent-ink)}
+.tag--brand{background:var(--brand-soft);color:var(--brand)}
+.mini{width:48px;height:6px;border-radius:3px;background:var(--surface-sunken);display:flex;overflow:hidden}
+.mini i{display:block;height:6px;background:var(--accent)}
+.val{white-space:nowrap;font-size:14px;font-weight:800;color:var(--accent-ink)}
+.val--brand{color:var(--brand)}
+
+/* Tage zum Aufklappen */
+details{background:var(--surface-raised);border-radius:16px;padding:0 16px}
+summary{min-height:48px;display:flex;align-items:center;font-weight:800;cursor:pointer}
+details pre{margin:0 0 14px;white-space:pre-wrap;font:400 14px/21px var(--font-sans)}
+
+.stage-band{position:sticky;top:0;z-index:5;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
+@media print{.no-print{display:none!important} body{background:#FFFFFF}}
 </style>
 </head>
 <body>
-<header>
-  <div class="hb"><h1>📊 GutLog Auswertung</h1><p>Ärztliches Analyse-Tool</p></div>
-  <div class="badge">Nur für Arzt</div>
-</header>
-<div class="main">
+<div class="stage-band" id="stageBand" hidden>Testversion des Auswertungs-Tools</div>
+<main class="wrap">
+  <header>
+    <div class="eyebrow">Für Sandra</div>
+    <h1>GutLog Auswertung</h1>
+  </header>
 
-  <!-- IMPORT -->
-  <div class="cfg">
-    <h2>📥 Bericht laden</h2>
-    <p>Öffne die Datei, die Fabienne aus GutLog geteilt hat (.txt), oder füge den Text aus WhatsApp unten ein.</p>
-    <input type="file" id="fileIn" accept=".txt,.json,text/plain,application/json" style="display:none" onchange="loadFile(this.files[0])">
-    <button class="cfg-btn" style="width:auto;margin-bottom:14px" onclick="document.getElementById('fileIn').click()">Datei auswählen</button>
-    <textarea class="cfg-input" id="pasteIn" style="min-height:110px;resize:vertical" placeholder="…oder den kompletten Bericht hier einfügen"></textarea>
-    <button class="cfg-btn" style="width:auto;margin-top:10px" onclick="loadText(document.getElementById('pasteIn').value)">Auswerten</button>
-    <div id="cfgStatus" class="cfg-status"></div>
+  <!-- ══ BERICHTE LADEN ══════════════════════════════════════════════ -->
+  <section class="card no-print" aria-labelledby="ladenTitel">
+    <h2 id="ladenTitel">Berichte laden</h2>
+    <p class="hint">Eine oder mehrere Bericht-Dateien aus GutLog auswählen. Mehrere Wochen zusammen geben verlässlichere Hinweise.</p>
+    <div class="row">
+      <label class="btn" for="dateiInput" style="display:inline-flex;align-items:center;cursor:pointer">Dateien wählen</label>
+      <input type="file" id="dateiInput" accept=".txt,.json,text/plain,application/json" multiple hidden>
+      <button class="btn btn--soft" id="einfuegenBtn" aria-expanded="false">Text einfügen</button>
+    </div>
+    <div id="einfuegenBereich" hidden>
+      <label class="hint" for="einfuegenText">Den kompletten Bericht-Text hier einfügen (aus WhatsApp kopiert):</label>
+      <textarea id="einfuegenText"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="einfuegenLaden">Laden</button></div>
+    </div>
+    <div class="row" id="geladen"></div>
+    <div id="meldung" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- ══ ERGEBNIS ════════════════════════════════════════════════════ -->
+  <div id="ergebnis" hidden style="display:flex;flex-direction:column;gap:16px">
+    <p class="eyebrow" id="zeitraum"></p>
+
+    <section class="card" aria-labelledby="fazitTitel">
+      <h2 id="fazitTitel">Kurzfazit</h2>
+      <div id="warnungen"></div>
+      <ul class="bullets" id="fazit"></ul>
+      <p class="hint">Regelbasiert erstellt. Zeigt Zusammenhänge, keine Ursachen.</p>
+    </section>
+
+    <div class="kpis" id="kpis"></div>
+
+    <section class="card" aria-labelledby="uebersichtTitel">
+      <h2 id="uebersichtTitel">Übersicht pro Tag</h2>
+      <div class="scroll"><table id="uebersicht"></table></div>
+      <div class="legend" id="uebersichtLegende"></div>
+    </section>
+
+    <section class="card" aria-labelledby="pantoTitel">
+      <h2 id="pantoTitel">Pantoprazol und Sodbrennen</h2>
+      <p class="hint">Durchschnittliche Stärke des Sodbrennens (0 = keins bis 3 = stark), je nachdem, ob Pantoprazol am selben Tag oder am Vortag genommen wurde.</p>
+      <div class="scroll"><table class="data-table" id="pantoTabelle"></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="ausloeserTitel">
+      <h2 id="ausloeserTitel">Mögliche Auslöser</h2>
+      <p class="hint" id="ausloeserHinweis"></p>
+      <div class="row no-print" role="group" aria-label="Beschwerde auswählen" id="ausloeserFilter"></div>
+      <div class="rel-grid" id="ausloeser"></div>
+    </section>
+
+    <section class="card" aria-labelledby="qualiTitel">
+      <h2 id="qualiTitel">Datenqualität</h2>
+      <ul class="bullets" id="quali"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="tageTitel">
+      <h2 id="tageTitel">Alle Tage</h2>
+      <div style="display:flex;flex-direction:column;gap:8px" id="tage"></div>
+    </section>
+
+    <div class="row no-print"><button class="btn btn--soft" onclick="window.print()">Drucken oder als PDF speichern</button></div>
   </div>
-
-  <div id="mainContent"></div>
-</div>
+</main>
 
 <script>
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-// ── BERICHT EINLESEN ──────────────────────────────
+'use strict';
+// ══════════════════════════════════════════════════════════════════
+// AUSWERTUNG
+// Liest Berichte im Format 2.0 aus GutLog: oben Text, unten nach MARKER das JSON.
+// Mehrere Berichte werden nach Datum zusammengeführt (neuerer Bericht gewinnt).
+// Alle Regeln entsprechen der App (siehe CLAUDE.md): Beschwerde ab Stufe 2,
+// Durchfall nach WHO, Pantoprazol fehlt = nicht genommen (nur an Tagen mit Einträgen).
+// ══════════════════════════════════════════════════════════════════
 const MARKER='=== GUTLOG-DATEN';
-function setCfgStatus(type,msg){
-  const el=document.getElementById('cfgStatus');
-  el.className='cfg-status'+(type==='ok'?' cs-ok':type==='err'?' cs-err':' cs-info');
-  el.textContent=msg;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+if(location.pathname.includes('/test/'))$('stageBand').hidden=false;
+
+// ── Datum (Ortszeit, wie in der App) ──
+const pad=n=>String(n).padStart(2,'0');
+const dk=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyToDate=k=>{const[y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=keyToDate(k);d.setDate(d.getDate()+n);return dk(d)};
+const wd=k=>keyToDate(k).toLocaleDateString('de-DE',{weekday:'short'}).replace('.','');
+const short=k=>{const d=keyToDate(k);return `${d.getDate()}.${d.getMonth()+1}.`};
+const long=k=>{const d=keyToDate(k);return `${wd(k)}, ${d.getDate()}. ${d.toLocaleDateString('de-DE',{month:'long'})} ${d.getFullYear()}`};
+const dayDiff=(a,b)=>Math.round((keyToDate(b)-keyToDate(a))/864e5);
+
+// ── Geladene Berichte ──
+let REPORTS=[];   // {name, payload, text}
+let DAYS={};      // alle Tage aus allen Berichten
+let MAIN=[];      // Tage innerhalb der Berichtswochen (ohne Kontext-Vortage), sortiert
+let PANTO_DOSE=20;
+
+function parseReport(text,name){
+  const i=text.indexOf(MARKER);
+  let json=null;
+  if(i>=0){const after=text.slice(i);const j=after.indexOf('{');if(j>=0)json=after.slice(j)}
+  else if(text.trim().startsWith('{'))json=text.trim();
+  if(!json)throw new Error('Kein GutLog-Datenteil gefunden. Bitte den kompletten Bericht einfügen.');
+  let payload;
+  try{payload=JSON.parse(json)}catch{throw new Error('Der Datenteil ist beschädigt (z. B. abgeschnitten beim Kopieren).')}
+  if(payload.app!=='GutLog')throw new Error('Das ist kein GutLog-Bericht.');
+  if(String(payload.version).split('.')[0]!=='2')throw new Error(`Bericht im alten Format (Version ${payload.version}) wird nicht mehr unterstützt.`);
+  return {name,payload,text:i>=0?text.slice(0,i).trim():''};
 }
-function loadFile(file){
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>loadText(e.target.result);
-  r.readAsText(file);
+function addReport(r){
+  REPORTS=REPORTS.filter(x=>!(x.payload.range.from===r.payload.range.from&&x.payload.range.to===r.payload.range.to));
+  REPORTS.push(r);
+  REPORTS.sort((a,b)=>a.payload.exportedAt.localeCompare(b.payload.exportedAt));
+  rebuild();
 }
-function loadText(text){
-  text=(text||'').trim();
-  if(!text){setCfgStatus('err','Bitte zuerst eine Datei wählen oder Text einfügen.');return}
-  let data=null;
-  try{
-    const i=text.indexOf(MARKER);
-    if(i>=0){
-      // Die JSON-Zeile steht direkt nach der Marker-Zeile
-      const after=text.slice(text.indexOf('\n',i)+1);
-      data=JSON.parse(after.slice(after.indexOf('{'),after.lastIndexOf('}')+1));
-    }else{
-      data=JSON.parse(text); // ältere .json-Exporte
+function rebuild(){
+  DAYS={};const main=new Set();
+  REPORTS.forEach(r=>{
+    Object.assign(DAYS,r.payload.days);
+    for(let k=r.payload.range.from;k<=r.payload.range.to;k=addDays(k,1))if(r.payload.days[k])main.add(k);
+    if(r.payload.settings&&r.payload.settings.pantoDose)PANTO_DOSE=r.payload.settings.pantoDose;
+  });
+  MAIN=[...main].sort();
+  renderLoaded();
+  if(!REPORTS.length){$('ergebnis').hidden=true;return}
+  render();
+}
+function showMsg(text,type){$('meldung').innerHTML=text?`<p class="msg msg--${type}">${esc(text)}</p>`:''}
+
+$('dateiInput').addEventListener('change',async e=>{
+  const files=[...e.target.files];let ok=0;const errors=[];
+  for(const f of files){
+    try{addReport(parseReport(await f.text(),f.name));ok++}catch(err){errors.push(`${f.name}: ${err.message}`)}
+  }
+  showMsg(errors.length?errors.join(' · '):`${ok} ${ok===1?'Bericht':'Berichte'} geladen.`,errors.length?'error':'ok');
+  e.target.value='';
+});
+$('einfuegenBtn').addEventListener('click',()=>{const a=$('einfuegenBereich');a.hidden=!a.hidden;$('einfuegenBtn').setAttribute('aria-expanded',String(!a.hidden));if(!a.hidden)$('einfuegenText').focus()});
+$('einfuegenLaden').addEventListener('click',()=>{
+  try{const r=parseReport($('einfuegenText').value,'Eingefügter Text');addReport(r);$('einfuegenText').value='';$('einfuegenBereich').hidden=true;showMsg('Bericht geladen.','ok')}
+  catch(err){showMsg(err.message,'error')}
+});
+function renderLoaded(){
+  $('geladen').innerHTML=REPORTS.map((r,i)=>`<span class="chip chip--file">${short(r.payload.range.from)}–${short(r.payload.range.to)}${r.payload.stage==='test'?' (Test)':''}<button aria-label="Bericht ${short(r.payload.range.from)} entfernen" data-remove="${i}">×</button></span>`).join('')
+    +(REPORTS.length>1?'<button class="btn-text" id="alleWeg">Alle entfernen</button>':'');
+}
+$('geladen').addEventListener('click',e=>{
+  const b=e.target.closest('[data-remove]');if(b){REPORTS.splice(Number(b.dataset.remove),1);rebuild();return}
+  if(e.target.id==='alleWeg'){REPORTS=[];rebuild()}
+});
+
+// ══════════════════════════════════════════════════════════════════
+// REGELN (gleich wie in der App)
+// ══════════════════════════════════════════════════════════════════
+const hasData=d=>!!d&&(d.meals.length||d.meds.length||d.events.length||!!d.close);
+const findPanto=d=>d.meds.find(m=>m.name==='Pantoprazol');
+const isDiarrhea=st=>!!st&&st.count>=3&&(st.kind==='breiig'||st.kind==='fluessig');
+const FILTERS=[
+  {id:'sodbrennen',label:'Sodbrennen',event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
+  {id:'blaehbauch',label:'Blähbauch',event:'Blähbauch',what:'mittlerem oder starkem Blähbauch'},
+  {id:'blaehungen',label:'Blähungen',event:null,what:'oft oder ständig Blähungen'},
+  {id:'stuhl',label:'Durchfall',event:null,what:'Durchfall (mind. 3× breiig oder flüssig)'}
+];
+function symptomOn(day,f){
+  if(f.id==='stuhl'){const st=day.close&&day.close.stuhl;return st?isDiarrhea(st):null}
+  const v=day.close?day.close[f.id]:null;
+  const ev=!!f.event&&day.events.some(e=>e.type===f.event&&e.level>=2);
+  if(v==null&&!ev)return null;
+  return (v!=null&&v>=2)||ev;
+}
+function dayItems(day){
+  const items=new Map();
+  const add=(tag,label)=>items.set(tag+'|'+label.toLocaleLowerCase('de-DE'),{tag,label});
+  day.meals.forEach(m=>{
+    add('Gericht',m.title);(m.ingredients||[]).forEach(i=>add('Zutat',i));
+    if(m.drink)add('Getränk',m.drink);
+    if(m.portion==='gross')add('Alltag','Große Portion');
+    if(m.time&&m.time>='20:00')add('Alltag','Essen nach 20 Uhr');
+  });
+  // Andere Medikamente zählen bewusst nicht: Sie werden meist WEGEN Beschwerden genommen
+  // (z. B. Gaviscon bei Sodbrennen) und würden sonst fälschlich als Auslöser erscheinen.
+  const c=day.close;
+  if(c&&c.stress!=null&&c.stress>=2)add('Alltag','Viel Stress');
+  if(c&&c.bewegung===1)add('Alltag','Kaum Bewegung');
+  const p=findPanto(day);
+  if(!p)add('Medikament','Kein Pantoprazol');else if(p.status==='reduziert')add('Medikament','Pantoprazol reduziert');
+  return [...items.values()];
+}
+// lag 0 = was am selben Tag dabei war, lag 1 = was am Vortag dabei war
+function relations(f,lag){
+  const stats=new Map();let known=0,hits=0;
+  MAIN.forEach(k=>{
+    const day=DAYS[k];if(!hasData(day))return;
+    const on=symptomOn(day,f);if(on==null)return;
+    const src=lag?DAYS[addDays(k,-1)]:day;
+    if(!hasData(src))return;
+    known++;if(on)hits++;
+    dayItems(src).forEach(it=>{
+      const key=it.tag+'|'+it.label.toLocaleLowerCase('de-DE');
+      const s=stats.get(key)||{...it,days:0,hits:0};s.days++;if(on)s.hits++;stats.set(key,s);
+    });
+  });
+  const base=known?hits/known:0;const all=[...stats.values()];
+  return {known,hits,base,
+    often:all.filter(s=>s.days>=2&&s.hits>=2&&s.hits/s.days>=0.5&&s.hits/s.days>base).sort((a,b)=>b.hits/b.days-a.hits/a.days||b.hits-a.hits).slice(0,8),
+    good:all.filter(s=>s.days>=3&&s.hits===0&&(s.tag==='Gericht'||s.tag==='Zutat')).sort((a,b)=>b.days-a.days).slice(0,6)};
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DARSTELLUNG
+// ══════════════════════════════════════════════════════════════════
+let relFilter='sodbrennen';
+const WORDS={sodbrennen:['keins','leicht','mittel','stark'],blaehbauch:['keiner','leicht','mittel','stark'],blaehungen:['keine','wenig','oft','ständig'],stress:['keiner','etwas','viel','sehr viel'],bewegung:[null,'kaum','etwas','viel']};
+const KIND_SHORT={hart:'hart',normal:'norm.',breiig:'breiig',fluessig:'flüss.'};
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const plural=(n,one,many)=>`${n} ${n===1?one:many}`;
+const fmt1=x=>x==null?'–':x.toLocaleString('de-DE',{maximumFractionDigits:1,minimumFractionDigits:1});
+
+function render(){
+  $('ergebnis').hidden=false;
+  const days=MAIN.filter(k=>hasData(DAYS[k]));
+  const from=REPORTS.map(r=>r.payload.range.from).sort()[0], to=REPORTS.map(r=>r.payload.range.to).sort().slice(-1)[0];
+  const span=dayDiff(from,to)+1;
+  $('zeitraum').textContent=`${long(from)} bis ${long(to)} · ${REPORTS.length} ${REPORTS.length===1?'Bericht':'Berichte'} · ${days.length} von ${span} Tagen mit Einträgen`;
+
+  // ── Kennzahlen ──
+  const closes=days.filter(k=>DAYS[k].close);
+  const pantoDays=days.filter(k=>findPanto(DAYS[k]));
+  const reduced=pantoDays.filter(k=>findPanto(DAYS[k]).status==='reduziert');
+  const sodDays=closes.filter(k=>DAYS[k].close.sodbrennen>=2);
+  const diarrhea=closes.filter(k=>isDiarrhea(DAYS[k].close.stuhl));
+  const events=days.reduce((n,k)=>n+DAYS[k].events.length,0);
+  $('kpis').innerHTML=[
+    ['',`${days.length}<small>/${span}</small>`,'Tage mit Einträgen'],
+    ['',`${closes.length}<small>/${days.length}</small>`,'Tagesabschluss ausgefüllt'],
+    ['kpi--brand',`${pantoDays.length}<small>/${days.length}</small>`,`Pantoprazol genommen${reduced.length?`, ${reduced.length}× reduziert`:''}`],
+    ['kpi--accent',`${sodDays.length}<small>/${closes.length}</small>`,'Sodbrennen mittel oder stark'],
+    ['kpi--accent',`${diarrhea.length}<small>/${closes.length}</small>`,'Durchfall-Tage (WHO)'],
+    ['',String(events),'einzelne Ereignisse']
+  ].map(([c,b,s])=>`<div class="kpi ${c}"><b>${b}</b><span>${s}</span></div>`).join('');
+
+  renderOverview(from,to);
+  renderPanto(days);
+  renderRelations();
+  renderSummary(days,closes,pantoDays,reduced,sodDays,diarrhea);
+  renderQuality(days,closes,span);
+  renderDays();
+}
+
+// Übersicht: Zeilen = Beschwerden und Faktoren, Spalten = Tage
+function renderOverview(from,to){
+  const keys=[];for(let k=from;k<=to;k=addDays(k,1))keys.push(k);
+  const lvl=(v,words)=>v==null?['empty','–']:[v===0?'':'l'+v,v===0?'0':words[v]];
+  const ROWS=[
+    ['Sodbrennen',d=>d.close?lvl(d.close.sodbrennen,WORDS.sodbrennen):['empty','–']],
+    ['Blähbauch',d=>d.close?lvl(d.close.blaehbauch,WORDS.blaehbauch):['empty','–']],
+    ['Blähungen',d=>d.close?lvl(d.close.blaehungen,WORDS.blaehungen):['empty','–']],
+    ['Stuhlgang',d=>{const st=d.close&&d.close.stuhl;if(!st)return['empty','–'];if(st.count===0)return['','0×'];return[isDiarrhea(st)?'l3':st.kind==='breiig'||st.kind==='fluessig'?'l1':'',`${st.count}× ${st.kind?KIND_SHORT[st.kind]:''}`]}],
+    ['Ereignisse',d=>{const e=d.events;if(!e.length)return['',''];const m=Math.max(...e.map(x=>x.level));return['l'+m,String(e.length)]}],
+    // Stress ist ein Belastungsfaktor: gleiche Farbskala wie Beschwerden (nicht Grün)
+    ['Stress',d=>d.close?lvl(d.close.stress,WORDS.stress):['empty','–']],
+    ['Bewegung',d=>{const v=d.close?d.close.bewegung:null;return v==null?['empty','–']:[v===1?'':'b'+(v-1),WORDS.bewegung[v]]}],
+    ['Pantoprazol',d=>{const p=findPanto(d);return !p?['','nein']:p.status==='reduziert'?['b1',`${p.dose} mg`]:['b2',`${p.dose} mg`]}],
+    ['Mahlzeiten',d=>['',String(d.meals.length)]]
+  ];
+  const head=`<thead><tr><th></th>${keys.map(k=>{const we=[0,6].includes(keyToDate(k).getDay());return `<th scope="col" class="${we?'is-weekend':''}">${wd(k)}<br>${short(k)}</th>`}).join('')}</tr></thead>`;
+  const body=ROWS.map(([name,fn])=>`<tr><th scope="row">${name}</th>${keys.map(k=>{const d=DAYS[k];if(!hasData(d)||!MAIN.includes(k))return '<td class="c empty">·</td>';const[c,t]=fn(d);return `<td class="c ${c}">${esc(t)}</td>`}).join('')}</tr>`).join('');
+  $('uebersicht').innerHTML=head+'<tbody>'+body+'</tbody>';
+  $('uebersichtLegende').innerHTML=`<span><i style="background:var(--accent-soft)"></i>leicht</span><span><i style="background:var(--accent-ink)"></i>mittel</span><span><i style="background:var(--accent-strong)"></i>stark / Durchfall</span><span><i style="background:var(--brand)"></i>Pantoprazol volle Dosis, viel Bewegung</span><span>· = keine Einträge, – = nicht beantwortet</span>`;
+}
+
+// Pantoprazol: Sodbrennen je nach Einnahme am selben Tag und am Vortag
+function renderPanto(days){
+  const status=d=>{const p=findPanto(d);return !p?'nicht genommen':p.status==='reduziert'?'reduziert':'volle Dosis'};
+  const groups=['volle Dosis','reduziert','nicht genommen'];
+  const same={},prev={};groups.forEach(g=>{same[g]=[];prev[g]=[]});
+  days.forEach(k=>{
+    const d=DAYS[k];const v=d.close?d.close.sodbrennen:null;if(v==null)return;
+    same[status(d)].push(v);
+    const y=DAYS[addDays(k,-1)];if(hasData(y))prev[status(y)].push(v);
+  });
+  const cell=a=>a.length?`${fmt1(avg(a))} <span class="hint">(${a.length} ${a.length===1?'Tag':'Tage'}, ${a.filter(x=>x>=2).length}× mittel/stark)</span>`:'<span class="hint">keine Tage</span>';
+  $('pantoTabelle').innerHTML=`<thead><tr><th>Pantoprazol</th><th>Sodbrennen am selben Tag</th><th>Sodbrennen am Folgetag</th></tr></thead><tbody>`
+    +groups.map(g=>`<tr><th scope="row">${g}</th><td>${cell(same[g])}</td><td>${cell(prev[g])}</td></tr>`).join('')+'</tbody>';
+  return {same,prev};
+}
+
+function renderRelations(){
+  const f=FILTERS.find(x=>x.id===relFilter);
+  $('ausloeserFilter').innerHTML=FILTERS.map(x=>`<button class="chip" data-filter="${x.id}" aria-pressed="${x.id===f.id}">${x.label}</button>`).join('');
+  const r0=relations(f,0),r1=relations(f,1);
+  $('ausloeserHinweis').textContent=`Was an Tagen mit ${f.what} oder am Tag davor auffällig oft dabei war. Gezählt wird pro Tag: Tage mit Beschwerde von allen Tagen mit diesem Faktor. Sichtbar ab 2 Treffern, mindestens der Hälfte der Tage und häufiger als im Schnitt (${Math.round(r0.base*100)} % der Tage).`;
+  const row=(s,good)=>`<div class="rel-row"><div class="rel-name"><b>${esc(s.label)}</b><span class="tag${good?' tag--brand':''}">${s.tag}</span></div>`
+    +(good?`<span class="val val--brand">${s.days} Tage ohne</span>`:`<div class="row" style="gap:8px;flex-wrap:nowrap"><div class="mini" aria-hidden="true"><i style="width:${Math.round(s.hits/s.days*100)}%"></i></div><span class="val">${s.hits} von ${s.days}</span></div>`)+'</div>';
+  const col=(title,list,good,known)=>`<div class="rel-col"><h3>${title}</h3>${list.length?list.map(s=>row(s,good)).join(''):`<p class="hint" style="margin-top:8px">${known<4?'Zu wenige Tage für eine Aussage.':'Nichts Auffälliges.'}</p>`}</div>`;
+  $('ausloeser').innerHTML=col('Oft am selben Tag',r0.often,false,r0.known)+col('Oft am Vortag',r1.often,false,r1.known)
+    +col('Gut vertragen (am selben Tag)',r0.good,true,r0.known)+col('Ohne Beschwerden am Folgetag',r1.good,true,r1.known);
+}
+$('ausloeserFilter').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){relFilter=b.dataset.filter;renderRelations()}});
+
+// Kurzfazit: Auffälliges zuerst, dann die wichtigsten Zahlen
+function renderSummary(days,closes,pantoDays,reduced,sodDays,diarrhea){
+  const warn=[];
+  const strongSod=closes.filter(k=>DAYS[k].close.sodbrennen===3);
+  if(strongSod.length>=3)warn.push(`Starkes Sodbrennen an ${strongSod.length} Tagen.`);
+  if(diarrhea.length>=2)warn.push(`Durchfall an ${diarrhea.length} Tagen (${diarrhea.map(short).join(', ')}).`);
+  const strongEv=days.flatMap(k=>DAYS[k].events.filter(e=>e.level===3&&(e.type==='Bauchschmerzen'||e.type==='Übelkeit'||e.type==='Anderes')).map(e=>`${e.type==='Anderes'&&e.other?e.other:e.type} am ${short(k)}${e.note?` („${e.note}“)`:''}`));
+  if(strongEv.length)warn.push(`Starke Ereignisse: ${strongEv.join('; ')}.`);
+  $('warnungen').innerHTML=warn.length?`<div class="warn"><h3>Auffällig</h3><ul class="bullets" style="margin-top:6px">${warn.map(w=>`<li>${esc(w)}</li>`).join('')}</ul></div>`:'';
+
+  const out=[];
+  if(closes.length){
+    const sodAvg=avg(closes.map(k=>DAYS[k].close.sodbrennen).filter(v=>v!=null));
+    out.push(`Sodbrennen mittel oder stark an ${sodDays.length} von ${closes.length} Tagen, Durchschnitt ${fmt1(sodAvg)} von 3.`);
+    const half=Math.floor(closes.length/2);
+    if(closes.length>=6){
+      const a=avg(closes.slice(0,half).map(k=>DAYS[k].close.sodbrennen).filter(v=>v!=null)),b=avg(closes.slice(half).map(k=>DAYS[k].close.sodbrennen).filter(v=>v!=null));
+      if(a!=null&&b!=null&&Math.abs(b-a)>=0.4)out.push(`Sodbrennen in der zweiten Hälfte des Zeitraums ${b>a?'stärker':'schwächer'} (${fmt1(a)} → ${fmt1(b)}).`);
     }
-  }catch{data=null}
-  if(!data||!data.days){setCfgStatus('err','Kein GutLog-Bericht erkannt. Bitte den kompletten Bericht inklusive Datenblock verwenden.');return}
-  setCfgStatus('ok','✓ Bericht geladen');
-  render(data.days, data.range?`${data.range.from} bis ${data.range.to}`:'Wochenbericht');
+  }
+  const noP=days.length-pantoDays.length;
+  out.push(`Pantoprazol an ${pantoDays.length} von ${days.length} Tagen genommen${reduced.length?`, davon ${reduced.length}× reduziert`:''}${noP?`, an ${plural(noP,'Tag','Tagen')} nicht`:''} (übliche Dosis ${PANTO_DOSE} mg).`);
+  const {prev}=renderPanto(days);
+  const full=avg(prev['volle Dosis']),none=avg(prev['nicht genommen'].concat(prev['reduziert']));
+  if(full!=null&&none!=null&&prev['nicht genommen'].length+prev['reduziert'].length>=2&&none-full>=0.5)
+    out.push(`Am Tag nach einer ausgelassenen oder reduzierten Einnahme war das Sodbrennen im Schnitt stärker (${fmt1(none)} statt ${fmt1(full)}). Möglicher Rebound, weiter beobachten.`);
+  FILTERS.forEach(f=>{
+    const a=relations(f,0).often[0],b=relations(f,1).often[0];
+    const best=[a&&{...a,when:'am selben Tag'},b&&{...b,when:'am Vortag'}].filter(Boolean).sort((x,y)=>y.hits/y.days-x.hits/x.days||y.hits-x.hits)[0];
+    if(best)out.push(`${f.label}: auffällig oft mit „${best.label}“ ${best.when} (${best.hits} von ${best.days} Tagen).`);
+  });
+  $('fazit').innerHTML=out.map(t=>`<li>${esc(t)}</li>`).join('');
 }
 
-// ── RENDER ────────────────────────────────────────
-async function render(wd,label){
-  const keys=Object.keys(wd).sort();
-  const all=Object.values(wd).flat();
-  const syms=all.filter(e=>e.type==='symptom'),meals=all.filter(e=>e.type==='meal');
-  const panto=keys.filter(k=>wd[k].some(e=>e.type==='medication'&&e.status!=='ausgelassen'&&(e.name||'').toLowerCase().includes('pantoprazol'))).length;
-  const avgS=syms.length?(syms.reduce((s,e)=>s+e.severity,0)/syms.length).toFixed(1):'–';
-  const maxS=syms.length?Math.max(...syms.map(e=>e.severity)):0;
-
-  const sF={};syms.forEach(e=>(e.symptoms||[]).forEach(s=>{sF[s]=(sF[s]||0)+1}));
-  const sByF=Object.entries(sF).sort((a,b)=>b[1]-a[1]),sMax=sByF[0]?.[1]||1;
-  const trig={};
-  Object.values(wd).forEach(day=>{const sorted=[...day].sort((a,b)=>(a.time||'').localeCompare(b.time||''));sorted.forEach((e,i)=>{if(e.type!=='symptom')return;const[sh,sm]=(e.time||'00:00').split(':').map(Number);sorted.slice(0,i).forEach(p=>{if(p.type!=='meal')return;const[ph,pm]=(p.time||'00:00').split(':').map(Number);if((sh*60+sm)-(ph*60+pm)<=120)trig[p.name]=(trig[p.name]||0)+1})})});
-  const tByF=Object.entries(trig).sort((a,b)=>b[1]-a[1]).slice(0,6),tMax=tByF[0]?.[1]||1;
-
-  // Timeline
-  const L={meal:'🍽 Mahlzeit',symptom:'⚡ Symptom',medication:'💊 Medikament'};
-  const DC={meal:'dm',symptom:'ds',medication:'dd'};
-  const CC={meal:'ecm',symptom:'ecs',medication:'ecd'};
-  const BC={meal:'bm',symptom:'bs',medication:'bd2'};
-  const tlHTML=keys.length?keys.map(key=>{
-    const d=new Date(key+'T12:00:00');
-    const label=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-    const nM=wd[key].filter(e=>e.type==='meal').length,nS=wd[key].filter(e=>e.type==='symptom').length,nMe=wd[key].filter(e=>e.type==='medication').length;
-    const cards=wd[key].map(e=>{
-      let body='';
-      if(e.type==='meal')body=`<div class="cm">${esc(e.name||'')}</div>${e.details?`<div class="cd">${esc(e.details)}</div>`:''}${e.drink?`<div class="cd">🥤 ${esc(e.drink)}</div>`:''}`;
-      else if(e.type==='symptom')body=`<div class="stgs">${(e.symptoms||[]).map(s=>`<span class="stg">${esc(s)}</span>`).join('')}</div><div class="sb"><div class="sf" style="width:${(e.severity||5)*10}%"></div></div><div class="cd" style="margin-top:4px">Intensität ${e.severity}/10${e.timing?' · '+esc(e.timing):''}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-      else body=`<div class="cm">${esc(e.name||'')}${e.dose&&e.status!=='ausgelassen'?' – '+esc(e.dose)+' mg':''}</div><div class="cd">${e.status?esc(e.status)+' · ':''}${esc(e.timing||'')}</div>${e.note?`<div class="cd">${esc(e.note)}</div>`:''}`;
-      return`<div class="tle"><div class="tld ${DC[e.type]||'dm'}"></div><div class="ec ${CC[e.type]||'ecm'}"><div class="ct"><span class="cti">${esc(e.time||'')} Uhr</span><span class="cbadge ${BC[e.type]||'bm'}">${L[e.type]||e.type}</span></div>${body}</div></div>`;
-    }).join('');
-    return`<div class="dblock"><div class="dlbl">${esc(label)}</div><div class="pills">${nM?`<span class="pill pm">🍽 ${nM}</span>`:''}${nS?`<span class="pill ps">⚡ ${nS}</span>`:''}${nMe?`<span class="pill pd">💊 ${nMe}</span>`:''}</div><div class="tl">${cards}</div></div>`;
-  }).join(''):'<p style="color:var(--mut);font-size:.88rem">Keine Einträge für diese Woche.</p>';
-
-  document.getElementById('mainContent').innerHTML=`
-    <div class="week-bar"><span class="wlbl">${esc(label||"")}</span></div>
-
-    ${!keys.length?`<div class="empty"><div class="empty-icon">📭</div><p>Keine Einträge für diese Woche.</p></div>`:`
-    <div class="sgrid">
-      <div class="sc"><div class="sn">${keys.length}</div><div class="sl">Tage erfasst</div></div>
-      <div class="sc"><div class="sn" style="color:var(--amb)">${syms.length}</div><div class="sl">Symptom&shy;ereignisse</div></div>
-      <div class="sc"><div class="sn" style="color:var(--amb)">${avgS}</div><div class="sl">Ø Intensität</div></div>
-      <div class="sc"><div class="sn">${meals.length}</div><div class="sl">Mahlzeiten</div></div>
-      <div class="sc"><div class="sn" style="color:var(--pur)">${panto}/7</div><div class="sl">Tage Pantoprazol</div></div>
-      <div class="sc"><div class="sn" style="color:var(--green)">${7-panto}/7</div><div class="sl">Tage ohne</div></div>
-    </div>
-
-    <div class="aic">
-      <div class="aih"><span class="aip">📊 Auswertung</span><span class="ait">Automatische Zusammenfassung</span></div>
-      <div id="aiResult"><div class="loading"><div class="spinner"></div>Wird ausgewertet…</div></div>
-    </div>
-
-    ${sByF.length?`<div class="cb"><div class="cbt">Häufigste Symptome</div>${sByF.map(([s,n])=>`<div class="br"><span class="bl">${esc(s)}</span><div class="bbg"><div class="bf bfs" style="width:${(n/sMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}</div>`:''}
-    ${tByF.length?`<div class="cb"><div class="cbt">Mögliche Trigger <span style="font-weight:400;color:var(--mut)">(Symptome innerhalb 2h)</span></div>${tByF.map(([m,n])=>`<div class="br"><span class="bl">${esc(m)}</span><div class="bbg"><div class="bf bft" style="width:${(n/tMax*100).toFixed(0)}%"></div></div><span class="bc">${n}×</span></div>`).join('')}<div class="cn">⚠ Rein zeitliche Korrelation.</div></div>`:''}
-    <div class="tls"><div class="tlst">Tagesprotokoll</div>${tlHTML}</div>`}`;
-
-  if(keys.length) await runAI(wd,keys,syms,meals,panto,avgS,maxS,sByF,tByF);
+function renderQuality(days,closes,span){
+  const q=[];
+  const missing=days.filter(k=>!DAYS[k].close);
+  q.push(missing.length?`Tagesabschluss fehlt an ${plural(missing.length,'Tag','Tagen')}: ${missing.map(short).join(', ')}`:'Tagesabschluss an allen Tagen mit Einträgen ausgefüllt.');
+  if(days.length<span)q.push(`An ${plural(span-days.length,'Tag','Tagen')} gar keine Einträge. Diese Tage zählen in keiner Rechnung.`);
+  const meals=days.flatMap(k=>DAYS[k].meals);
+  const noIngr=meals.filter(m=>!(m.ingredients||[]).length).length;
+  if(meals.length)q.push(`${meals.length} Mahlzeiten, davon ${noIngr} ohne Zutaten (${Math.round(noIngr/meals.length*100)} %). Ohne Zutaten zählt nur der Titel.`);
+  const late=days.reduce((n,k)=>{const d=DAYS[k];const all=[...d.meals,...d.meds,...d.events,...(d.close?[d.close]:[])];return n+all.filter(e=>e.addedAt&&dk(new Date(new Date(e.addedAt).getTime()-4*36e5))>k).length},0);
+  if(late)q.push(`${plural(late,'Eintrag wurde','Einträge wurden')} nachgetragen (an einem späteren Tag erfasst).`);
+  const noTime=meals.filter(m=>!m.time).length;
+  if(noTime)q.push(`${plural(noTime,'Mahlzeit','Mahlzeiten')} ohne Uhrzeit.`);
+  if(REPORTS.some(r=>r.payload.stage==='test'))q.push('Achtung: Mindestens ein Bericht stammt aus der Testversion.');
+  $('quali').innerHTML=q.map(t=>`<li>${esc(t)}</li>`).join('');
 }
 
-
-// ── AI ────────────────────────────────────────────
-async function runAI(wd,keys,syms,meals,panto,avgS,maxS,sByF,tByF){
-  const raw=keys.map(key=>{
-    const d=new Date(key+'T12:00:00');
-    const lines=[`📅 ${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}`];
-    wd[key].filter(e=>e.type==='meal').forEach(m=>lines.push(`  🍽 ${m.time}: ${m.name}${m.details?' ('+m.details+')':''}${m.drink?' + '+m.drink:''}`));
-    wd[key].filter(e=>e.type==='symptom').forEach(s=>lines.push(`  ⚡ ${s.time}: ${(s.symptoms||[]).join(', ')} – Stärke ${s.severity}/10${s.timing?' ('+s.timing+')':''}${s.note?' – '+s.note:''}`));
-    wd[key].filter(e=>e.type==='medication').forEach(m=>lines.push(`  💊 ${m.time}: ${m.name||''} ${m.dose||''}mg – ${m.timing||''}${m.note?' ('+m.note+')':''}`));
-    return lines.join('\n');
-  }).join('\n\n');
-
-  // Lokale Auswertung. Für eine ausführliche KI-Analyse: Bericht im Claude-Chat hochladen.
-  showAI(localAnalysis(wd,keys,syms,panto,avgS,maxS,sByF,tByF));
-}
-
-function showAI(text){
-  const el=document.getElementById('aiResult');if(!el)return;
-  el.innerHTML=`<div class="ai-text">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
-}
-
-function localAnalysis(wd,keys,syms,panto,avgS,maxS,sByF,tByF){
-  const days=keys.length;
-  const topSyms=sByF.slice(0,3),topTrig=tByF.slice(0,2);
-  const nightS=syms.filter(e=>(e.timing||'').match(/Lieg|nacht/i)).length;
-  const stressS=syms.filter(e=>(e.timing||'').match(/Stress/i)).length;
-  let t='';
-  t+=`📊 Überblick\n${days} Tag${days!==1?'e':''} erfasst, ${syms.length} Symptomereignis${syms.length!==1?'se':''}, Ø Intensität ${avgS}/10 (max. ${maxS}/10). Pantoprazol an ${panto}/7 Tagen.\n\n`;
-  t+=`🔥 Symptomanalyse\n${topSyms.length?'Häufigste Beschwerden: '+topSyms.map(([s,n])=>'**'+s+'** ('+n+'×)').join(', ')+'.'  :'Keine Symptome dokumentiert.'}${nightS?' '+nightS+' Ereignis'+(nightS!==1?'se':'')+' nachts/im Liegen.':''}${stressS?' '+stressS+' stressbedingte Ereignis'+(stressS!==1?'se':'')+'.':''}\n\n`;
-  t+=`🍽 Ernährungsanalyse\n${topTrig.length?'Zeitlicher Zusammenhang: '+topTrig.map(([m,n])=>'**„'+m+'"** ('+n+'×)').join(', ')+'. Weiter beobachten.':'Kein eindeutiger Trigger erkennbar.'}\n\n`;
-  t+=`💊 Medikation\n${panto===7?'Pantoprazol täglich eingenommen.':panto===0?'**Pantoprazol nicht eingenommen** – Schlüsselwoche.':'**Pantoprazol an '+panto+'/7 Tagen**. Symptomverlauf an freien Tagen beachten.'}\n\n`;
-  t+=`💡 Empfehlungen\n`;
-  const r=[];
-  if(topTrig.length)r.push('**„'+topTrig[0][0]+'"** vorerst meiden');
-  if(nightS)r.push('Oberkörper beim Schlafen erhöhen (10–15 cm)');
-  if(stressS)r.push('Stressreduktion priorisieren');
-  if(panto<7&&panto>0)r.push('Pantoprazol-freie Tage systematisch ausweiten');
-  r.push('Befunde beim nächsten Termin besprechen');
-  t+=r.map((x,i)=>`${i+1}. ${x}.`).join('\n');
-  return t;
+// Alle Tage als Text aus den Berichten (aufklappbar)
+function renderDays(){
+  const blocks=[];
+  REPORTS.forEach(r=>{
+    const parts=r.text.split(/\n(?=(?:Mo|Di|Mi|Do|Fr|Sa|So), )/);
+    parts.slice(1).forEach(p=>{const [title,...rest]=p.split('\n');blocks.push({title,body:rest.join('\n')})});
+  });
+  $('tage').innerHTML=blocks.length?blocks.map(b=>`<details><summary>${esc(b.title)}</summary><pre>${esc(b.body.trim())}</pre></details>`).join(''):'<p class="hint">Keine Tage im Text gefunden.</p>';
 }
 </script>
 </body>

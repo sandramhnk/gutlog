@@ -32,7 +32,9 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 - Tagesabschluss `day.close`: `sodbrennen`, `blaehbauch`, `blaehungen`, `stress` (0–3), `bewegung` (1–3), `stuhl` (`{count, kind}`), `null` = nicht beantwortet. Jeder Tipp speichert sofort. Ereignisse `day.events`: `type`, `other` (bei „Anderes“), `level` (1–3), `time`, `note`. Durchfall ist kein eigenes Feld, die Auswertung leitet ihn aus dem Stuhlgang ab (WHO: mindestens 3× breiig oder flüssig).
 - Verlauf: Woche Montag bis Sonntag als Balken aus dem Tagesabschluss, Pantoprazol-Punkt nur an Tagen mit Einträgen. Fabienne sieht keine Zusammenhänge; „Oft davor“ (mögliche Auslöser, auch vom Vortag) und „Gut vertragen“ gehören nur in `auswertung.html` (vielleicht später wieder in die App). Die Regeln zählen pro Tag über alle bisherigen Tage (Funktion `relations`): eine Beschwerde gilt ab Stufe 2 (Mittel) oder einem Ereignis ab Mittel; bei Stuhlgang zählt der Durchfall-Tag. „Oft davor“: mindestens 2 Treffer, mindestens die Hälfte der Tage und häufiger als im Schnitt. „Gut vertragen“: mindestens 3 Tage, nie mit Beschwerde.
 - Datumsschlüssel sind `JJJJ-MM-TT` in Ortszeit (Funktion `dk`). Nicht `toISOString()` verwenden, das ist UTC. Was bis 4:00 Uhr nachts passiert, zählt zum Vortag (`dayKeyFor`).
-- Wochenbericht (ab Etappe 5): `.txt`-Datei, oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON. `auswertung.html` liest genau dieses Format. Format nur ändern, wenn beide Dateien angepasst werden.
+- Wochenbericht Format 2.0 (`buildReport`, `shareReport`): `.txt`-Datei, oben lesbarer Text, unten nach der Zeile `=== GUTLOG-DATEN` die Daten als JSON `{app, version:'2.0', stage, range:{from,to}, contextFrom, exportedAt, settings:{pantoDose}, days}`. Woche = Montag bis Sonntag; der Sonntag davor wird als Vortag-Kontext mitgeschickt. Teilen als Datei, sonst als Text, sonst Zwischenablage. `auswertung.html` liest genau dieses Format, lädt mehrere Berichte und führt sie nach Datum zusammen. Format nur ändern, wenn beide Dateien und die Anleitung `auswertung-anleitung.md` im Projekt angepasst werden.
+- `auswertung.html` verwendet dieselben Regeln wie die App (Beschwerde ab Stufe 2, Durchfall nach WHO, kein Pantoprazol-Eintrag = nicht genommen) und zeigt „Oft davor“ und „Gut vertragen“ für denselben Tag und den Vortag. Andere Medikamente zählen nicht als Auslöser (werden meist wegen Beschwerden genommen).
+- Testversion: In den Einstellungen legt „Testdaten einspielen“ zwei Wochen Beispieldaten an (`makeTestData`, bricht in Live sofort ab).
 - Icon und Manifest werden per Canvas im Code erzeugt (`drawIcon`, `pwaBoot`). In der Testversion trägt das Icon ein Schild „TEST“. Offline-Betrieb über `sw.js` (zuerst Netz, sonst Speicher; Live und Test getrennt).
 
 ## Bewusste Entscheidungen
@@ -41,7 +43,7 @@ Sandra ist Product Ownerin und lernt gerade, Code zu lesen. Erkläre jede Änder
 - Keine echten Patientendaten im Repository. Das Repository ist öffentlich.
 
 ## Offene Punkte
-- Teilen auf echtem Android- und iOS-Gerät testen (Datei kommt in WhatsApp an?).
+- Teilen auf echtem Android- und iOS-Gerät testen (kommt die .txt-Datei in WhatsApp an und lässt sie sich in `auswertung.html` öffnen?).
 - Erinnerungen auf Android: Web-Apps können Benachrichtigungen nicht zuverlässig senden, wenn sie geschlossen sind. Lösung klären oder Grenzen dokumentieren.
 
 ## Vor jedem Push
