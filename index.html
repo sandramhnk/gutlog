@@ -256,17 +256,6 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
 .panto .ring--none{stroke:var(--border-control)}
 .legend{display:flex;flex-wrap:wrap;gap:var(--space-1) 14px;margin-top:var(--space-3);font-size:13px;font-weight:700;color:var(--ink-muted)}
 .legend span{display:flex;align-items:center;gap:6px}
-/* Zusammenhänge: Zeilen mit Etikett, Mini-Balken und Zahl */
-.rel-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--border)}
-.card--accent .rel-row{border-top-color:var(--surface-raised)}
-.rel-name{display:flex;align-items:center;gap:var(--space-2);min-width:0;flex-wrap:wrap}
-.rel-name b{font-size:16px;font-weight:700}
-.tag{height:22px;padding:0 var(--space-2);border-radius:11px;display:inline-flex;align-items:center;font-size:12px;font-weight:700;background:var(--surface-raised);color:var(--accent-ink)}
-.tag--brand{background:var(--brand-soft);color:var(--brand)}
-.mini{width:48px;height:6px;border-radius:3px;background:var(--surface-raised);display:flex;overflow:hidden}
-.mini i{display:block;height:6px;border-radius:3px;background:var(--accent)}
-.rel-val{flex-shrink:0;white-space:nowrap;text-align:right;font-size:14px;font-weight:800;color:var(--accent-ink)}
-.rel-val--brand{color:var(--brand)}
 
 /* Testband (nur in der Testversion sichtbar) */
 .stage-band{position:sticky;top:0;z-index:30;background:var(--accent-ink);color:#FFFFFF;font:700 12px/22px var(--font-sans);text-align:center}
@@ -372,13 +361,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
         <div class="legend" id="legende"></div>
       </section>
 
-      <section class="card" aria-labelledby="gutTitel">
-        <h2 id="gutTitel">Gut vertragen</h2>
-        <p class="hint" id="gutHinweis" style="margin:2px 0 6px"></p>
-        <div id="gutListe"></div>
-      </section>
-
-      <p class="hint" style="padding:0 6px">Aus allen bisherigen Tagen. Mögliche Auslöser wertet Sandra im Wochenbericht aus.</p>
+      <p class="hint" style="padding:0 6px">Mögliche Auslöser wertet Sandra im Wochenbericht aus.</p>
     </div>
   </section>
 
@@ -1256,11 +1239,10 @@ $('eventDelete').addEventListener('click',()=>{
 
 // ══════════════════════════════════════════════════════════════════
 // VERLAUF
-// Oben eine Woche (Montag bis Sonntag) als Diagramm, darunter „Gut vertragen“
-// aus ALLEN bisherigen Tagen. „Oft davor“ (mögliche Auslöser) zeigt die App
-// Fabienne bewusst nicht: Auslöser können auch vom Vortag kommen, das bewertet
-// Sandra in der Auswertung. relations() berechnet „often“ trotzdem mit, damit
-// die Regel später in auswertung.html wiederverwendet werden kann.
+// Eine Woche (Montag bis Sonntag) als Diagramm. Zusammenhänge („Oft davor“,
+// „Gut vertragen“) zeigt die App Fabienne bewusst nicht: Auslöser können auch
+// vom Vortag kommen, das bewertet Sandra in der Auswertung. relations() bleibt
+// im Code, damit die Regel in auswertung.html wiederverwendet werden kann.
 // ══════════════════════════════════════════════════════════════════
 const FILTERS=[
   {id:'sodbrennen',label:'Sodbrennen',title:'Sodbrennen pro Tag',y:['Stark','Mittel','Leicht'],event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
@@ -1369,14 +1351,6 @@ function renderVerlauf(){
     <span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" class="panto"><circle class="ring ring--none" cx="7" cy="7" r="5.25"/></svg>nicht genommen</span>`
     +(f.id==='stuhl'?'<span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><rect width="12" height="12" rx="3" style="fill:var(--accent-ink)"/></svg>Durchfall-Tag</span>':'');
 
-  // Zusammenhänge
-  const r=relations(f);
-  $('gutHinweis').textContent=`Mindestens 3 Tage gegessen, nie mit ${f.what}`;
-  const row=(s,good)=>`<div class="rel-row"><div class="rel-name"><b>${esc(s.label)}</b><span class="tag${good?' tag--brand':''}">${s.tag}</span></div>`
-    +(good?`<span class="rel-val rel-val--brand">${s.days} Tage</span>`
-          :`<div class="row" style="gap:var(--space-2);flex-shrink:0"><div class="mini" aria-hidden="true"><i style="width:${Math.round(s.hits/s.days*100)}%"></i></div><span class="rel-val" aria-label="an ${s.hits} von ${s.days} Tagen">${s.hits} von ${s.days}</span></div>`)+'</div>';
-  const few=r.known<3;
-  $('gutListe').innerHTML=r.good.length?r.good.map(s=>row(s,true)).join(''):`<p class="hint" style="margin-top:6px">${few?'Noch zu wenige Tage.':'Noch nichts, das mindestens 3-mal ohne Beschwerden gegessen wurde.'}</p>`;
 }
 $('verlaufFilter').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){verlaufFilter=b.dataset.filter;renderVerlauf()}});
 $('wocheZurueck').addEventListener('click',()=>{weekKey=addDays(weekKey,-7);renderVerlauf()});
