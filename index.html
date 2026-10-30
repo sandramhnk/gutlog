@@ -448,7 +448,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
           </div>
           <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
             <label class="label" for="rem-abend-zeit">Uhrzeit</label>
-            <input class="input" id="rem-abend-zeit" data-rem-time type="time" value="20:30">
+            <input class="input" id="rem-abend-zeit" data-rem-time type="time" value="19:00">
           </div>
           <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
         </div>
@@ -459,7 +459,7 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
           </div>
           <div class="field" data-rem-timefield style="margin:var(--space-3) 0 0" hidden>
             <label class="label" for="rem-bericht-zeit">Uhrzeit</label>
-            <input class="input" id="rem-bericht-zeit" data-rem-time type="time" value="19:00">
+            <input class="input" id="rem-bericht-zeit" data-rem-time type="time" value="20:00">
           </div>
           <button type="button" class="inline-link" data-rem-test hidden style="margin-top:var(--space-2)">Jetzt ausprobieren</button>
         </div>
@@ -1694,10 +1694,10 @@ $('pantoDosen').addEventListener('click',e=>{
 // kurz im Hintergrund). Android und iOS legen Apps im Hintergrund nach einigen Minuten schlafen,
 // dann kommt nichts. Zuverlässig ginge das nur mit einem Server („Push“), den wir bewusst nicht haben.
 const REMINDERS={
-  abend:{on:'reminder',time:'reminderTime',last:'reminderLast',def:'20:30',weekday:null,
+  abend:{on:'reminder',time:'reminderTime',last:'reminderLast',def:'19:00',weekday:null,
     body:'Wie war dein Tag? Kurz eintragen.',hash:'#abschluss',
     due:k=>closeFilled(getDay(k).close)<CLOSE_FIELDS.length},
-  bericht:{on:'reportReminder',time:'reportReminderTime',last:'reportReminderLast',def:'19:00',weekday:0,
+  bericht:{on:'reportReminder',time:'reportReminderTime',last:'reportReminderLast',def:'20:00',weekday:0,
     body:'Sonntag: Bitte den Wochenbericht an Sandra schicken.',hash:'#bericht',
     due:k=>!(settings().reportSentWeeks||[]).includes(mondayOf(k))}
 };
