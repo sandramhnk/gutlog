@@ -372,19 +372,13 @@ a.btn-wide{display:flex;align-items:center;justify-content:center;text-decoratio
         <div class="legend" id="legende"></div>
       </section>
 
-      <section class="card card--accent" aria-labelledby="oftTitel">
-        <h2 id="oftTitel">Oft davor</h2>
-        <p class="hint hint--accent" id="oftHinweis" style="margin:2px 0 6px"></p>
-        <div id="oftListe"></div>
-      </section>
-
       <section class="card" aria-labelledby="gutTitel">
         <h2 id="gutTitel">Gut vertragen</h2>
         <p class="hint" id="gutHinweis" style="margin:2px 0 6px"></p>
         <div id="gutListe"></div>
       </section>
 
-      <p class="hint" style="padding:0 6px">Zeigt Zusammenhänge aus allen bisherigen Tagen, keine Ursachen. Erst ab 2 Fällen sichtbar.</p>
+      <p class="hint" style="padding:0 6px">Aus allen bisherigen Tagen. Mögliche Auslöser wertet Sandra im Wochenbericht aus.</p>
     </div>
   </section>
 
@@ -1262,9 +1256,11 @@ $('eventDelete').addEventListener('click',()=>{
 
 // ══════════════════════════════════════════════════════════════════
 // VERLAUF
-// Oben eine Woche (Montag bis Sonntag) als Diagramm, darunter Zusammenhänge
-// aus ALLEN bisherigen Tagen. Gezählt wird pro Tag: Gab es an Tagen mit einem
-// bestimmten Essen (oder Umstand) auffällig oft die Beschwerde?
+// Oben eine Woche (Montag bis Sonntag) als Diagramm, darunter „Gut vertragen“
+// aus ALLEN bisherigen Tagen. „Oft davor“ (mögliche Auslöser) zeigt die App
+// Fabienne bewusst nicht: Auslöser können auch vom Vortag kommen, das bewertet
+// Sandra in der Auswertung. relations() berechnet „often“ trotzdem mit, damit
+// die Regel später in auswertung.html wiederverwendet werden kann.
 // ══════════════════════════════════════════════════════════════════
 const FILTERS=[
   {id:'sodbrennen',label:'Sodbrennen',title:'Sodbrennen pro Tag',y:['Stark','Mittel','Leicht'],event:'Sodbrennen',what:'mittlerem oder starkem Sodbrennen'},
@@ -1375,13 +1371,11 @@ function renderVerlauf(){
 
   // Zusammenhänge
   const r=relations(f);
-  $('oftHinweis').textContent=`Was an Tagen mit ${f.what} oft dabei war (Tage mit Beschwerden von allen Tagen damit)`;
   $('gutHinweis').textContent=`Mindestens 3 Tage gegessen, nie mit ${f.what}`;
   const row=(s,good)=>`<div class="rel-row"><div class="rel-name"><b>${esc(s.label)}</b><span class="tag${good?' tag--brand':''}">${s.tag}</span></div>`
     +(good?`<span class="rel-val rel-val--brand">${s.days} Tage</span>`
           :`<div class="row" style="gap:var(--space-2);flex-shrink:0"><div class="mini" aria-hidden="true"><i style="width:${Math.round(s.hits/s.days*100)}%"></i></div><span class="rel-val" aria-label="an ${s.hits} von ${s.days} Tagen">${s.hits} von ${s.days}</span></div>`)+'</div>';
   const few=r.known<3;
-  $('oftListe').innerHTML=r.often.length?r.often.map(s=>row(s,false)).join(''):`<p class="hint" style="margin-top:6px">${few?'Noch zu wenige Tage mit Tagesabschluss. Nach ein paar Tagen erscheinen hier Hinweise.':'Bisher nichts Auffälliges.'}</p>`;
   $('gutListe').innerHTML=r.good.length?r.good.map(s=>row(s,true)).join(''):`<p class="hint" style="margin-top:6px">${few?'Noch zu wenige Tage.':'Noch nichts, das mindestens 3-mal ohne Beschwerden gegessen wurde.'}</p>`;
 }
 $('verlaufFilter').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){verlaufFilter=b.dataset.filter;renderVerlauf()}});
